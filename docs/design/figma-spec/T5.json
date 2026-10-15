@@ -1,0 +1,1847 @@
+{
+ "id": "29:1664",
+ "type": "FRAME",
+ "name": "Container",
+ "x": 0.0,
+ "y": 0.0,
+ "w": 393.0,
+ "h": 852.0,
+ "fills": [
+  "#0A0A0B"
+ ],
+ "radius": 44.0,
+ "effects": [
+  "0 30 60 0 #000000/0.60",
+  "0 0 0 1 #FFFFFF/0.08"
+ ],
+ "children": [
+  {
+   "id": "29:1665",
+   "type": "FRAME",
+   "name": "Icon",
+   "x": 0.0,
+   "y": 0.0,
+   "w": 393.0,
+   "h": 852.0,
+   "children": [
+    {
+     "id": "29:1666",
+     "type": "VECTOR",
+     "name": "Vector",
+     "x": 140.0,
+     "y": -200.0,
+     "w": 480.0,
+     "h": 480.0,
+     "fills": [
+      "radial[#5DF591/0.26 0%, #5DF591/0.00 100%] handles (0.50,0.50) (1.00,0.50)"
+     ]
+    },
+    {
+     "id": "29:1667",
+     "type": "VECTOR",
+     "name": "Vector",
+     "x": -220.0,
+     "y": 530.0,
+     "w": 460.0,
+     "h": 460.0,
+     "fills": [
+      "radial[#5DF591/0.10 0%, #5DF591/0.00 100%] handles (0.50,0.50) (1.00,0.50)"
+     ]
+    },
+    {
+     "id": "29:1668",
+     "type": "VECTOR",
+     "name": "Vector",
+     "x": -40.0,
+     "y": 40.0,
+     "w": 480.0,
+     "h": 230.0,
+     "fills": [
+      "linear[#5DF591/0.00 0%, #5DF591/0.08 50%, #5DF591/0.00 100%] handles (0.00,0.00) (1.00,0.00)"
+     ]
+    },
+    {
+     "id": "29:1669",
+     "type": "VECTOR",
+     "name": "Vector",
+     "x": 270.0,
+     "y": -180.0,
+     "w": 300.0,
+     "h": 300.0,
+     "strokes": [
+      "#5DF591/0.20"
+     ],
+     "strokeWeight": 1.2
+    },
+    {
+     "id": "29:1670",
+     "type": "VECTOR",
+     "name": "Vector",
+     "x": 205.0,
+     "y": -245.0,
+     "w": 430.0,
+     "h": 430.0,
+     "strokes": [
+      "#5DF591/0.11"
+     ],
+     "strokeWeight": 1.0
+    },
+    {
+     "id": "29:1671",
+     "type": "VECTOR",
+     "name": "Vector",
+     "x": 130.0,
+     "y": -320.0,
+     "w": 580.0,
+     "h": 580.0,
+     "strokes": [
+      "#5DF591/0.06"
+     ],
+     "strokeWeight": 1.0
+    },
+    {
+     "id": "29:1672",
+     "type": "VECTOR",
+     "name": "Vector",
+     "x": -30.0,
+     "y": 590.8,
+     "w": 460.0,
+     "h": 49.2,
+     "strokes": [
+      "#5DF591/0.10"
+     ],
+     "strokeWeight": 1.5
+    },
+    {
+     "id": "29:1673",
+     "type": "VECTOR",
+     "name": "Vector",
+     "x": 31.0,
+     "y": 113.0,
+     "w": 10.0,
+     "h": 10.0,
+     "fills": [
+      "#5DF591/0.55"
+     ]
+    },
+    {
+     "id": "29:1674",
+     "type": "VECTOR",
+     "name": "Vector",
+     "x": 356.0,
+     "y": 246.0,
+     "w": 8.0,
+     "h": 8.0,
+     "fills": [
+      "#5DF591/0.40"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "29:1675",
+   "type": "FRAME",
+   "name": "Container",
+   "x": 0.0,
+   "y": 0.0,
+   "w": 393.0,
+   "h": 50.0,
+   "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "pad": [
+     8.0,
+     28.0,
+     0,
+     36.0
+    ],
+    "main": "SPACE_BETWEEN",
+    "cross": "CENTER"
+   },
+   "children": [
+    {
+     "id": "29:1676",
+     "type": "FRAME",
+     "name": "Text",
+     "x": 36.0,
+     "y": 17.0,
+     "w": 31.0,
+     "h": 24.0,
+     "layout": {
+      "mode": "VERTICAL",
+      "gap": 0,
+      "pad": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "main": "MIN",
+      "cross": "MIN"
+     },
+     "children": [
+      {
+       "id": "29:1677",
+       "type": "TEXT",
+       "name": "9:41",
+       "x": 36.0,
+       "y": 17.0,
+       "w": 31.0,
+       "h": 24.0,
+       "fills": [
+        "#FFFFFF"
+       ],
+       "text": "9:41",
+       "font": {
+        "family": "Poppins",
+        "weight": 600,
+        "size": 16.0,
+        "lineHeight": 23.2,
+        "letterSpacing": 0.0,
+        "align": "LEFT"
+       }
+      }
+     ]
+    },
+    {
+     "id": "29:1678",
+     "type": "FRAME",
+     "name": "Text",
+     "x": 291.0,
+     "y": 22.5,
+     "w": 74.0,
+     "h": 13.0,
+     "layout": {
+      "mode": "HORIZONTAL",
+      "gap": 6.0,
+      "pad": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "main": "MIN",
+      "cross": "CENTER"
+     },
+     "children": [
+      {
+       "id": "29:1679",
+       "type": "FRAME",
+       "name": "Icon",
+       "x": 291.0,
+       "y": 23.0,
+       "w": 18.0,
+       "h": 12.0,
+       "children": [
+        {
+         "id": "29:1680",
+         "type": "VECTOR",
+         "name": "Vector",
+         "x": 291.0,
+         "y": 31.0,
+         "w": 3.0,
+         "h": 4.0,
+         "fills": [
+          "#FFFFFF"
+         ]
+        },
+        {
+         "id": "29:1681",
+         "type": "VECTOR",
+         "name": "Vector",
+         "x": 296.0,
+         "y": 28.5,
+         "w": 3.0,
+         "h": 6.5,
+         "fills": [
+          "#FFFFFF"
+         ]
+        },
+        {
+         "id": "29:1682",
+         "type": "VECTOR",
+         "name": "Vector",
+         "x": 301.0,
+         "y": 26.0,
+         "w": 3.0,
+         "h": 9.0,
+         "fills": [
+          "#FFFFFF"
+         ]
+        },
+        {
+         "id": "29:1683",
+         "type": "VECTOR",
+         "name": "Vector",
+         "x": 306.0,
+         "y": 23.0,
+         "w": 3.0,
+         "h": 12.0,
+         "fills": [
+          "#FFFFFF"
+         ]
+        }
+       ]
+      },
+      {
+       "id": "29:1684",
+       "type": "FRAME",
+       "name": "Icon",
+       "x": 315.0,
+       "y": 23.0,
+       "w": 17.0,
+       "h": 12.0,
+       "children": [
+        {
+         "id": "29:1685",
+         "type": "VECTOR",
+         "name": "Vector",
+         "x": 316.2,
+         "y": 23.8,
+         "w": 14.6,
+         "h": 10.6,
+         "fills": [
+          "#FFFFFF"
+         ]
+        }
+       ]
+      },
+      {
+       "id": "29:1686",
+       "type": "FRAME",
+       "name": "Icon",
+       "x": 338.0,
+       "y": 22.5,
+       "w": 27.0,
+       "h": 13.0,
+       "children": [
+        {
+         "id": "29:1687",
+         "type": "VECTOR",
+         "name": "Vector",
+         "x": 338.5,
+         "y": 23.0,
+         "w": 23.0,
+         "h": 12.0,
+         "strokes": [
+          "#FFFFFF/0.45"
+         ],
+         "strokeWeight": 1.0
+        },
+        {
+         "id": "29:1688",
+         "type": "VECTOR",
+         "name": "Vector",
+         "x": 340.0,
+         "y": 24.5,
+         "w": 20.0,
+         "h": 9.0,
+         "fills": [
+          "#FFFFFF"
+         ]
+        },
+        {
+         "id": "29:1689",
+         "type": "VECTOR",
+         "name": "Vector",
+         "x": 363.0,
+         "y": 27.0,
+         "w": 1.3,
+         "h": 4.0,
+         "fills": [
+          "#FFFFFF/0.45"
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "29:1690",
+   "type": "FRAME",
+   "name": "Container",
+   "x": 0.0,
+   "y": 50.0,
+   "w": 393.0,
+   "h": 52.0,
+   "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "pad": [
+     0,
+     20.0,
+     0,
+     20.0
+    ],
+    "main": "SPACE_BETWEEN",
+    "cross": "CENTER"
+   },
+   "children": [
+    {
+     "id": "29:1691",
+     "type": "FRAME",
+     "name": "Container",
+     "x": 20.0,
+     "y": 57.0,
+     "w": 38.0,
+     "h": 38.0,
+     "fills": [
+      "#16181C"
+     ],
+     "radius": 19.0,
+     "layout": {
+      "mode": "HORIZONTAL",
+      "gap": 0,
+      "pad": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "main": "CENTER",
+      "cross": "CENTER"
+     },
+     "children": [
+      {
+       "id": "29:1692",
+       "type": "FRAME",
+       "name": "Icon",
+       "x": 30.0,
+       "y": 67.0,
+       "w": 18.0,
+       "h": 18.0,
+       "children": [
+        {
+         "id": "29:1693",
+         "type": "VECTOR",
+         "name": "Vector",
+         "x": 36.8,
+         "y": 71.5,
+         "w": 4.5,
+         "h": 9.0,
+         "strokes": [
+          "#FFFFFF"
+         ],
+         "strokeWeight": 1.65
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "29:1694",
+     "type": "FRAME",
+     "name": "Container",
+     "x": 145.0,
+     "y": 64.0,
+     "w": 103.0,
+     "h": 24.0,
+     "layout": {
+      "mode": "VERTICAL",
+      "gap": 0,
+      "pad": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "main": "MIN",
+      "cross": "MIN"
+     },
+     "children": [
+      {
+       "id": "29:1695",
+       "type": "TEXT",
+       "name": "ยืนยันการดูห้อง",
+       "x": 145.0,
+       "y": 64.0,
+       "w": 103.0,
+       "h": 24.0,
+       "fills": [
+        "#FFFFFF"
+       ],
+       "text": "ยืนยันการดูห้อง",
+       "font": {
+        "family": "Poppins",
+        "weight": 600,
+        "size": 16.0,
+        "lineHeight": 23.2,
+        "letterSpacing": 0.0,
+        "align": "LEFT"
+       }
+      }
+     ]
+    },
+    {
+     "id": "29:1696",
+     "type": "FRAME",
+     "name": "Container",
+     "x": 335.0,
+     "y": 57.0,
+     "w": 38.0,
+     "h": 38.0,
+     "fills": [
+      "#16181C"
+     ],
+     "radius": 19.0,
+     "layout": {
+      "mode": "HORIZONTAL",
+      "gap": 0,
+      "pad": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "main": "CENTER",
+      "cross": "CENTER"
+     },
+     "children": [
+      {
+       "id": "29:1697",
+       "type": "FRAME",
+       "name": "Icon",
+       "x": 345.5,
+       "y": 67.5,
+       "w": 17.0,
+       "h": 17.0,
+       "children": [
+        {
+         "id": "29:1698",
+         "type": "VECTOR",
+         "name": "Vector",
+         "x": 348.3,
+         "y": 72.5,
+         "w": 11.3,
+         "h": 7.1,
+         "strokes": [
+          "#FFFFFF"
+         ],
+         "strokeWeight": 1.42
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "29:1699",
+   "type": "FRAME",
+   "name": "Container",
+   "x": 0.0,
+   "y": 102.0,
+   "w": 393.0,
+   "h": 594.0,
+   "layout": {
+    "mode": "VERTICAL",
+    "gap": 12.0,
+    "pad": [
+     4.0,
+     20.0,
+     8.0,
+     20.0
+    ],
+    "main": "MIN",
+    "cross": "CENTER"
+   },
+   "children": [
+    {
+     "id": "29:1756",
+     "type": "FRAME",
+     "name": "Container:margin",
+     "x": 164.5,
+     "y": 106.0,
+     "w": 64.0,
+     "h": 78.0,
+     "layout": {
+      "mode": "VERTICAL",
+      "gap": 0,
+      "pad": [
+       8.0,
+       0,
+       6.0,
+       0
+      ],
+      "main": "MIN",
+      "cross": "MIN"
+     },
+     "children": [
+      {
+       "id": "29:1700",
+       "type": "FRAME",
+       "name": "Container",
+       "x": 164.5,
+       "y": 114.0,
+       "w": 64.0,
+       "h": 64.0,
+       "fills": [
+        "#5DF591"
+       ],
+       "radius": 32.0,
+       "effects": [
+        "0 0 36 0 #5DF591/0.30",
+        "0 0 0 10 #5DF591/0.10"
+       ],
+       "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 0,
+        "pad": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "main": "CENTER",
+        "cross": "CENTER"
+       },
+       "children": [
+        {
+         "id": "29:1701",
+         "type": "FRAME",
+         "name": "Icon",
+         "x": 182.5,
+         "y": 132.0,
+         "w": 28.0,
+         "h": 28.0,
+         "children": [
+          {
+           "id": "29:1702",
+           "type": "VECTOR",
+           "name": "Vector",
+           "x": 186.0,
+           "y": 134.3,
+           "w": 21.0,
+           "h": 23.3,
+           "strokes": [
+            "#0A0A0B"
+           ],
+           "strokeWeight": 2.57
+          },
+          {
+           "id": "29:1703",
+           "type": "VECTOR",
+           "name": "Vector",
+           "x": 193.0,
+           "y": 146.0,
+           "w": 7.0,
+           "h": 11.7,
+           "strokes": [
+            "#0A0A0B"
+           ],
+           "strokeWeight": 2.57
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "29:1704",
+     "type": "FRAME",
+     "name": "Container",
+     "x": 64.4,
+     "y": 196.0,
+     "w": 264.2,
+     "h": 50.0,
+     "layout": {
+      "mode": "VERTICAL",
+      "gap": 0,
+      "pad": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "main": "MIN",
+      "cross": "MIN"
+     },
+     "children": [
+      {
+       "id": "29:1710",
+       "type": "FRAME",
+       "name": "Container",
+       "x": 64.4,
+       "y": 196.0,
+       "w": 264.2,
+       "h": 27.0,
+       "children": [
+        {
+         "id": "29:1705",
+         "type": "TEXT",
+         "name": "ดูห้องเรียบร้อยแล้วใช่ไหม?",
+         "x": 88.8,
+         "y": 196.0,
+         "w": 217.0,
+         "h": 27.0,
+         "fills": [
+          "#FFFFFF"
+         ],
+         "text": "ดูห้องเรียบร้อยแล้วใช่ไหม?",
+         "font": {
+          "family": "Poppins",
+          "weight": 700,
+          "size": 20.0,
+          "lineHeight": 27.0,
+          "letterSpacing": -0.2,
+          "align": "CENTER"
+         }
+        }
+       ]
+      },
+      {
+       "id": "29:1707",
+       "type": "FRAME",
+       "name": "Small",
+       "x": 64.4,
+       "y": 223.0,
+       "w": 264.2,
+       "h": 23.0,
+       "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "pad": [
+         4.0,
+         0,
+         0,
+         0
+        ],
+        "main": "MIN",
+        "cross": "CENTER"
+       },
+       "children": [
+        {
+         "id": "29:1708",
+         "type": "TEXT",
+         "name": "ถ้าห้องตรงตามที่ตกลง คุณปล่อยค่าจองให้ผู้ให้เช่าได",
+         "x": 64.0,
+         "y": 227.0,
+         "w": 265.0,
+         "h": 19.0,
+         "fills": [
+          "#B4B8BE"
+         ],
+         "text": "ถ้าห้องตรงตามที่ตกลง คุณปล่อยค่าจองให้ผู้ให้เช่าได้",
+         "font": {
+          "family": "Poppins",
+          "weight": 400,
+          "size": 13.0,
+          "lineHeight": 18.9,
+          "letterSpacing": 0.0,
+          "align": "CENTER"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "29:1711",
+     "type": "FRAME",
+     "name": "Container",
+     "x": 20.0,
+     "y": 258.0,
+     "w": 353.0,
+     "h": 124.0,
+     "fills": [
+      "#16181C"
+     ],
+     "radius": 20.0,
+     "layout": {
+      "mode": "VERTICAL",
+      "gap": 13.0,
+      "pad": [
+       16.0,
+       16.0,
+       16.0,
+       16.0
+      ],
+      "main": "MIN",
+      "cross": "MIN"
+     },
+     "children": [
+      {
+       "id": "29:1712",
+       "type": "FRAME",
+       "name": "Container",
+       "x": 36.0,
+       "y": 274.0,
+       "w": 321.0,
+       "h": 22.0,
+       "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12.0,
+        "pad": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "main": "MIN",
+        "cross": "CENTER"
+       },
+       "children": [
+        {
+         "id": "29:1713",
+         "type": "FRAME",
+         "name": "Italic Text",
+         "x": 36.0,
+         "y": 274.0,
+         "w": 22.0,
+         "h": 22.0,
+         "fills": [
+          "#5DF591"
+         ],
+         "radius": 11.0,
+         "layout": {
+          "mode": "HORIZONTAL",
+          "gap": 0,
+          "pad": [
+           0,
+           0,
+           0,
+           0
+          ],
+          "main": "CENTER",
+          "cross": "CENTER"
+         },
+         "children": [
+          {
+           "id": "29:1714",
+           "type": "FRAME",
+           "name": "Icon",
+           "x": 40.5,
+           "y": 278.5,
+           "w": 13.0,
+           "h": 13.0,
+           "children": [
+            {
+             "id": "29:1715",
+             "type": "VECTOR",
+             "name": "Vector",
+             "x": 42.7,
+             "y": 281.8,
+             "w": 8.7,
+             "h": 6.0,
+             "strokes": [
+              "#0A0A0B"
+             ],
+             "strokeWeight": 1.73
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "29:1716",
+         "type": "FRAME",
+         "name": "Text",
+         "x": 70.0,
+         "y": 275.0,
+         "w": 88.0,
+         "h": 20.0,
+         "layout": {
+          "mode": "VERTICAL",
+          "gap": 0,
+          "pad": [
+           0,
+           0,
+           0,
+           0
+          ],
+          "main": "MIN",
+          "cross": "MIN"
+         },
+         "children": [
+          {
+           "id": "29:1717",
+           "type": "TEXT",
+           "name": "ได้ดูห้องจริงแล้ว",
+           "x": 70.0,
+           "y": 275.0,
+           "w": 88.0,
+           "h": 20.0,
+           "fills": [
+            "#FFFFFF"
+           ],
+           "text": "ได้ดูห้องจริงแล้ว",
+           "font": {
+            "family": "Poppins",
+            "weight": 500,
+            "size": 13.5,
+            "lineHeight": 19.6,
+            "letterSpacing": 0.0,
+            "align": "LEFT"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "29:1719",
+       "type": "FRAME",
+       "name": "Container",
+       "x": 36.0,
+       "y": 309.0,
+       "w": 321.0,
+       "h": 22.0,
+       "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12.0,
+        "pad": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "main": "MIN",
+        "cross": "CENTER"
+       },
+       "children": [
+        {
+         "id": "29:1720",
+         "type": "FRAME",
+         "name": "Italic Text",
+         "x": 36.0,
+         "y": 309.0,
+         "w": 22.0,
+         "h": 22.0,
+         "fills": [
+          "#5DF591"
+         ],
+         "radius": 11.0,
+         "layout": {
+          "mode": "HORIZONTAL",
+          "gap": 0,
+          "pad": [
+           0,
+           0,
+           0,
+           0
+          ],
+          "main": "CENTER",
+          "cross": "CENTER"
+         },
+         "children": [
+          {
+           "id": "29:1721",
+           "type": "FRAME",
+           "name": "Icon",
+           "x": 40.5,
+           "y": 313.5,
+           "w": 13.0,
+           "h": 13.0,
+           "children": [
+            {
+             "id": "29:1722",
+             "type": "VECTOR",
+             "name": "Vector",
+             "x": 42.7,
+             "y": 316.8,
+             "w": 8.7,
+             "h": 6.0,
+             "strokes": [
+              "#0A0A0B"
+             ],
+             "strokeWeight": 1.73
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "29:1723",
+         "type": "FRAME",
+         "name": "Text",
+         "x": 70.0,
+         "y": 310.0,
+         "w": 216.0,
+         "h": 20.0,
+         "layout": {
+          "mode": "VERTICAL",
+          "gap": 0,
+          "pad": [
+           0,
+           0,
+           0,
+           0
+          ],
+          "main": "MIN",
+          "cross": "MIN"
+         },
+         "children": [
+          {
+           "id": "29:1724",
+           "type": "TEXT",
+           "name": "ห้องตรงกับเลขห้องและรายละเอียดในดีล",
+           "x": 70.0,
+           "y": 310.0,
+           "w": 216.0,
+           "h": 20.0,
+           "fills": [
+            "#FFFFFF"
+           ],
+           "text": "ห้องตรงกับเลขห้องและรายละเอียดในดีล",
+           "font": {
+            "family": "Poppins",
+            "weight": 500,
+            "size": 13.5,
+            "lineHeight": 19.6,
+            "letterSpacing": 0.0,
+            "align": "LEFT"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "29:1725",
+       "type": "FRAME",
+       "name": "Container",
+       "x": 36.0,
+       "y": 344.0,
+       "w": 321.0,
+       "h": 22.0,
+       "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 12.0,
+        "pad": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "main": "MIN",
+        "cross": "CENTER"
+       },
+       "children": [
+        {
+         "id": "29:1726",
+         "type": "FRAME",
+         "name": "Italic Text",
+         "x": 36.0,
+         "y": 344.0,
+         "w": 22.0,
+         "h": 22.0,
+         "fills": [
+          "#5DF591"
+         ],
+         "radius": 11.0,
+         "layout": {
+          "mode": "HORIZONTAL",
+          "gap": 0,
+          "pad": [
+           0,
+           0,
+           0,
+           0
+          ],
+          "main": "CENTER",
+          "cross": "CENTER"
+         },
+         "children": [
+          {
+           "id": "29:1727",
+           "type": "FRAME",
+           "name": "Icon",
+           "x": 40.5,
+           "y": 348.5,
+           "w": 13.0,
+           "h": 13.0,
+           "children": [
+            {
+             "id": "29:1728",
+             "type": "VECTOR",
+             "name": "Vector",
+             "x": 42.7,
+             "y": 351.8,
+             "w": 8.7,
+             "h": 6.0,
+             "strokes": [
+              "#0A0A0B"
+             ],
+             "strokeWeight": 1.73
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "29:1729",
+         "type": "FRAME",
+         "name": "Text",
+         "x": 70.0,
+         "y": 345.0,
+         "w": 149.0,
+         "h": 20.0,
+         "layout": {
+          "mode": "VERTICAL",
+          "gap": 0,
+          "pad": [
+           0,
+           0,
+           0,
+           0
+          ],
+          "main": "MIN",
+          "cross": "MIN"
+         },
+         "children": [
+          {
+           "id": "29:1730",
+           "type": "TEXT",
+           "name": "ผู้ให้เช่าเป็นคนเดียวกับในดีล",
+           "x": 70.0,
+           "y": 345.0,
+           "w": 149.0,
+           "h": 20.0,
+           "fills": [
+            "#FFFFFF"
+           ],
+           "text": "ผู้ให้เช่าเป็นคนเดียวกับในดีล",
+           "font": {
+            "family": "Poppins",
+            "weight": 500,
+            "size": 13.5,
+            "lineHeight": 19.6,
+            "letterSpacing": 0.0,
+            "align": "LEFT"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "29:1731",
+     "type": "FRAME",
+     "name": "Container",
+     "x": 20.0,
+     "y": 394.0,
+     "w": 353.0,
+     "h": 124.4,
+     "fills": [
+      "#16181C"
+     ],
+     "radius": 20.0,
+     "layout": {
+      "mode": "VERTICAL",
+      "gap": 10.0,
+      "pad": [
+       16.0,
+       16.0,
+       16.0,
+       16.0
+      ],
+      "main": "MIN",
+      "cross": "MIN"
+     },
+     "children": [
+      {
+       "id": "29:1732",
+       "type": "FRAME",
+       "name": "Container",
+       "x": 36.0,
+       "y": 410.0,
+       "w": 321.0,
+       "h": 41.2,
+       "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 10.0,
+        "pad": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "main": "MIN",
+        "cross": "CENTER"
+       },
+       "children": [
+        {
+         "id": "29:1733",
+         "type": "FRAME",
+         "name": "Text",
+         "x": 36.0,
+         "y": 413.6,
+         "w": 4.0,
+         "h": 34.0,
+         "fills": [
+          "#5DF591"
+         ],
+         "radius": 2.0
+        },
+        {
+         "id": "29:1734",
+         "type": "FRAME",
+         "name": "Container",
+         "x": 50.0,
+         "y": 410.0,
+         "w": 244.0,
+         "h": 41.2,
+         "layout": {
+          "mode": "VERTICAL",
+          "gap": 0,
+          "pad": [
+           0,
+           0,
+           0,
+           0
+          ],
+          "main": "MIN",
+          "cross": "MIN"
+         },
+         "children": [
+          {
+           "id": "29:1735",
+           "type": "FRAME",
+           "name": "Small",
+           "x": 50.0,
+           "y": 410.0,
+           "w": 244.0,
+           "h": 18.0,
+           "layout": {
+            "mode": "VERTICAL",
+            "gap": 0,
+            "pad": [
+             0,
+             0,
+             0,
+             0
+            ],
+            "main": "MIN",
+            "cross": "MIN"
+           },
+           "children": [
+            {
+             "id": "29:1736",
+             "type": "TEXT",
+             "name": "จะปล่อยตอนนี้ · ค่าจอง",
+             "x": 50.0,
+             "y": 410.0,
+             "w": 109.0,
+             "h": 18.0,
+             "fills": [
+              "#7A7F87"
+             ],
+             "text": "จะปล่อยตอนนี้ · ค่าจอง",
+             "font": {
+              "family": "Poppins",
+              "weight": 400,
+              "size": 12.0,
+              "lineHeight": 17.4,
+              "letterSpacing": 0.0,
+              "align": "LEFT"
+             }
+            }
+           ]
+          },
+          {
+           "id": "29:1738",
+           "type": "FRAME",
+           "name": "Container",
+           "x": 50.0,
+           "y": 428.0,
+           "w": 244.0,
+           "h": 23.2,
+           "children": [
+            {
+             "id": "29:1737",
+             "type": "TEXT",
+             "name": "ให้ สมชาย ใ. (xxx-x-x4821)",
+             "x": 50.0,
+             "y": 431.0,
+             "w": 170.0,
+             "h": 21.0,
+             "fills": [
+              "#FFFFFF"
+             ],
+             "text": "ให้ สมชาย ใ. (xxx-x-x4821)",
+             "font": {
+              "family": "Poppins",
+              "weight": 600,
+              "size": 14.0,
+              "lineHeight": 20.3,
+              "letterSpacing": 0.0,
+              "align": "LEFT"
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "29:1739",
+         "type": "FRAME",
+         "name": "Text",
+         "x": 304.0,
+         "y": 418.6,
+         "w": 53.0,
+         "h": 24.0,
+         "layout": {
+          "mode": "VERTICAL",
+          "gap": 0,
+          "pad": [
+           0,
+           0,
+           0,
+           0
+          ],
+          "main": "MIN",
+          "cross": "MIN"
+         },
+         "children": [
+          {
+           "id": "29:1740",
+           "type": "TEXT",
+           "name": "฿1,000",
+           "x": 304.0,
+           "y": 418.6,
+           "w": 53.0,
+           "h": 24.0,
+           "fills": [
+            "#5DF591"
+           ],
+           "text": "฿1,000",
+           "font": {
+            "family": "Arimo",
+            "weight": 600,
+            "size": 16.0,
+            "lineHeight": 23.2,
+            "letterSpacing": 0.0,
+            "align": "LEFT"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "29:1741",
+       "type": "FRAME",
+       "name": "Container",
+       "x": 36.0,
+       "y": 461.2,
+       "w": 321.0,
+       "h": 41.2,
+       "layout": {
+        "mode": "HORIZONTAL",
+        "gap": 10.0,
+        "pad": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "main": "MIN",
+        "cross": "CENTER"
+       },
+       "children": [
+        {
+         "id": "29:1742",
+         "type": "FRAME",
+         "name": "Text",
+         "x": 36.0,
+         "y": 464.8,
+         "w": 4.0,
+         "h": 34.0,
+         "fills": [
+          "#FFFFFF"
+         ],
+         "radius": 2.0
+        },
+        {
+         "id": "29:1743",
+         "type": "FRAME",
+         "name": "Container",
+         "x": 50.0,
+         "y": 461.2,
+         "w": 239.0,
+         "h": 41.2,
+         "layout": {
+          "mode": "VERTICAL",
+          "gap": 0,
+          "pad": [
+           0,
+           0,
+           0,
+           0
+          ],
+          "main": "MIN",
+          "cross": "MIN"
+         },
+         "children": [
+          {
+           "id": "29:1744",
+           "type": "FRAME",
+           "name": "Small",
+           "x": 50.0,
+           "y": 461.2,
+           "w": 239.0,
+           "h": 18.0,
+           "layout": {
+            "mode": "VERTICAL",
+            "gap": 0,
+            "pad": [
+             0,
+             0,
+             0,
+             0
+            ],
+            "main": "MIN",
+            "cross": "MIN"
+           },
+           "children": [
+            {
+             "id": "29:1745",
+             "type": "TEXT",
+             "name": "ยังกันไว้ · มัดจำหลัก",
+             "x": 50.0,
+             "y": 461.2,
+             "w": 94.0,
+             "h": 18.0,
+             "fills": [
+              "#7A7F87"
+             ],
+             "text": "ยังกันไว้ · มัดจำหลัก",
+             "font": {
+              "family": "Poppins",
+              "weight": 400,
+              "size": 12.0,
+              "lineHeight": 17.4,
+              "letterSpacing": 0.0,
+              "align": "LEFT"
+             }
+            }
+           ]
+          },
+          {
+           "id": "29:1747",
+           "type": "FRAME",
+           "name": "Container",
+           "x": 50.0,
+           "y": 479.2,
+           "w": 239.0,
+           "h": 23.2,
+           "children": [
+            {
+             "id": "29:1746",
+             "type": "TEXT",
+             "name": "จนกว่าคุณจะเข้าอยู่ 1 พ.ย. 2569",
+             "x": 50.0,
+             "y": 482.2,
+             "w": 184.0,
+             "h": 21.0,
+             "fills": [
+              "#FFFFFF"
+             ],
+             "text": "จนกว่าคุณจะเข้าอยู่ 1 พ.ย. 2569",
+             "font": {
+              "family": "Poppins",
+              "weight": 600,
+              "size": 14.0,
+              "lineHeight": 20.3,
+              "letterSpacing": 0.0,
+              "align": "LEFT"
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "29:1748",
+         "type": "FRAME",
+         "name": "Text",
+         "x": 299.0,
+         "y": 469.8,
+         "w": 58.0,
+         "h": 24.0,
+         "layout": {
+          "mode": "VERTICAL",
+          "gap": 0,
+          "pad": [
+           0,
+           0,
+           0,
+           0
+          ],
+          "main": "MIN",
+          "cross": "MIN"
+         },
+         "children": [
+          {
+           "id": "29:1749",
+           "type": "TEXT",
+           "name": "฿5,500",
+           "x": 299.0,
+           "y": 469.8,
+           "w": 58.0,
+           "h": 24.0,
+           "fills": [
+            "#FFFFFF"
+           ],
+           "text": "฿5,500",
+           "font": {
+            "family": "Arimo",
+            "weight": 600,
+            "size": 16.0,
+            "lineHeight": 23.2,
+            "letterSpacing": 0.0,
+            "align": "LEFT"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "29:1750",
+     "type": "FRAME",
+     "name": "Container",
+     "x": 20.0,
+     "y": 530.4,
+     "w": 353.0,
+     "h": 60.0,
+     "fills": [
+      "#FFB800/0.12"
+     ],
+     "radius": 14.0,
+     "layout": {
+      "mode": "HORIZONTAL",
+      "gap": 10.0,
+      "pad": [
+       12.0,
+       14.0,
+       12.0,
+       14.0
+      ],
+      "main": "MIN",
+      "cross": "MIN"
+     },
+     "children": [
+      {
+       "id": "29:1751",
+       "type": "FRAME",
+       "name": "Icon",
+       "x": 34.0,
+       "y": 542.4,
+       "w": 16.0,
+       "h": 16.0,
+       "children": [
+        {
+         "id": "29:1752",
+         "type": "VECTOR",
+         "name": "Vector",
+         "x": 35.3,
+         "y": 544.4,
+         "w": 13.3,
+         "h": 12.0,
+         "strokes": [
+          "#FFB800"
+         ],
+         "strokeWeight": 1.47
+        },
+        {
+         "id": "29:1753",
+         "type": "VECTOR",
+         "name": "Vector",
+         "x": 42.0,
+         "y": 548.4,
+         "w": 0.0,
+         "h": 5.3,
+         "strokes": [
+          "#FFB800"
+         ],
+         "strokeWeight": 1.47
+        }
+       ]
+      },
+      {
+       "id": "29:1754",
+       "type": "FRAME",
+       "name": "Text",
+       "x": 60.0,
+       "y": 542.4,
+       "w": 299.0,
+       "h": 36.0,
+       "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "pad": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "main": "MIN",
+        "cross": "MIN"
+       },
+       "children": [
+        {
+         "id": "29:1755",
+         "type": "TEXT",
+         "name": "ถ้ามีคนเร่งให้กดก่อนได้ดูห้อง อย่ากด — เงินยังปลอด",
+         "x": 60.0,
+         "y": 542.4,
+         "w": 299.0,
+         "h": 36.0,
+         "fills": [
+          "#FFD978"
+         ],
+         "text": "ถ้ามีคนเร่งให้กดก่อนได้ดูห้อง อย่ากด — เงินยังปลอดภัย และจะคืนคุณอัตโนมัติเมื่อหมดเวลา",
+         "font": {
+          "family": "Poppins",
+          "weight": 400,
+          "size": 12.0,
+          "lineHeight": 18.0,
+          "letterSpacing": 0.0,
+          "align": "LEFT"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "29:1757",
+   "type": "FRAME",
+   "name": "Container",
+   "x": 0.0,
+   "y": 696.0,
+   "w": 393.0,
+   "h": 126.0,
+   "layout": {
+    "mode": "VERTICAL",
+    "gap": 10.0,
+    "pad": [
+     8.0,
+     20.0,
+     6.0,
+     20.0
+    ],
+    "main": "MIN",
+    "cross": "MIN"
+   },
+   "children": [
+    {
+     "id": "29:1758",
+     "type": "FRAME",
+     "name": "Container",
+     "x": 20.0,
+     "y": 704.0,
+     "w": 353.0,
+     "h": 54.0,
+     "fills": [
+      "#5DF591"
+     ],
+     "radius": 100.0,
+     "effects": [
+      "0 10 26 0 #5DF591/0.22"
+     ],
+     "layout": {
+      "mode": "HORIZONTAL",
+      "gap": 8.0,
+      "pad": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "main": "CENTER",
+      "cross": "CENTER"
+     },
+     "children": [
+      {
+       "id": "29:1759",
+       "type": "FRAME",
+       "name": "Text",
+       "x": 114.0,
+       "y": 719.0,
+       "w": 140.0,
+       "h": 24.0,
+       "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "pad": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "main": "MIN",
+        "cross": "MIN"
+       },
+       "children": [
+        {
+         "id": "29:1760",
+         "type": "TEXT",
+         "name": "ปล่อยค่าจอง ฿1,000",
+         "x": 114.0,
+         "y": 719.0,
+         "w": 140.0,
+         "h": 24.0,
+         "fills": [
+          "#0A0A0B"
+         ],
+         "text": "ปล่อยค่าจอง ฿1,000",
+         "font": {
+          "family": "Poppins",
+          "weight": 600,
+          "size": 16.0,
+          "lineHeight": 23.2,
+          "letterSpacing": 0.0,
+          "align": "LEFT"
+         }
+        }
+       ]
+      },
+      {
+       "id": "29:1761",
+       "type": "FRAME",
+       "name": "Icon",
+       "x": 262.0,
+       "y": 722.5,
+       "w": 17.0,
+       "h": 17.0,
+       "children": [
+        {
+         "id": "29:1762",
+         "type": "VECTOR",
+         "name": "Vector",
+         "x": 268.4,
+         "y": 726.8,
+         "w": 4.2,
+         "h": 8.5,
+         "strokes": [
+          "#0A0A0B"
+         ],
+         "strokeWeight": 1.77
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "29:1763",
+     "type": "FRAME",
+     "name": "Container",
+     "x": 20.0,
+     "y": 768.0,
+     "w": 353.0,
+     "h": 48.0,
+     "strokes": [
+      "#3A3E45"
+     ],
+     "strokeWeight": 1.0,
+     "radius": 100.0,
+     "layout": {
+      "mode": "HORIZONTAL",
+      "gap": 8.0,
+      "pad": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "main": "CENTER",
+      "cross": "CENTER"
+     },
+     "children": [
+      {
+       "id": "29:1764",
+       "type": "FRAME",
+       "name": "Text",
+       "x": 121.5,
+       "y": 781.0,
+       "w": 150.0,
+       "h": 22.0,
+       "layout": {
+        "mode": "VERTICAL",
+        "gap": 0,
+        "pad": [
+         0,
+         0,
+         0,
+         0
+        ],
+        "main": "MIN",
+        "cross": "MIN"
+       },
+       "children": [
+        {
+         "id": "29:1765",
+         "type": "TEXT",
+         "name": "ยังไม่พร้อม / ห้องไม่ตรง",
+         "x": 121.5,
+         "y": 781.0,
+         "w": 150.0,
+         "h": 22.0,
+         "fills": [
+          "#FFFFFF"
+         ],
+         "text": "ยังไม่พร้อม / ห้องไม่ตรง",
+         "font": {
+          "family": "Poppins",
+          "weight": 600,
+          "size": 15.0,
+          "lineHeight": 21.8,
+          "letterSpacing": 0.0,
+          "align": "LEFT"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "29:1766",
+   "type": "FRAME",
+   "name": "Container",
+   "x": 0.0,
+   "y": 822.0,
+   "w": 393.0,
+   "h": 30.0,
+   "layout": {
+    "mode": "HORIZONTAL",
+    "gap": 0,
+    "pad": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "main": "CENTER",
+    "cross": "CENTER"
+   },
+   "children": [
+    {
+     "id": "29:1767",
+     "type": "FRAME",
+     "name": "Container",
+     "x": 129.5,
+     "y": 834.5,
+     "w": 134.0,
+     "h": 5.0,
+     "fills": [
+      "#FFFFFF"
+     ],
+     "radius": 3.0
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,55 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+
+# Env & secrets (commit only *.example)
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+.figma_token
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Frontend (Next.js)
+node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/next-env.d.ts
+*.tsbuildinfo
+.vercel
+
+# Frontend tests
+coverage/
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/playwright/.cache/
+
+# Backend (Go)
+backend/bin/
+backend/tmp/
+backend/dist/
+*.exe
+*.test
+*.out
+coverage.html
+
+# Docker / local data
+pgdata/
+docker-data/
+
+# Scratch
+tmp/
+.cache/
