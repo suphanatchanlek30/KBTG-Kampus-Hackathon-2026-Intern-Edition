@@ -45,7 +45,7 @@ test: ## go test ทั้ง backend
 sqlc: ## generate โค้ดจาก backend/internal/repository/queries
 	cd backend && $(GOBIN)/sqlc generate
 
-dev: ## รัน api บนเครื่องแบบ hot reload (air) — ต้อง make up ให้ db ทำงานก่อน
+dev: ## รัน api บนเครื่องแบบ hot reload (air) — ต้องมี db ทำงาน และหยุด container api ก่อน (docker compose stop api)
 	cd backend && DATABASE_URL="$(DB_URL)" JWT_SECRET=dev-only-secret-change-me-0123456789abcdef \
 		DEMO_TOOLS_ENABLED=true $(GOBIN)/air
 

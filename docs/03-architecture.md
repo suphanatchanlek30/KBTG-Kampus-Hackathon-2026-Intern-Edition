@@ -260,14 +260,15 @@ backend/
 │   └── platform/
 │       ├── database/postgres.go    ← pgxpool
 │       └── token/                  ← สุ่ม invite token, hash, share code, ref no
-├── migrations/                     ← goose: 0001_init.sql, 0002_seed_demo.sql ...
+├── migrations/                     ← goose: 0001_init.sql, 0002_seed_demo.sql ... (ฝังใน binary — api รัน goose up ตอน start)
 ├── api/openapi.yaml                ← สัญญา API (เขียนตาม 05-api.md)
 ├── sqlc.yaml
 ├── .air.toml
 ├── Dockerfile                      ← multi-stage, non-root
-├── go.mod
-└── Makefile
+└── go.mod
 ```
+
+> `Makefile` อยู่ที่ root ของ repo (คุมทั้ง docker compose และคำสั่ง Go) — `make help` ดูทั้งหมด
 
 **กติกา:**
 - handler **ห้าม** แตะ DB ตรง · service **ห้าม** รู้จัก Fiber
@@ -276,16 +277,19 @@ backend/
 
 ### 3.5 docker-compose (แนวทาง)
 
+ไฟล์จริง: [`docker-compose.yml`](../docker-compose.yml) — สรุปส่วนสำคัญ:
+
 ```yaml
 services:
   db:
-    image: postgres:<major-ล่าสุด>-alpine   # ตรวจเลขเวอร์ชันตอน setup
+    image: postgres:18-alpine
     environment:
       POSTGRES_USER: ksure
       POSTGRES_PASSWORD: ksure_dev_only
       POSTGRES_DB: ksure
     ports: ["5432:5432"]
-    volumes: [pgdata:/var/lib/postgresql/data]
+    # postgres 18+ เก็บข้อมูลใน /var/lib/postgresql/<major>/docker → mount ที่ /var/lib/postgresql (ไม่ใช่ .../data)
+    volumes: [pgdata:/var/lib/postgresql]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ksure"]
       interval: 3s
@@ -293,13 +297,17 @@ services:
 
   api:
     build: ./backend
-    env_file: .env
+    env_file: [{ path: .env, required: false }]   # ไม่มี .env ก็ขึ้นได้
+    environment:
+      # บังคับชี้ service db เสมอ (ค่าใน .env เป็น localhost สำหรับรันบนเครื่อง)
+      DATABASE_URL: postgres://ksure:ksure_dev_only@db:5432/ksure?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-...}
     ports: ["8080:8080"]
     depends_on:
       db: { condition: service_healthy }
 
-  adminer:            # ดูข้อมูลใน DB ผ่านเว็บ (optional)
-    image: adminer
+  adminer:            # ดูข้อมูลใน DB ผ่านเว็บ (optional) — make up เปิดให้ด้วย
+    image: adminer:6.1.2
     ports: ["8081:8080"]
     profiles: ["tools"]
 
@@ -313,13 +321,15 @@ Frontend รัน **นอก** Docker (`npm run dev`) เพื่อ hot relo
 
 | ตัวแปร | ตัวอย่าง | ใช้ที่ |
 |---|---|---|
-| `DATABASE_URL` | `postgres://ksure:ksure_dev_only@db:5432/ksure?sslmode=disable` | api |
+| `DATABASE_URL` | `postgres://ksure:ksure_dev_only@localhost:5432/ksure?sslmode=disable` | api — รันบนเครื่อง (`make dev`) · ใน compose ถูกบังคับเป็น `@db:5432` |
 | `PORT` | `8080` | api |
 | `JWT_SECRET` | (สุ่มยาว 32+ ตัว) | api |
 | `APP_TZ` | `Asia/Bangkok` | api |
 | `INVITE_TTL` | `24h` | api |
 | `EXPIRY_TICK` | `30s` | api |
 | `DEMO_TOOLS_ENABLED` | `true` | api — เปิด `/demo/*` |
+| `MIGRATE_ON_START` | `true` | api — รัน goose up ตอน start |
+| `LOG_LEVEL` | `info` | api — `debug` / `info` / `warn` / `error` |
 | `API_ORIGIN` | `http://localhost:8080` | frontend (rewrites) |
 | `NEXT_PUBLIC_USE_MOCK` | `true` / `false` | frontend |
 | `NEXT_PUBLIC_SHOW_DEMO_BADGE` | `true` | frontend |
