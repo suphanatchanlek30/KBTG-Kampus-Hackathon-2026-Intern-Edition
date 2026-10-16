@@ -23,9 +23,22 @@ export function ConfirmReleaseScreen({ kind }: { kind: ReleaseKind }) {
   const mutation = kind === "viewing" ? confirmViewing : confirmMoveIn;
   const [checked, setChecked] = useState(() => CHECKLISTS[kind].map(() => false));
   const [sheetOpen, setSheetOpen] = useState(false);
+  const { reset: resetMutation } = mutation;
+
+  // หน้านี้ค้างอยู่ใน <Activity> หลังออกไป — ตอนถูกซ่อน (cleanup) ล้าง state ของการเข้าหน้ารอบนี้
+  // เพื่อให้รอบถัดไปเริ่มใหม่: เช็กลิสต์ว่าง, sheet ปิด, mutation ไม่ค้าง isSuccess
+  useEffect(
+    () => () => {
+      setChecked(CHECKLISTS[kind].map(() => false));
+      setSheetOpen(false);
+      resetMutation();
+    },
+    [kind, resetMutation],
+  );
 
   // เปิดหน้าผิด state (เช่น ปล่อยค่าจองไปแล้ว) → กลับหน้าสถานะดีล (docs/01-user-flow.md §8 Guard)
-  const wrongState = deal && deal.state !== REQUIRED_STATE[kind] && !mutation.isPending && !mutation.isSuccess;
+  // ระหว่าง/หลังกดยืนยันในรอบนี้ไม่ต้อง redirect เพราะ onSuccess พาไปหน้าถัดไปเอง
+  const wrongState = deal && deal.state !== REQUIRED_STATE[kind] && mutation.isIdle;
   useEffect(() => {
     if (wrongState) router.replace(`/deals/${id}`);
   }, [wrongState, id, router]);
@@ -41,7 +54,6 @@ export function ConfirmReleaseScreen({ kind }: { kind: ReleaseKind }) {
         } else {
           router.replace(`/deals/${deal.id}/complete`);
         }
-        setChecked(CHECKLISTS[kind].map(() => false));
       },
     });
 

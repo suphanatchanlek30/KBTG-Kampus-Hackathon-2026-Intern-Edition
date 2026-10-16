@@ -31,21 +31,23 @@ export function DemoTools() {
     const as = new URLSearchParams(window.location.search).get("as");
     if (as === "tenant" || as === "landlord") {
       mockApi.setRole(as === "tenant" ? "TENANT" : "LANDLORD");
-      void qc.invalidateQueries();
+      void qc.resetQueries();
     }
   }, [qc]);
 
   if (!env.useMock) return null;
 
+  // ล้าง cache ทั้งหมด (ไม่ใช่แค่ invalidate) — หน้าที่ค้างอยู่ใน <Activity> จะโหลดข้อมูลใหม่เสมอเมื่อกลับมาแสดง
+  // กันกรณีกดรีเซ็ตเร็วระหว่างที่ mutation ก่อนหน้ายัง invalidate ไม่เสร็จ แล้วหน้าหลักค้างข้อมูลเก่า
   const switchRole = (next: Role) => {
     mockApi.setRole(next);
-    void qc.invalidateQueries();
+    void qc.resetQueries();
     router.push("/home");
   };
 
   const reset = (scenario: MockScenario) => {
     mockApi.reset(scenario);
-    void qc.invalidateQueries();
+    void qc.resetQueries();
     router.push("/home");
   };
 

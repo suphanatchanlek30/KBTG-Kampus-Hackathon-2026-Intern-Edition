@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ScreenSkeleton } from "@/components/layout/ScreenSkeleton";
 import { toast } from "@/components/ui/Toast";
 import { useDeal, useLockDeal, useMe } from "@/features/deals/hooks";
@@ -11,7 +11,12 @@ import { LockView, type ScanPhase } from "./LockView";
 const SCAN_MS = 1800;
 const MIN_TOTAL_MS = 2400;
 
-/** /deals/[id]/lock — T3 (D2 PIN pad ผ่าน ?method=pin จะทำใน Phase 8) */
+/**
+ * /deals/[id]/lock — T3 (D2 PIN pad ผ่าน ?method=pin จะทำใน Phase 8)
+ *
+ * Cache Components เก็บหน้านี้ไว้ใน <Activity> เมื่อออกไป (ไม่ unmount) และ cleanup effect ตอนซ่อน
+ * → state ของการเข้าหน้าแต่ละครั้ง (การสแกน) ต้องเริ่มใหม่ใน effect ไม่ใช่ตอน mount
+ */
 export function LockScreen() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -20,32 +25,35 @@ export function LockScreen() {
   const lock = useLockDeal();
   const [phase, setPhase] = useState<ScanPhase>("scanning");
   const [attempt, setAttempt] = useState(0);
-  const started = useRef(false);
+  const scanStartedAt = useRef(0);
 
-  const run = useCallback(() => {
-    if (!deal) return;
-    const startedAt = Date.now();
+  const waiting = deal?.state === "WAITING_ACCEPT";
+
+  // สแกนทุกครั้งที่หน้าแสดงและดีลยังรอกันเงิน (หรือกดลองใหม่)
+  useEffect(() => {
+    if (!deal || !waiting) return;
+    scanStartedAt.current = Date.now();
+    const reset = setTimeout(() => setPhase("scanning"), 0);
     const scan = setTimeout(() => {
       setPhase("success");
       navigator.vibrate?.(15);
-      lock.mutate(deal, {
-        onSuccess: () => {
-          const wait = Math.max(0, MIN_TOTAL_MS - (Date.now() - startedAt));
-          setTimeout(() => router.replace(`/deals/${deal.id}/locked`), wait);
-        },
-        onError: () => setPhase("error"),
-      });
+      lock.mutate(deal, { onError: () => setPhase("error") });
     }, SCAN_MS);
-    return () => clearTimeout(scan);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- เริ่มสแกนใหม่เฉพาะเมื่อเปลี่ยนดีลหรือกดลองใหม่
-  }, [deal?.id, attempt]);
+    return () => {
+      clearTimeout(reset);
+      clearTimeout(scan);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- เริ่มใหม่เฉพาะเมื่อเปลี่ยนดีล/สถานะ หรือกดลองใหม่
+  }, [deal?.id, waiting, attempt]);
 
+  // กันเงินแล้ว (สำเร็จจากการสแกนนี้ หรือกลับมาหน้านี้ภายหลัง) → ไป T4
+  const locked = deal?.state === "FUNDS_LOCKED";
   useEffect(() => {
-    // ดีลถูกกันเงินไปแล้ว (เช่น กด back กลับมา) → ไม่สแกนซ้ำ
-    if (!deal || deal.state !== "WAITING_ACCEPT" || started.current) return;
-    started.current = true;
-    return run();
-  }, [deal, run]);
+    if (!locked) return;
+    const wait = Math.max(0, MIN_TOTAL_MS - (Date.now() - scanStartedAt.current));
+    const t = setTimeout(() => router.replace(`/deals/${id}/locked`), wait);
+    return () => clearTimeout(t);
+  }, [locked, id, router]);
 
   if (!deal || !me) return <ScreenSkeleton />;
 
@@ -54,14 +62,10 @@ export function LockScreen() {
       amountSatang={deal.amounts.totalSatang}
       accountType={me.account.accountType}
       accountNoMasked={me.account.accountNoMasked}
-      phase={phase}
+      phase={locked ? "success" : phase}
       onClose={() => router.back()}
       onUsePin={() => toast.success("PIN pad (D2) จะเปิดใช้ใน Phase 8")}
-      onRetry={() => {
-        started.current = false;
-        setPhase("scanning");
-        setAttempt((a) => a + 1);
-      }}
+      onRetry={() => setAttempt((a) => a + 1)}
     />
   );
 }
