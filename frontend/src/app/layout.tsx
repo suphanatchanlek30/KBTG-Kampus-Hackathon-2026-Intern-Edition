@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_Thai, Poppins } from "next/font/google";
 import { brand } from "@/config/brand";
+import { QueryProvider } from "@/providers/QueryProvider";
 import "./globals.css";
 
 // Poppins ไม่ใช่ variable font ต้องระบุ weight · ตัวเลข/อังกฤษใช้ Poppins ส่วนไทย fallback ไป Noto Sans Thai
@@ -35,7 +36,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="th" className={`${poppins.variable} ${notoThai.variable}`}>
-      <body>{children}</body>
+      <body>
+        <QueryProvider>{children}</QueryProvider>
+      </body>
     </html>
   );
 }

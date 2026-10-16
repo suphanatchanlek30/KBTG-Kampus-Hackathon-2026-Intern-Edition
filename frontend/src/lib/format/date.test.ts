@@ -4,6 +4,7 @@ import {
   formatDateTime,
   formatDayMonth,
   formatDayMonthTime,
+  formatDayMonthTimeCompact,
   formatExpiry,
   formatTime,
   formatTimeNa,
@@ -24,6 +25,10 @@ describe("Thai Buddhist-era date formats", () => {
 
   it("วัน เดือนย่อ · เวลา (ไม่มีปี)", () => {
     expect(formatDayMonthTime(VIEWING)).toBe("18 ต.ค. · 14:00");
+  });
+
+  it("วัน เดือนย่อ เวลา (T1 ไม่มี ·)", () => {
+    expect(formatDayMonthTimeCompact(VIEWING)).toBe("18 ต.ค. 14:00");
   });
 
   it("วัน เดือนย่อ ปี", () => {

@@ -60,6 +60,9 @@
   --shadow-mint: 0 16px 36px rgb(103 221 144 / 0.1);
   --shadow-phone: 0 30px 60px rgb(0 0 0 / 0.6), 0 0 0 1px rgb(255 255 255 / 0.08);
   --shadow-scan: 0 8px 22px rgb(93 245 145 / 0.3);
+  --shadow-ring-neon: 0 0 0 1.5px #5df591;
+  --shadow-dot-neon: 0 0 10px #5df591;
+  --shadow-tile-active: 0 0 16px rgb(93 245 145 / 0.28);
   --shadow-accent-neon: inset 3px 0 0 #5df591;
   --shadow-accent-white: inset 3px 0 0 #ffffff;
 
@@ -196,7 +199,8 @@
 }
 /* แถบไฮไลต์ครึ่งล่างใต้ข้อความ เช่น "แบบไม่ต้องลุ้น" */
 @utility text-highlight {
-  background-image: linear-gradient(transparent 55%, rgb(93 245 145 / 0.45) 55%);
+  background-image: linear-gradient(transparent 58%, rgb(93 245 145 / 0.55) 58%);
+  padding-inline: 2px;
   box-decoration-break: clone;
 }
 

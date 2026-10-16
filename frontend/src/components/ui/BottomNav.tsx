@@ -1,4 +1,4 @@
-import { Bell, House, ReceiptText, Scan, User, type LucideIcon } from "lucide-react";
+import { Bell, House, ReceiptText, ScanLine, User, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { Badge } from "./Badge";
@@ -38,7 +38,7 @@ export function BottomNav({ active = "home", notificationCount = 0, scanHref = "
         <Icon size={21} strokeWidth={1.57} />
         <span>{label}</span>
         {id === "notifications" && notificationCount > 0 && (
-          <Badge variant="count" className="absolute -top-1 left-[32px]">
+          <Badge variant="count" className="absolute -top-1 left-[30px] border-nav">
             {notificationCount > 9 ? "9+" : notificationCount}
           </Badge>
         )}
@@ -59,7 +59,7 @@ export function BottomNav({ active = "home", notificationCount = 0, scanHref = "
           aria-label="สแกน QR"
           className="flex size-[52px] items-center justify-center rounded-[18px] bg-neon text-ink shadow-scan transition-transform active:scale-[0.94]"
         >
-          <Scan size={22} strokeWidth={2.11} />
+          <ScanLine size={22} strokeWidth={2.11} />
         </Link>
         {TABS.slice(2).map(renderTab)}
       </div>

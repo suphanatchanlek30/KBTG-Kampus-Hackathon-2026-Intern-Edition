@@ -83,3 +83,9 @@ export function formatExpiry(input: DateInput): string {
   const p = bangkokParts(input);
   return `${p.day} ${p.month} ${p.year} ${p.time}`;
 }
+
+/** `18 ต.ค. 14:00` — T1 การ์ดคำขอ "ดูห้อง …" (ไม่มี · และไม่มีปี) */
+export function formatDayMonthTimeCompact(input: DateInput): string {
+  const p = bangkokParts(input);
+  return `${p.day} ${p.month} ${p.time}`;
+}

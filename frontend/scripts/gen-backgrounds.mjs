@@ -1,0 +1,57 @@
+// สร้าง src/components/layout/backgrounds.generated.ts จาก docs/design/figma-spec/*.json
+// (ลายพื้นหลังของแต่ละหน้าจอ: แสง radial, แถบ sweep, วงแหวน, จุด) — รันใหม่หลัง ./scripts/figma/sync.sh
+// ใช้: node scripts/gen-backgrounds.mjs
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
+const specDir = fileURLToPath(new URL("../../docs/design/figma-spec/", import.meta.url));
+const outFile = fileURLToPath(new URL("../src/components/layout/backgrounds.generated.ts", import.meta.url));
+
+const COLOR = /#([0-9A-F]{6})(?:\/([\d.]+))?/i;
+const parseColor = (s) => {
+  const m = s.match(COLOR);
+  return { hex: `#${m[1]}`, alpha: m[2] ? Number(m[2]) : 1 };
+};
+
+const screens = {};
+for (const file of readdirSync(specDir).filter((f) => f.endsWith(".json")).sort()) {
+  const root = JSON.parse(readFileSync(specDir + file, "utf8"));
+  const bg = root.children[0];
+  const shapes = [];
+  for (const n of bg.children ?? []) {
+    const box = { x: n.x, y: n.y, w: n.w, h: n.h };
+    const fill = n.fills?.[0];
+    if (fill?.startsWith("radial")) {
+      shapes.push({ kind: "glow", ...box, ...parseColor(fill) });
+    } else if (fill?.startsWith("linear")) {
+      const stops = [...fill.matchAll(/#[0-9A-F]{6}\/([\d.]+)/gi)].map((m) => Number(m[1]));
+      shapes.push({ kind: "sweep", ...box, hex: parseColor(fill).hex, alpha: Math.max(...stops) });
+    } else if (n.strokes?.length) {
+      shapes.push({ kind: "ring", ...box, ...parseColor(n.strokes[0]), stroke: n.strokeWeight ?? 1 });
+    } else if (fill) {
+      shapes.push({ kind: "dot", ...box, ...parseColor(fill) });
+    }
+  }
+  screens[file.replace(".json", "")] = shapes;
+}
+
+const body = `// ⚠️ ไฟล์นี้สร้างอัตโนมัติด้วย scripts/gen-backgrounds.mjs — ห้ามแก้มือ
+// พิกัดเทียบมุมซ้ายบนของเฟรม 393×852 (รวม status bar 50px)
+
+export type BackgroundShape = {
+  kind: "glow" | "sweep" | "ring" | "dot";
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  hex: string;
+  alpha: number;
+  stroke?: number;
+};
+
+export const SCREEN_BACKGROUNDS = ${JSON.stringify(screens, null, 2)} satisfies Record<string, BackgroundShape[]>;
+
+export type BackgroundId = keyof typeof SCREEN_BACKGROUNDS;
+`;
+writeFileSync(outFile, body);
+console.log(`wrote ${outFile} (${Object.keys(screens).length} screens)`);
