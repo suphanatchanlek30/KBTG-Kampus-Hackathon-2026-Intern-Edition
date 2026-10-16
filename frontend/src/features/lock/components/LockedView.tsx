@@ -31,7 +31,7 @@ export function LockedView({ deal, account, onClose, onShare, onViewStatus, onHo
   return (
     <AppShell
       enter="modal"
-      background={<ScreenBackground screen="T4" hero={{ size: 84 }} />}
+      background={<ScreenBackground screen="T4" hero={{ size: 84, offsetY: -4 }} />}
       header={<AppHeader left="close" right="share" onLeft={onClose} onRight={onShare} />}
       footer={
         <motion.div {...enter(1.2, { y: 16, duration: 0.35 })}>
