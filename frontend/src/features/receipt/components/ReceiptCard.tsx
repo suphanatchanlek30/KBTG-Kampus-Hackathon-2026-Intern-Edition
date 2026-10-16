@@ -31,6 +31,7 @@ export function ReceiptCard({ header, lines, fields }: ReceiptCardProps) {
 
   return (
     <motion.section
+      data-export="proof"
       className="flex w-full flex-col gap-2.5 rounded-card bg-white p-4 text-ink"
       {...enter(CARD_AT, { y: 40, spring: SPRING_CARD })}
     >

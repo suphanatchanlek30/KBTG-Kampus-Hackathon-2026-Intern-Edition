@@ -58,3 +58,32 @@ UPDATE deal_invites SET revoked_at = @now WHERE deal_id = @deal_id AND revoked_a
 -- name: MarkDealNotificationsRead :exec
 UPDATE notifications SET read_at = @now
  WHERE user_id = @user_id AND deal_id = @deal_id AND type = @type AND read_at IS NULL;
+
+-- name: UpdateDealCancel :execrows
+-- บันทึกคำขอยกเลิกของฝ่ายหนึ่ง (state เดิม) หรือฝ่ายที่สองยินยอม (state = REFUNDED) — version+1 เสมอ
+UPDATE deals
+   SET state = @state, version = version + 1, updated_at = @now,
+       landlord_cancel_requested_at = COALESCE(sqlc.narg(landlord_requested_at), landlord_cancel_requested_at),
+       tenant_cancel_requested_at = COALESCE(sqlc.narg(tenant_requested_at), tenant_cancel_requested_at)
+ WHERE id = @id AND version = @version;
+
+-- name: MarkDealIssue :execrows
+UPDATE deals SET has_open_issue = true, version = version + 1, updated_at = @now
+ WHERE id = @id AND version = @version;
+
+-- name: ListDueDeals :many
+-- ขั้น 1 ของ expiry worker: หา candidate แบบไม่ล็อก (docs/04-database.md §6.5)
+SELECT d.id FROM deals d
+ WHERE d.state IN ('WAITING_ACCEPT', 'FUNDS_LOCKED', 'BOOKING_FEE_RELEASED')
+   AND (d.expires_at <= @now
+        OR (d.state = 'WAITING_ACCEPT' AND NOT EXISTS (
+              SELECT 1 FROM deal_invites i WHERE i.deal_id = d.id AND i.expires_at > @now AND i.revoked_at IS NULL)))
+ ORDER BY d.expires_at
+ LIMIT 50;
+
+-- name: GetDealForUpdateSkipLocked :one
+-- ขั้น 2: ได้ 0 แถว = มีคนถือ lock อยู่ (เช่น ผู้เช่ากำลัง confirm) → ข้าม รอบหน้าค่อยดู
+SELECT * FROM deals WHERE id = $1 FOR UPDATE SKIP LOCKED;
+
+-- name: HasActiveInvite :one
+SELECT EXISTS (SELECT 1 FROM deal_invites WHERE deal_id = @deal_id AND revoked_at IS NULL AND expires_at > @now);

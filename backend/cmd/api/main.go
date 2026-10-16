@@ -78,6 +78,9 @@ func run() error {
 	}
 	app := server.New(deps)
 
+	// expiry worker หยุดพร้อม API (ctx ถูกยกเลิกเมื่อได้ SIGINT/SIGTERM)
+	go deps.Deals.RunExpiryWorker(ctx, cfg.ExpiryTick, log)
+
 	errCh := make(chan error, 1)
 	go func() {
 		addr := fmt.Sprintf(":%d", cfg.Port)

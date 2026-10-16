@@ -137,6 +137,41 @@ func (h *DealHandler) ConfirmMoveIn(c fiber.Ctx) error {
 		service.ConfirmInput(req)))
 }
 
+func (h *DealHandler) Cancel(c fiber.Ctx) error {
+	var req versionRequest
+	if err := bindJSON(c, &req); err != nil {
+		return err
+	}
+	return send(c)(h.deals.Cancel(c.Context(), middleware.ActorFrom(c), middleware.IdempotencyFrom(c), c.Params("id"), req.Version))
+}
+
+func (h *DealHandler) ReportIssue(c fiber.Ctx) error {
+	var req versionRequest
+	if err := bindJSON(c, &req); err != nil {
+		return err
+	}
+	return send(c)(h.deals.ReportIssue(c.Context(), middleware.ActorFrom(c), middleware.IdempotencyFrom(c), c.Params("id"), req.Version))
+}
+
+// Calendar — GET /deals/{id}/calendar.ics
+func (h *DealHandler) Calendar(c fiber.Ctx) error {
+	body, name, err := h.deals.Calendar(c.Context(), middleware.ActorFrom(c), c.Params("id"))
+	if err != nil {
+		return err
+	}
+	c.Set(fiber.HeaderContentType, "text/calendar; charset=utf-8")
+	c.Set(fiber.HeaderContentDisposition, `attachment; filename="`+name+`"`)
+	return c.Send(body)
+}
+
+// ExpireNow — POST /demo/deals/{id}/expire-now (Demo tools)
+func (h *DealHandler) ExpireNow(c fiber.Ctx) error {
+	if err := h.deals.ExpireNow(c.Context(), c.Params("id")); err != nil {
+		return err
+	}
+	return h.Get(c)
+}
+
 // send เขียนคำตอบที่ service บันทึกไว้ (JSON เดิมทุกครั้งที่ใช้ key เดิม)
 func send(c fiber.Ctx) func(service.Response, error) error {
 	return func(r service.Response, err error) error {

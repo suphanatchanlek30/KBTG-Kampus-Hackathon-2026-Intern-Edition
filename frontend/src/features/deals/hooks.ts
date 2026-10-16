@@ -15,6 +15,7 @@ export const queryKeys = {
   invite: (code: string) => ["invite", code] as const,
   properties: ["properties"] as const,
   payees: ["payees"] as const,
+  notifications: ["notifications"] as const,
 };
 
 // Polling (docs/05-api.md §5) — เฉพาะ API จริง (mock เปลี่ยนได้จากเครื่องนี้เครื่องเดียว)
@@ -69,10 +70,36 @@ const dealScope = (action: string) => (deal: DealDTO) => `${action}:${deal.id}:v
 
 export const useCreateDeal = () =>
   useAction((input: CreateDealInput) => `create-deal:${JSON.stringify(input)}`, dealsApi.createDeal);
-export const useSendInvite = () => useAction((id: string) => `send-invite:${id}`, dealsApi.sendInvite);
+export const useSendInvite = () =>
+  useAction((v: dealsApi.SendInviteInput) => `send-invite:${v.id}:${v.phone ?? "app"}`, dealsApi.sendInvite);
 export const useRejectDeal = () => useAction(dealScope("reject"), dealsApi.rejectDeal);
-export const useLockDeal = () => useAction(dealScope("lock"), (deal: DealDTO, key) => dealsApi.lockDeal(deal, key));
+/** T3 — Face ID หรือ PIN (D2 · ค่า PIN ไม่ถูกส่ง) */
+export const useLockDeal = () =>
+  useAction(
+    (v: { deal: DealDTO; method: "FACE_ID" | "PIN" }) => `lock:${v.deal.id}:v${v.deal.version}`,
+    (v, key) => dealsApi.lockDeal(v.deal, key, v.method),
+  );
 export const useConfirmViewing = () => useAction(dealScope("confirm-viewing"), dealsApi.confirmViewing);
 export const useConfirmMoveIn = () => useAction(dealScope("confirm-move-in"), dealsApi.confirmMoveIn);
+export const useCancelDeal = () => useAction(dealScope("cancel"), dealsApi.cancelDeal);
+export const useReportIssue = () => useAction(dealScope("report-issue"), dealsApi.reportIssue);
+
+/** Demo tools — ไม่ต้องมี idempotency (ทำซ้ำได้ผลเดิม: ดีลจบแล้วได้ 409) */
+export const useExpireNow = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: dealsApi.expireNow,
+    onSuccess: () => qc.invalidateQueries(),
+    onError: (err) => toast.error(errorMessage(err)),
+  });
+};
+
+export const useNotifications = () =>
+  useQuery({ queryKey: queryKeys.notifications, queryFn: dealsApi.getNotifications, refetchInterval: poll(10_000) });
+export const useMarkAllRead = () => {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: dealsApi.markAllNotificationsRead, onSuccess: () => qc.invalidateQueries() });
+};
+
 export const useCreateTransfer = () =>
   useAction((t: dealsApi.TransferInput) => `transfer:${JSON.stringify(t)}`, dealsApi.createTransfer);

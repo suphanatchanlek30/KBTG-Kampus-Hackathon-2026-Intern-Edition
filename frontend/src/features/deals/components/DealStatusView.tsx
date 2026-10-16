@@ -1,6 +1,16 @@
 "use client";
 
-import { Building2, Calendar, CalendarCheck, ChevronRight, Key, QrCode, ReceiptText } from "lucide-react";
+import {
+  AlertTriangle,
+  Building2,
+  Calendar,
+  CalendarCheck,
+  ChevronRight,
+  Hourglass,
+  Key,
+  QrCode,
+  ReceiptText,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { ScreenBackground } from "@/components/layout/ScreenBackground";
@@ -8,6 +18,7 @@ import { StickyFooter } from "@/components/layout/StickyFooter";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { InfoNote } from "@/components/ui/InfoNote";
 import { Timeline } from "@/components/ui/Timeline";
 import type { DealDTO } from "@/types/api";
 import { stateBadge, timelineSteps } from "../state";
@@ -21,6 +32,8 @@ type DealStatusViewProps = {
   onBack?: () => void;
   onShare?: () => void;
   onAction?: (action: DealStatusAction) => void;
+  /** D11 — เปิด sheet ขอยกเลิก/ยินยอม (ไม่ส่ง = ไม่แสดงลิงก์ เช่นหน้า /dev/overlay) */
+  onCancel?: () => void;
 };
 
 /** ปุ่มหลักตาม state และ role (docs/01-user-flow.md §6 "สิ่งที่แต่ละหน้าจอแสดงตาม state") */
@@ -54,7 +67,7 @@ function primaryAction(deal: DealDTO): { action: DealStatusAction; label: string
  * L5 สถานะดีล (ผู้ให้เช่า) · D1 = state WAITING_ACCEPT · D8 = มุมผู้เช่า
  * ⚠️ D1 / D8 ยังรออนุมัติดีไซน์ — ใช้ layout L5 ตาม docs/01-user-flow.md §7
  */
-export function DealStatusView({ deal, onBack, onShare, onAction }: DealStatusViewProps) {
+export function DealStatusView({ deal, onBack, onShare, onAction, onCancel }: DealStatusViewProps) {
   const badge = stateBadge(deal.state);
   const counterparty =
     deal.myRole === "TENANT"
@@ -63,6 +76,14 @@ export function DealStatusView({ deal, onBack, onShare, onAction }: DealStatusVi
         ? `ผู้เช่า ${deal.tenant.shortName}`
         : "รอผู้เช่ายอมรับ";
   const primary = primaryAction(deal);
+  const other = deal.myRole === "TENANT" ? "ผู้ให้เช่า" : "ผู้เช่า";
+  const iRequestedCancel = Boolean(
+    deal.myRole === "TENANT" ? deal.cancel.tenantRequestedAt : deal.cancel.landlordRequestedAt,
+  );
+  const theyRequestedCancel = Boolean(
+    deal.myRole === "TENANT" ? deal.cancel.landlordRequestedAt : deal.cancel.tenantRequestedAt,
+  );
+  const canCancel = deal.allowedActions.includes("CANCEL");
   const toConfirm = primary?.action === "confirm-viewing" || primary?.action === "confirm-move-in";
 
   return (
@@ -98,9 +119,32 @@ export function DealStatusView({ deal, onBack, onShare, onAction }: DealStatusVi
         <Badge variant={badge.variant}>{badge.label}</Badge>
       </section>
 
+      {/* D11 — สถานะคำขอยกเลิก (⚠️ รออนุมัติดีไซน์) */}
+      {iRequestedCancel && (
+        <InfoNote tone="warn" icon={<Hourglass size={16} strokeWidth={1.6} />}>
+          ส่งคำขอยกเลิกแล้ว · รอ{other}ยินยอม — ระหว่างนี้เงินยังกันไว้
+        </InfoNote>
+      )}
+      {theyRequestedCancel && (
+        <InfoNote tone="warn" icon={<AlertTriangle size={16} strokeWidth={1.6} />}>
+          {other}ขอยกเลิกดีลนี้ — ถ้ายินยอม ยอดที่ยังกันไว้จะคืนผู้เช่าทันที
+        </InfoNote>
+      )}
+      {deal.hasOpenIssue && (
+        <InfoNote tone="warn" icon={<AlertTriangle size={16} strokeWidth={1.6} />}>
+          ผู้เช่าแจ้งว่าห้องไม่ตรงกับดีล · เงินยังกันไว้ ยังไม่ปล่อยค่าจอง
+        </InfoNote>
+      )}
+
       <FundsSecuredCard deal={deal} />
 
       <Timeline title="ไทม์ไลน์ดีล" items={timelineSteps(deal)} />
+
+      {onCancel && canCancel && (
+        <Button variant="link" className="mx-auto text-body text-muted" onClick={onCancel}>
+          {theyRequestedCancel ? "ยินยอมยกเลิกดีล" : "ขอยกเลิกดีล"}
+        </Button>
+      )}
     </AppShell>
   );
 }

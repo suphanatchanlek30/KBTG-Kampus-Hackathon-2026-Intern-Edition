@@ -139,3 +139,26 @@ export type LoginDTO = { user: MeDTO["user"] };
 
 /** POST /demo/reset (#27) — ชื่อ scenario ฝั่ง backend */
 export type DemoScenario = "fresh" | "waiting_accept" | "funds_locked" | "booking_released" | "released";
+
+/** GET /notifications (#22) */
+export type NotificationType =
+  | "DEAL_INVITE"
+  | "FUNDS_LOCKED"
+  | "BOOKING_FEE_RELEASED"
+  | "MAIN_DEPOSIT_RELEASED"
+  | "DEAL_REJECTED"
+  | "CANCEL_REQUESTED"
+  | "DEAL_REFUNDED"
+  | "DEAL_EXPIRED";
+
+export type NotificationDTO = {
+  id: string;
+  type: NotificationType;
+  dealId: string | null;
+  title: string;
+  body: string;
+  readAt: string | null;
+  createdAt: string;
+};
+
+export type NotificationsDTO = { items: NotificationDTO[]; unreadCount: number };

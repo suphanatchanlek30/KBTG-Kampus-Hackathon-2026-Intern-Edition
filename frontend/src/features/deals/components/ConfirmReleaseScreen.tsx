@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { toast } from "@/components/ui/Toast";
 import { formatExpiry } from "@/lib/format/date";
 import { formatBaht } from "@/lib/format/money";
-import { useConfirmMoveIn, useConfirmViewing, useDeal } from "../hooks";
+import { useConfirmMoveIn, useConfirmViewing, useDeal, useReportIssue } from "../hooks";
 import { CHECKLISTS, ConfirmReleaseView, type ReleaseKind } from "./ConfirmReleaseView";
 
 const REQUIRED_STATE = { viewing: "FUNDS_LOCKED", "move-in": "BOOKING_FEE_RELEASED" } as const;
@@ -19,6 +19,7 @@ export function ConfirmReleaseScreen({ kind }: { kind: ReleaseKind }) {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { data: deal, error } = useDeal(id);
+  const reportIssue = useReportIssue();
   const confirmViewing = useConfirmViewing();
   const confirmMoveIn = useConfirmMoveIn();
   const mutation = kind === "viewing" ? confirmViewing : confirmMoveIn;
@@ -84,8 +85,24 @@ export function ConfirmReleaseScreen({ kind }: { kind: ReleaseKind }) {
             <Button variant="secondary" onClick={() => router.replace(`/deals/${deal.id}`)}>
               ยังไม่ได้ไปดูห้อง (กลับไปก่อน)
             </Button>
-            {/* แจ้งปัญหา (Phase 8) ยังไม่ทำ — กดแล้วไม่เกิดอะไรขึ้น */}
-            <Button variant="secondary">ห้องไม่ตรงกับดีล → แจ้งปัญหา</Button>
+            {deal.hasOpenIssue ? (
+              <p className="text-caption text-muted">แจ้งปัญหาห้องไม่ตรงไปแล้ว · เงินยังกันไว้ ยังไม่ปล่อยค่าจอง</p>
+            ) : (
+              <Button
+                variant="secondary"
+                loading={reportIssue.isPending}
+                onClick={() =>
+                  reportIssue.mutate(deal, {
+                    onSuccess: () => {
+                      toast.success("แจ้งปัญหาแล้ว · เงินยังกันไว้ ไม่ปล่อยค่าจอง");
+                      router.replace(`/deals/${deal.id}`);
+                    },
+                  })
+                }
+              >
+                ห้องไม่ตรงกับดีล → แจ้งปัญหา
+              </Button>
+            )}
           </div>
         ) : (
           <div className="flex flex-col gap-4">

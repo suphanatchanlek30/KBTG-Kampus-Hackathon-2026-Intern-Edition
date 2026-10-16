@@ -11,6 +11,7 @@ import type {
   HomeDTO,
   InviteSentDTO,
   MeDTO,
+  NotificationsDTO,
   PayeeDTO,
   PropertyDTO,
   TransferPrecheckDTO,
@@ -37,10 +38,25 @@ export const getProperties = (): Promise<PropertyDTO[]> =>
 export const createDeal = (input: CreateDealInput, key: string): Promise<DealDTO> =>
   env.useMock ? mockApi.createDeal(input) : data(api.post<DealDTO>("/deals", input, idemHeaders(key)));
 
-export const sendInvite = (id: string, key: string): Promise<InviteSentDTO> =>
+/** ส่งเข้าแอปผู้เช่า (IN_APP) หรือตามเบอร์มือถือ (D10) */
+export type SendInviteInput = { id: string; phone?: string };
+
+export const sendInvite = ({ id, phone }: SendInviteInput, key: string): Promise<InviteSentDTO> =>
   env.useMock
     ? mockApi.sendInvite(id)
-    : data(api.post<InviteSentDTO>(`/deals/${id}/invite/send`, { channel: "IN_APP" }, idemHeaders(key)));
+    : data(
+        api.post<InviteSentDTO>(
+          `/deals/${id}/invite/send`,
+          phone ? { channel: "PHONE", phone } : { channel: "IN_APP" },
+          idemHeaders(key),
+        ),
+      );
+
+/** D10 — หาผู้เช่าจากเบอร์ (ได้แค่ชื่อย่อ) */
+export const lookupTenant = (phone: string): Promise<{ shortName: string }> =>
+  env.useMock
+    ? mockApi.lookupTenant(phone)
+    : data(api.get<{ shortName: string }>("/users/lookup", { params: { phone } }));
 
 export const rejectDeal = (deal: DealDTO, key: string): Promise<DealDTO> =>
   env.useMock
@@ -79,6 +95,30 @@ export const confirmMoveIn = (deal: DealDTO, key: string): Promise<DealDTO> =>
           idemHeaders(key),
         ),
       );
+
+/** D11 — ฝ่ายแรก = ขอยกเลิก · ฝ่ายที่สอง = ยินยอม (ยกเลิก + คืนเงิน) */
+export const cancelDeal = (deal: DealDTO, key: string): Promise<DealDTO> =>
+  env.useMock
+    ? mockApi.cancelDeal(deal.id)
+    : data(api.post<DealDTO>(`/deals/${deal.id}/cancel`, { version: deal.version }, idemHeaders(key)));
+
+/** D4 — ห้องไม่ตรงกับดีล (เงินยังกันไว้) */
+export const reportIssue = (deal: DealDTO, key: string): Promise<DealDTO> =>
+  env.useMock
+    ? mockApi.reportIssue(deal.id)
+    : data(api.post<DealDTO>(`/deals/${deal.id}/report-issue`, { version: deal.version }, idemHeaders(key)));
+
+/** Demo tools — ให้ดีลหมดอายุทันที (โชว์การคืนเงินอัตโนมัติ) */
+export const expireNow = (id: string): Promise<DealDTO> =>
+  env.useMock ? mockApi.expireNow(id) : data(api.post<DealDTO>(`/demo/deals/${id}/expire-now`));
+
+// ---- แจ้งเตือน (D7) ----
+
+export const getNotifications = (): Promise<NotificationsDTO> =>
+  env.useMock ? mockApi.getNotifications() : data(api.get<NotificationsDTO>("/notifications"));
+
+export const markAllNotificationsRead = (): Promise<{ unreadCount: number }> =>
+  env.useMock ? mockApi.markAllRead() : data(api.post<{ unreadCount: number }>("/notifications/read", { all: true }));
 
 // ---- โอนเงิน (T8) ----
 

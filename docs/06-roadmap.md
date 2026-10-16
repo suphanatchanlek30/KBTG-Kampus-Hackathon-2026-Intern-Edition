@@ -31,7 +31,7 @@ flowchart LR
 
 ---
 
-## Phase 1 · Frontend Foundation 🟡 (โค้ดครบ · เหลือ DoD ทดสอบบนมือถือจริง)
+## Phase 1 · Frontend Foundation ✅ (ทดสอบบนมือถือจริงผ่านแล้ว)
 
 ### 1.1 สร้างโปรเจกต์
 
@@ -98,7 +98,7 @@ npx next --version && npm ls tailwindcss motion
 
 ---
 
-## Phase 3 · อนิเมชัน & ความรู้สึก (polish) 🟡 (โค้ดครบ · เหลือ DoD ทดสอบบนมือถือจริง)
+## Phase 3 · อนิเมชัน & ความรู้สึก (polish) ✅ (ทดสอบบนมือถือจริงผ่านแล้ว)
 
 ทำตาม [02 §5](./02-ui-spec.md#5-animation-spec-ค่าจริงที่ต้องใช้) ด้วยค่าที่ระบุไว้ทุกตัว
 
@@ -111,7 +111,7 @@ npx next --version && npm ls tailwindcss motion
 - [x] `prefers-reduced-motion` ปิดลูปทั้งหมด
 - [x] `/dev/overlay` แสดงเฟรมสุดท้าย (`?motion=1` เพื่อดูอนิเมชัน) — เทียบ pixel (ไม่ใช้ fuzz) กับก่อน Phase 3: 9 หน้าเหมือนทุก pixel · L1/T1 ต่าง < 1px · T3 ไอคอนไม่จางจาก pulse · T5/T6 ขอบวงติ๊ก ~18px
 - [x] ลายพื้นหลัง (วงแหวน, ripple, glow) วางกึ่งกลางจอ — มือถือ 360/430px ยังตรงกลาง hero
-- [ ] ทดสอบบนมือถือจริง: ลื่น 60fps (ดู Performance ใน DevTools ไม่มี long task ระหว่างอนิเมชัน)
+- [x] ทดสอบบนมือถือจริง: ลื่น 60fps (ดู Performance ใน DevTools ไม่มี long task ระหว่างอนิเมชัน)
 
 **DoD:** อัดวิดีโอหน้าจอ L6/T7/T4/T3 บนมือถือจริง ดูแล้ว "รู้สึกเหมือนแอปธนาคาร" · reduced motion ทำงาน
 
@@ -201,14 +201,16 @@ go version
 
 ---
 
-## Phase 8 · Flow ทางเลือก + หน้าจอ D*
+## Phase 8 · Flow ทางเลือก + หน้าจอ D* ✅
 
-- [ ] T8: ให้เลือกผู้รับ/กรอกยอดเอง (endpoint ทำแล้วใน Phase 7 — ตอนนี้ใช้ยอด/บันทึกตามสคริปต์เดโม)
-- [ ] D2 PIN pad (ไม่ส่งค่า PIN) · D3 ผลลัพธ์ · D4/D5 sheet · D6 คำเชิญใช้ไม่ได้ · D7 แจ้งเตือน · D8 สถานะฝั่งผู้เช่า · D9 การ์ดดีล active · D10 แท็บเบอร์มือถือ · D11 ยกเลิก
-- [ ] `POST /deals/{id}/cancel`, `/report-issue`, `GET /deals/{id}/calendar.ics`
-- [ ] Expiry worker + `POST /demo/deals/{id}/expire-now`
-- [ ] "บันทึก QR" / "บันทึกหลักฐาน" (html-to-image) — **ใส่ลายน้ำ `SIMULATED · Prototype` บนรูปที่ export ทุกครั้ง** (บังคับ — กันรูปถูกนำไปใช้เป็นสลิปปลอม) · ปุ่มแชร์ (Web Share API + fallback คัดลอกลิงก์)
-- [ ] Integration test: cancel 2 ฝ่าย, expiry ชนกับ confirm
+- [x] T8: เลือกผู้รับ / แก้ยอด / บันทึกช่วยจำได้เอง (ค่าเริ่มต้นตามสคริปต์เดโม)
+- [x] D2 PIN pad (ไม่ส่งค่า PIN — ส่งแค่ `method: "PIN"`) · D3 ผลลัพธ์ (`/deals/[id]/result`) · D4 แจ้งปัญหาจริง / D5 sheet · D6 คำเชิญใช้ไม่ได้ (`ErrorScreen`) · D7 แจ้งเตือน (`/notifications` · กระดิ่ง + แท็บ) · D8 สถานะฝั่งผู้เช่า · D9 การ์ดดีล active · D10 ส่งด้วยเบอร์มือถือ · D11 ยกเลิก
+  - D11 วางเป็นลิงก์ "ขอยกเลิกดีล / ยินยอมยกเลิกดีล" ใต้ไทม์ไลน์ L5/D8 (ไม่ใช่เมนู ≡ — L5 ใน mockup ใช้ไอคอนแชร์ที่มุมขวา) + กล่องสถานะ "รออีกฝ่ายยินยอม"
+- [x] `POST /deals/{id}/cancel`, `/report-issue`, `GET /deals/{id}/calendar.ics`
+- [x] Expiry worker (ทุก `EXPIRY_TICK`, `FOR UPDATE SKIP LOCKED` + ตรวจซ้ำหลังได้ lock) + `POST /demo/deals/{id}/expire-now` (ปุ่มใน Demo tools)
+- [x] "บันทึก QR" / "บันทึกหลักฐาน" (html-to-image) — **ใส่ลายน้ำ `SIMULATED · Prototype` บนรูปที่ export ทุกครั้ง** (ใส่ลงใน DOM ระหว่างจับภาพ — `lib/export-image.ts`) · มือถือ = แผ่นแชร์ของระบบ · desktop = ดาวน์โหลด · ปุ่มแชร์ (Web Share API + fallback คัดลอก)
+- [x] Integration test: cancel 2 ฝ่าย (ก่อน/หลังปล่อยค่าจอง), expiry ชนกับ confirm (5 รอบ, `-race`), คำเชิญหมดอายุ, expire-now, report-issue, ics
+- [x] ผ่าน DoD ด้วย Playwright 2 context กับ API จริง 3 รอบติด: ปฏิเสธ → D3 · PIN · ยกเลิก 2 ฝ่าย → คืนเงิน · แจ้งปัญหา · หมดอายุ (มี/ไม่มีเงินกัน) · ส่งด้วยเบอร์ · บันทึก QR · แจ้งเตือน · T8 แก้ยอด — และโหมด mock ทำ flow เดียวกันได้โดยไม่เรียก API
 
 **DoD:** ทุกแถวในตาราง [01 §6](./01-user-flow.md#6-ตารางหลัก-หน้าจอ--state--api--ใครทำต่อ--event-ที่บันทึก) ทำได้จริงจาก UI
 
