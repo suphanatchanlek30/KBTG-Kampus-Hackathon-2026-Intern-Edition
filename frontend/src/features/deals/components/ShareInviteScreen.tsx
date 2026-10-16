@@ -32,7 +32,6 @@ export function ShareInviteScreen() {
           },
         })
       }
-      onSaveQr={() => toast.success("บันทึก QR จะเปิดใช้ใน Phase 8 (ใส่ลายน้ำ SIMULATED)")}
     />
   );
 }

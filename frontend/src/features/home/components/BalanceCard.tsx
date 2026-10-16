@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpDown, Download, Eye, EyeOff, Landmark, List } from "lucide-react";
+import { ArrowUpDown, Download, Eye, EyeOff, Landmark, List, type LucideIcon } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -11,11 +11,15 @@ import { MintCardDecor } from "@/components/ui/MintCardDecor";
 import { formatBaht } from "@/lib/format/money";
 import type { AccountDTO } from "@/types/api";
 
-const ACTIONS = [
+// ไม่มี href = ยังไม่ได้ทำ — กดแล้วไม่ไปไหน
+const ACTIONS: { label: string; icon: LucideIcon; href?: string }[] = [
   { label: "โอนเงิน", icon: ArrowUpDown, href: "/transfer" },
-  { label: "เติมเงิน", icon: Download, href: "/home" },
-  { label: "รายการ", icon: List, href: "/home" },
-] as const;
+  { label: "เติมเงิน", icon: Download },
+  { label: "รายการ", icon: List },
+];
+
+const ACTION_CLASS =
+  "flex h-[38px] items-center justify-center gap-1.5 rounded-full border border-white/35 bg-white/50 text-body font-medium text-ink transition-transform active:scale-[0.97]";
 
 // ยอดเงิน count-up เฉพาะครั้งแรกของ session (§5.6)
 const COUNTED_KEY = "ks-balance-counted";
@@ -92,16 +96,19 @@ export function BalanceCard({ account }: { account: AccountDTO }) {
       </div>
 
       <div className="relative mt-4 grid grid-cols-3 gap-2">
-        {ACTIONS.map(({ label, icon: Icon, href }) => (
-          <Link
-            key={label}
-            href={href}
-            className="flex h-[38px] items-center justify-center gap-1.5 rounded-full border border-white/35 bg-white/50 text-body font-medium text-ink transition-transform active:scale-[0.97]"
-          >
-            <Icon size={14} strokeWidth={1.28} />
-            {label}
-          </Link>
-        ))}
+        {ACTIONS.map(({ label, icon: Icon, href }) =>
+          href ? (
+            <Link key={label} href={href} className={ACTION_CLASS}>
+              <Icon size={14} strokeWidth={1.28} />
+              {label}
+            </Link>
+          ) : (
+            <button key={label} type="button" className={ACTION_CLASS}>
+              <Icon size={14} strokeWidth={1.28} />
+              {label}
+            </button>
+          ),
+        )}
       </div>
     </section>
   );
