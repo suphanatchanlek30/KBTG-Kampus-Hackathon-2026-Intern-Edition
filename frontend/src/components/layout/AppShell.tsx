@@ -70,7 +70,7 @@ export function AppShell({
         {...motionProps}
         className={cn(
           // [&>*]:shrink-0 — เนื้อหาสูงเกินจอต้องเลื่อนดู ไม่ใช่บีบการ์ดให้เตี้ยลง (flex column จะ shrink ลูกโดยปริยาย)
-          "relative z-0 min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain [&>*]:shrink-0",
+          "relative z-0 no-scrollbar min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain [&>*]:shrink-0",
           className,
         )}
       >

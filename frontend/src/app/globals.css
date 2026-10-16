@@ -264,6 +264,15 @@
 }
 
 /* ---- Gradient / glow (§1.1) — ใช้เป็น class ได้ เช่น bg-grad-mint ---- */
+/* ซ่อน scrollbar แต่ยังเลื่อนได้ — scrollbar แบบ desktop (macOS "แสดงตลอด" / Windows) กินความกว้าง ~15px
+   ทำให้เนื้อหากลางจอ (วงกลม hero) เยื้องจากวงแหวน/แสงที่อยู่กลางกรอบ · มือถือจริงใช้ scrollbar แบบลอยอยู่แล้ว */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @utility bg-grad-mint {
   background-image: linear-gradient(135deg, #def2b4 0%, #a8e9b4 45%, #67dd90 100%);
 }
