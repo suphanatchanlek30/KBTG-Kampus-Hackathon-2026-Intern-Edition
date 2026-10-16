@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ErrorScreen } from "@/components/layout/ErrorScreen";
 import { ScreenSkeleton } from "@/components/layout/ScreenSkeleton";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
@@ -17,7 +18,7 @@ const REQUIRED_STATE = { viewing: "FUNDS_LOCKED", "move-in": "BOOKING_FEE_RELEAS
 export function ConfirmReleaseScreen({ kind }: { kind: ReleaseKind }) {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { data: deal } = useDeal(id);
+  const { data: deal, error } = useDeal(id);
   const confirmViewing = useConfirmViewing();
   const confirmMoveIn = useConfirmMoveIn();
   const mutation = kind === "viewing" ? confirmViewing : confirmMoveIn;
@@ -42,6 +43,8 @@ export function ConfirmReleaseScreen({ kind }: { kind: ReleaseKind }) {
   useEffect(() => {
     if (wrongState) router.replace(`/deals/${id}`);
   }, [wrongState, id, router]);
+
+  if (error && !deal) return <ErrorScreen error={error} />;
 
   if (!deal || wrongState) return <ScreenSkeleton />;
 

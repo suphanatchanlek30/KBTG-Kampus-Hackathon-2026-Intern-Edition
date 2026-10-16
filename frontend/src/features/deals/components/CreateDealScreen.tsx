@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { DEMO_PROPERTY } from "@/mocks/fixtures";
+import { ScreenSkeleton } from "@/components/layout/ScreenSkeleton";
+import { useProperty } from "../hooks";
 import { useDealDraft } from "../store";
 import { CreateDealView } from "./CreateDealView";
 
@@ -9,11 +10,12 @@ import { CreateDealView } from "./CreateDealView";
 export function CreateDealScreen() {
   const router = useRouter();
   const { draft, update } = useDealDraft();
-  // Phase 7: ดึงห้องจาก GET /properties
+  const { data: property } = useProperty();
+  if (!property) return <ScreenSkeleton />;
   return (
     <CreateDealView
       draft={draft}
-      property={DEMO_PROPERTY}
+      property={property}
       onChange={update}
       onNext={() => router.push("/deals/new/review")}
     />

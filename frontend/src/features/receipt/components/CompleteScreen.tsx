@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { ErrorScreen } from "@/components/layout/ErrorScreen";
 import { ScreenSkeleton } from "@/components/layout/ScreenSkeleton";
 import { useDeal, useMe } from "@/features/deals/hooks";
 import { CompleteView } from "./CompleteView";
@@ -10,7 +11,7 @@ import { CompleteView } from "./CompleteView";
 export function CompleteScreen() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { data: deal } = useDeal(id);
+  const { data: deal, error } = useDeal(id);
   const { data: me } = useMe();
 
   // ยังปล่อยไม่ครบ → กลับหน้าสถานะ
@@ -18,6 +19,8 @@ export function CompleteScreen() {
   useEffect(() => {
     if (notDone) router.replace(`/deals/${id}`);
   }, [notDone, id, router]);
+
+  if (error && !deal) return <ErrorScreen error={error} />;
 
   if (!deal || !me || notDone) return <ScreenSkeleton />;
 

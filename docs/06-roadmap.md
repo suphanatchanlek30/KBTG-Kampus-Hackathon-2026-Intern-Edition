@@ -183,17 +183,19 @@ go version
 
 ---
 
-## Phase 7 · เชื่อม Frontend ↔ Backend
+## Phase 7 · เชื่อม Frontend ↔ Backend ✅
 
-- [ ] `next.config.ts` rewrites `/api/*` → `API_ORIGIN`
-- [ ] `lib/api/client.ts` (Axios + interceptors + `ApiError` + แปลง code → ข้อความไทย)
-- [ ] `lib/api/idempotency.ts`: สร้าง key ตอน "เริ่ม action" และใช้ key เดิมเมื่อ retry (เช่นเน็ตหลุด)
-- [ ] `QueryProvider` + hooks ใน `features/*/hooks.ts`
-- [ ] หน้า D0 ล็อกอินเดโม (2 ปุ่ม) + AuthGuard
-- [ ] ตั้ง `NEXT_PUBLIC_USE_MOCK=false` แล้วไล่ทุกหน้า
-- [ ] Polling ตาม [05 §5](./05-api.md#5-polling--real-time) + อนิเมชันเมื่อ state เปลี่ยน
-- [ ] Route guard ตาม state (เปิดหน้าผิด state → redirect)
-- [ ] Loading (Skeleton) + error (Toast) ทุกหน้า
+- [x] `next.config.ts` rewrites `/api/*` → `API_ORIGIN`
+- [x] `lib/api/client.ts` (Axios + interceptors + `ApiError` + แปลง code → ข้อความไทย · ใช้ข้อความไทยจาก server เป็นหลัก · 401 → `/login`)
+- [x] `lib/api/idempotency.ts`: key ต่อ "การกดหนึ่งครั้ง" — เน็ตหลุด retry อัตโนมัติ 2 ครั้งด้วย key เดิม และกดซ้ำก็ยังได้ key เดิมจนกว่าจะสำเร็จ/ถูกปฏิเสธ
+- [x] `QueryProvider` + hooks ใน `features/*/hooks.ts`
+- [x] หน้า D0 ล็อกอินเดโม (2 ปุ่ม) + AuthGuard (401 → `/login`) · ล็อกอิน/สลับ role/ออกจากระบบ = โหลดหน้าใหม่ทั้งหน้า (หน้าเก่าค้างใน `<Activity>`)
+- [x] ตั้ง `NEXT_PUBLIC_USE_MOCK=false` แล้วไล่ทุกหน้า — ห้องจาก `GET /properties`, วันที่เริ่มต้นฟอร์ม L2 คำนวณจากวันนี้, Demo tools เรียก `/auth/demo-login` + `/demo/reset`
+- [x] Polling ตาม [05 §5](./05-api.md#5-polling--real-time) + อนิเมชันเมื่อ state เปลี่ยน · ผู้ให้เช่าอยู่ L5 แล้วดีลปล่อยครบ → ไป L6 เอง
+- [x] Route guard ตาม state (เปิดหน้าผิด state → redirect) — มีตั้งแต่ Phase 2
+- [x] Loading (Skeleton) + error ทุกหน้า (`ErrorScreen` แทนการค้างเป็น skeleton · action ผิดพลาด = toast)
+- [x] T8 ของจริง (ย้ายมาจาก Phase 8 เพราะสคริปต์เดโมข้อ 6 ต้องใช้): `GET /transfers/payees`, `POST /transfers/precheck`, `POST /transfers`
+- [x] ผ่าน DoD ด้วย Playwright 2 context (ผู้ให้เช่า + ผู้เช่า) กับ API จริง 3 รอบติด — L5 เห็น Funds Secured ~1.9 วินาทีหลังผู้เช่ากันเงิน (polling 2 วินาที) · ยอดสุดท้าย 49,350 / 22,000
 
 **DoD:** เปิด 2 เบราว์เซอร์ (หรือมือถือ 2 เครื่อง) ทำสคริปต์เดโม [01 §9](./01-user-flow.md#9-สคริปต์เดโมบนเวที-2-เครื่อง-3-นาที) ข้อ 1–8 ได้ครบด้วยข้อมูลจริงจาก DB · L5 อัปเดตเองภายใน 3 วินาที
 
@@ -201,7 +203,7 @@ go version
 
 ## Phase 8 · Flow ทางเลือก + หน้าจอ D*
 
-- [ ] T8: หน้าโอนเงิน + `GET /transfers/payees`, `POST /transfers/precheck`, `POST /transfers`
+- [ ] T8: ให้เลือกผู้รับ/กรอกยอดเอง (endpoint ทำแล้วใน Phase 7 — ตอนนี้ใช้ยอด/บันทึกตามสคริปต์เดโม)
 - [ ] D2 PIN pad (ไม่ส่งค่า PIN) · D3 ผลลัพธ์ · D4/D5 sheet · D6 คำเชิญใช้ไม่ได้ · D7 แจ้งเตือน · D8 สถานะฝั่งผู้เช่า · D9 การ์ดดีล active · D10 แท็บเบอร์มือถือ · D11 ยกเลิก
 - [ ] `POST /deals/{id}/cancel`, `/report-issue`, `GET /deals/{id}/calendar.ics`
 - [ ] Expiry worker + `POST /demo/deals/{id}/expire-now`

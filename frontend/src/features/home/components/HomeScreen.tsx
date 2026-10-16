@@ -3,12 +3,11 @@
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { env } from "@/config/env";
 import { useHome } from "@/features/deals/hooks";
 import { DemoMenuSheet } from "@/features/demo/DemoTools";
 import { LandlordHomeView, TenantHomeView } from "./HomeViews";
 
-/** /home — L1 หรือ T1 ตาม role ของผู้ใช้ · ปุ่มเมนูเปิด sheet สลับ role (เฉพาะโหมด mock) */
+/** /home — L1 หรือ T1 ตาม role ของผู้ใช้ · ปุ่มเมนูเปิด sheet โหมดทดลอง (สลับ role / รีเซ็ต / ออกจากระบบ) */
 export function HomeScreen() {
   const { data: home } = useHome();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -23,7 +22,7 @@ export function HomeScreen() {
     );
   }
 
-  const onMenu = env.useMock ? () => setMenuOpen(true) : undefined;
+  const onMenu = () => setMenuOpen(true);
 
   return (
     <>

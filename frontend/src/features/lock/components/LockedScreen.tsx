@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { ErrorScreen } from "@/components/layout/ErrorScreen";
 import { ScreenSkeleton } from "@/components/layout/ScreenSkeleton";
 import { useDeal, useMe } from "@/features/deals/hooks";
 import { LockedView } from "./LockedView";
@@ -9,8 +10,10 @@ import { LockedView } from "./LockedView";
 export function LockedScreen() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { data: deal } = useDeal(id);
+  const { data: deal, error } = useDeal(id);
   const { data: me } = useMe();
+
+  if (error && !deal) return <ErrorScreen error={error} />;
 
   if (!deal || !me) return <ScreenSkeleton />;
 

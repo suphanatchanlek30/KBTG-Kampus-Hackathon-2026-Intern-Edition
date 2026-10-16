@@ -235,6 +235,12 @@ state ตรวจก่อน version เพื่อให้ "กดปล่
 
 > คำตอบที่บันทึกไว้สำหรับ Idempotency-Key **ตัด `invite.qrUrl` ออก** (token จริงห้ามอยู่ใน DB) — สร้างดีล/ออก QR ซ้ำด้วย key เดิมจึงไม่ได้ `qrUrl` ให้เรียก #11 ออกใหม่ · log ของ API บันทึก path แบบ pattern (`/invites/:code`) ไม่ใช่รหัสจริง
 
+### #10 `GET /deals/{id}` — ใครเปิดได้
+คู่ดีล (ผู้ให้เช่า / ผู้เช่าที่ผูกกับดีลแล้ว) · **หรือ** ผู้เช่าที่ยังไม่ได้ตอบคำเชิญ ถ้าดีลยัง `WAITING_ACCEPT` และมีคำเชิญที่ใช้ได้ (หน้า T3 โหลดดีลด้วย id ก่อนกันเงิน) — ได้ DealDTO แบบเดียวกับ #14 (ไม่มีข้อมูลผู้เช่า) · อื่นๆ → `403 NOT_DEAL_PARTY`
+
+### #24 `GET /transfers/payees`
+`{ "items": [ { "accountId": "…", "displayName": "สมชาย ใจดี", "bankName": "กสิกรไทย", "accountNoMasked": "xxx-x-x4821" } ] }` — บัญชีหลักของผู้ใช้เดโมคนอื่น (ผู้ให้เช่ามาก่อน)
+
 ### #9 `GET /deals?status=active|closed`
 ```json
 { "items": [ { "id": "…", "refNo": "KS-691014-0458", "state": "RELEASED", "projectName": "The Park สุขุมวิท 64",
@@ -319,7 +325,7 @@ server ตรวจว่า checklist ครบ 3 ข้อ (กันการ
 
 | หน้า | Query | `refetchInterval` | หยุดเมื่อ |
 |---|---|---|---|
-| L5 / D1 / D8 | `GET /deals/{id}` | 3000ms | state จบ (`RELEASED`, `REJECTED`, `EXPIRED`, `REFUNDED`) |
+| L5 / D1 / D8 | `GET /deals/{id}` | 2000ms (`NEXT_PUBLIC_POLL_MS`) — รวมเวลาวาดหน้าแล้วยังอยู่ใน 3 วินาที | state จบ (`RELEASED`, `REJECTED`, `EXPIRED`, `REFUNDED`) |
 | L1 / T1 | `GET /home` | 5000ms | ออกจากหน้า |
 | badge แจ้งเตือน | `GET /me` | 10000ms | – |
 

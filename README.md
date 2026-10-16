@@ -82,7 +82,9 @@
 
 ## 🚀 Getting started
 
-> ตอนนี้ frontend ใช้ mock data (`NEXT_PUBLIC_USE_MOCK=true`) — backend มี login เดโม, `/me`, `/home`, แจ้งเตือน และ `/demo/reset` แล้ว และ API ของดีลครบ (สร้าง/ส่งคำเชิญ/กันเงิน/ปล่อยเงิน) — รอต่อกับหน้าจอใน Phase 7
+> Frontend มี 2 โหมด (`frontend/.env.local`):
+> - `NEXT_PUBLIC_USE_MOCK=true` — ข้อมูลจำลองในเบราว์เซอร์ ไม่ต้องมี backend (ใช้กับ Vercel / โชว์ UI)
+> - `NEXT_PUBLIC_USE_MOCK=false` — เรียก API จริง เดโม 2 เครื่องเห็นข้อมูลเดียวกัน (ต้อง `make up` ก่อน)
 
 ### สิ่งที่ต้องติดตั้ง
 - Node.js LTS ล่าสุด + npm
@@ -110,6 +112,12 @@ cd frontend && npm install && npm run dev   # http://localhost:3000
 #    หน้า dev: /dev/components (แคตตาล็อก) · /dev/overlay?screen=L1 (วาง mockup ทับ)
 #    ตรวจ: npm run lint · npm run typecheck · npm test · npm run build
 ```
+
+### เดโม 2 เครื่องด้วย API จริง
+1. `make up` · ตั้ง `NEXT_PUBLIC_USE_MOCK=false` ใน `frontend/.env.local` แล้ว `npm run dev`
+2. เครื่อง A (ผู้ให้เช่า) และเครื่อง B (ผู้เช่า) เปิดแอป → หน้า `/login` เลือกบัญชีคนละฝั่ง
+3. ไล่สคริปต์เดโม [01 §9](docs/01-user-flow.md#9-สคริปต์เดโมบนเวที-2-เครื่อง-3-นาที) — จอ A อัปเดตเองภายใน ~2 วินาทีเมื่อ B กันเงิน/ปล่อยเงิน
+4. เริ่มใหม่: ปุ่ม ☰ ที่หน้าหลัก (หรือแผง Demo tools บน desktop) → รีเซ็ตดีล — มีผลกับทั้งสองเครื่อง
 
 ### เปิดบนมือถือ
 - มือถือและคอมอยู่ Wi-Fi เดียวกัน → เปิด `http://<IP คอม>:3000`
@@ -151,7 +159,7 @@ Adminer: http://localhost:8081 · server `db` · user `ksure` · password `ksure
 | 4 | Backend foundation (Fiber, Postgres, migration, seed) | ✅ |
 | 5 | Auth เดโม + Home API | ✅ |
 | 6 | Deal core: state machine, ledger, idempotency + tests | ✅ |
-| 7 | เชื่อม Frontend ↔ API + polling real-time | ⬜ |
+| 7 | เชื่อม Frontend ↔ API + polling real-time | ✅ |
 | 8 | Flow ทางเลือก (ปฏิเสธ, ยกเลิก, หมดอายุ, T8 โอนนอกดีล) + หน้าจอ D* | ⬜ |
 | 9 | E2E, PWA, HTTPS บนมือถือ, ซ้อมเดโม | ⬜ |
 | 10 | (ภายหลัง) AWS ตามสเปกต้นฉบับ | ⬜ |
