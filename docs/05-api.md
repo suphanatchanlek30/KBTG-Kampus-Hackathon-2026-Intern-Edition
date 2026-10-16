@@ -241,6 +241,16 @@ state ตรวจก่อน version เพื่อให้ "กดปล่
 ### #24 `GET /transfers/payees`
 `{ "items": [ { "accountId": "…", "displayName": "สมชาย ใจดี", "bankName": "กสิกรไทย", "accountNoMasked": "xxx-x-x4821" } ] }` — บัญชีหลักของผู้ใช้เดโมคนอื่น (ผู้ให้เช่ามาก่อน)
 
+### #19 `POST /deals/{id}/cancel` — รายละเอียดที่ทำจริง
+- ฝ่ายแรก: `200` DealDTO state เดิม · `cancel.xxxRequestedAt` มีค่า · `allowedActions` ของฝ่ายนี้ไม่มี `CANCEL` แล้ว · `nextActor` = อีกฝ่าย · ขอซ้ำ (key ใหม่) → `409`
+- ฝ่ายที่สอง: `200` state `REFUNDED` · `amounts.refundedSatang` = ยอดที่ยังไม่ปล่อย (หลังปล่อยค่าจอง = มัดจำหลักเท่านั้น)
+
+### #20 `POST /deals/{id}/report-issue`
+`{ "version": 2 }` → DealDTO `hasOpenIssue: true` (state/เงินเหมือนเดิม) · ทำได้เฉพาะผู้เช่า state `FUNDS_LOCKED` ครั้งเดียว
+
+### #28 `POST /demo/deals/{id}/expire-now`
+ให้ดีล active หมดอายุทันที (ไม่แก้ `expires_at` เพราะต้องมากกว่า `viewing_at`) → DealDTO `EXPIRED` (ยังไม่มีเงินกัน) หรือ `REFUNDED` · ดีลจบแล้ว → `409`
+
 ### #9 `GET /deals?status=active|closed`
 ```json
 { "items": [ { "id": "…", "refNo": "KS-691014-0458", "state": "RELEASED", "projectName": "The Park สุขุมวิท 64",

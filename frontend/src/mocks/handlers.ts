@@ -9,6 +9,8 @@ import type {
   DealState,
   HomeDTO,
   MeDTO,
+  NotificationDTO,
+  NotificationsDTO,
   Role,
   TransferPrecheckDTO,
 } from "@/types/api";
@@ -21,6 +23,13 @@ type MockDb = {
   dealState: DealState | null;
   inviteSent: boolean;
   input: CreateDealInput | null;
+  /** D11 — ฝ่ายที่ขอยกเลิกไว้ (รออีกฝ่ายยินยอม) */
+  cancelBy?: Role | null;
+  /** D4 — แจ้งปัญหาห้องไม่ตรงแล้ว */
+  issue?: boolean;
+  /** state ก่อนจบแบบคืนเงิน/หมดอายุ — ใช้คำนวณยอดที่คืน */
+  endedFrom?: DealState | null;
+  notificationsRead?: boolean;
 };
 
 const STORAGE_KEY = "ks-mock-db";
@@ -59,10 +68,48 @@ function save(next: MockDb) {
 
 const delay = <T>(value: T) => new Promise<T>((resolve) => setTimeout(() => resolve(value), LATENCY_MS));
 
+const NOW = () => new Date().toISOString();
+const other = (role: Role): Role => (role === "LANDLORD" ? "TENANT" : "LANDLORD");
+
 function currentDeal(state = load()): DealDTO | null {
   if (!state.dealState) return null;
-  const deal = makeDeal(state.dealState, state.role, state.input ?? undefined);
+  const ended = state.dealState === "REFUNDED" || state.dealState === "EXPIRED";
+  // ดีลที่จบแบบคืนเงิน: สร้างจาก state ก่อนจบ แล้วปรับยอด (ค่าจองที่ปล่อยแล้วไม่คืน)
+  const deal = makeDeal(
+    ended ? (state.endedFrom ?? "WAITING_ACCEPT") : state.dealState,
+    state.role,
+    state.input ?? undefined,
+  );
   if (!state.inviteSent && deal.invite) deal.invite = { ...deal.invite, sentAt: null };
+
+  if (ended) {
+    const refunded = deal.amounts.heldSatang;
+    deal.state = state.dealState;
+    deal.amounts = { ...deal.amounts, heldSatang: 0, refundedSatang: refunded };
+    deal.tranches = deal.tranches.map((t) => (t.status === "HELD" ? { ...t, status: "REFUNDED" } : t));
+    deal.timeline = [
+      ...deal.timeline,
+      { type: state.cancelBy ? "DEAL_CANCELLED" : "DEAL_EXPIRED", at: NOW(), amountSatang: null },
+      ...(refunded > 0 ? [{ type: "FUNDS_REFUNDED" as const, at: NOW(), amountSatang: refunded }] : []),
+    ];
+    deal.allowedActions = [];
+    deal.nextActor = null;
+    return deal;
+  }
+
+  if (state.cancelBy) {
+    const at = DEMO_TIMES.fundsLocked;
+    deal.cancel =
+      state.cancelBy === "LANDLORD"
+        ? { landlordRequestedAt: at, tenantRequestedAt: null }
+        : { landlordRequestedAt: null, tenantRequestedAt: at };
+    if (state.cancelBy === state.role) deal.allowedActions = deal.allowedActions.filter((a) => a !== "CANCEL");
+    deal.nextActor = other(state.cancelBy);
+  }
+  if (state.issue) {
+    deal.hasOpenIssue = true;
+    deal.allowedActions = deal.allowedActions.filter((a) => a !== "REPORT_ISSUE");
+  }
   return deal;
 }
 
@@ -82,9 +129,13 @@ async function transition(id: string, role: Role, from: DealState, to: DealState
 }
 
 export const mockApi = {
-  getMe: async (): Promise<MeDTO> => delay(makeMe(load().role, currentDeal())),
+  getMe: async (): Promise<MeDTO> => delay(makeMe(load().role, currentDeal(), load().notificationsRead ? 0 : 1)),
 
-  getHome: async (): Promise<HomeDTO> => delay(makeHome(load().role, currentDeal())),
+  getHome: async (): Promise<HomeDTO> => {
+    const home = makeHome(load().role, currentDeal());
+    home.me.unreadNotifications = load().notificationsRead ? 0 : 1;
+    return delay(home);
+  },
 
   getDeal: async (id: string): Promise<DealDTO> => delay(requireDeal(id)),
 
@@ -120,6 +171,89 @@ export const mockApi = {
   lockDeal: (id: string) => transition(id, "TENANT", "WAITING_ACCEPT", "FUNDS_LOCKED"),
   confirmViewing: (id: string) => transition(id, "TENANT", "FUNDS_LOCKED", "BOOKING_FEE_RELEASED"),
   confirmMoveIn: (id: string) => transition(id, "TENANT", "BOOKING_FEE_RELEASED", "RELEASED"),
+
+  /** D11 — ฝ่ายแรกขอ · อีกฝ่ายยินยอม = ยกเลิก + คืนเงิน (สลับ role ใน Demo tools เพื่อเล่นอีกฝั่ง) */
+  cancelDeal: async (id: string): Promise<DealDTO> => {
+    const state = load();
+    const deal = requireDeal(id);
+    if (deal.state !== "FUNDS_LOCKED" && deal.state !== "BOOKING_FEE_RELEASED")
+      throw new ApiError("DEAL_STATE_CONFLICT", 409);
+    if (state.cancelBy === state.role)
+      throw new ApiError("DEAL_STATE_CONFLICT", 409, "คุณขอยกเลิกไปแล้ว รออีกฝ่ายยินยอม");
+    save(
+      state.cancelBy ? { ...state, dealState: "REFUNDED", endedFrom: deal.state } : { ...state, cancelBy: state.role },
+    );
+    return delay(currentDeal()!);
+  },
+
+  reportIssue: async (id: string): Promise<DealDTO> => {
+    const state = load();
+    const deal = requireDeal(id);
+    if (state.role !== "TENANT") throw new ApiError("FORBIDDEN_ROLE", 403);
+    if (deal.state !== "FUNDS_LOCKED" || state.issue) throw new ApiError("DEAL_STATE_CONFLICT", 409);
+    save({ ...state, issue: true });
+    return delay(currentDeal()!);
+  },
+
+  expireNow: async (id: string): Promise<DealDTO> => {
+    const state = load();
+    const deal = requireDeal(id);
+    if (!["WAITING_ACCEPT", "FUNDS_LOCKED", "BOOKING_FEE_RELEASED"].includes(deal.state))
+      throw new ApiError("DEAL_STATE_CONFLICT", 409, "ดีลนี้จบไปแล้ว");
+    save({
+      ...state,
+      cancelBy: null,
+      dealState: deal.state === "WAITING_ACCEPT" ? "EXPIRED" : "REFUNDED",
+      endedFrom: deal.state,
+    });
+    return delay(currentDeal()!);
+  },
+
+  lookupTenant: async (phone: string): Promise<{ shortName: string }> => {
+    if (phone.replace(/\D/g, "") !== "0890001432") throw new ApiError("NOT_FOUND", 404, "ไม่พบผู้เช่าที่ใช้เบอร์นี้");
+    return delay({ shortName: DEMO_USERS.TENANT.user.shortName });
+  },
+
+  /** D7 — แจ้งเตือนสร้างจากไทม์ไลน์ของดีล (ฝั่งที่ต้องรู้) */
+  getNotifications: async (): Promise<NotificationsDTO> => {
+    const state = load();
+    const deal = currentDeal(state);
+    const items: NotificationDTO[] = [];
+    const push = (type: NotificationDTO["type"], title: string, body: string, at: string) =>
+      items.unshift({
+        id: `n-${items.length}`,
+        type,
+        dealId: deal?.id ?? null,
+        title,
+        body,
+        readAt: state.notificationsRead ? at : null,
+        createdAt: at,
+      });
+    for (const e of deal?.timeline ?? []) {
+      if (state.role === "TENANT" && e.type === "INVITE_SENT")
+        push("DEAL_INVITE", "คำขอ K Sure ใหม่", "จากคุณสมชาย ใ.", e.at);
+      if (state.role === "LANDLORD" && e.type === "FUNDS_LOCKED")
+        push("FUNDS_LOCKED", "เงินถูกกันไว้แล้ว", "ณัฐธิดา ศ. กันเงิน 6,500 สำหรับห้อง A1203", e.at);
+      if (state.role === "LANDLORD" && e.type === "BOOKING_FEE_RELEASED")
+        push("BOOKING_FEE_RELEASED", "ได้รับค่าจอง 1,000", "ณัฐธิดา ศ. ยืนยันดูห้อง A1203 แล้ว", e.at);
+      if (state.role === "LANDLORD" && e.type === "MAIN_DEPOSIT_RELEASED")
+        push("MAIN_DEPOSIT_RELEASED", "ได้รับเงินครบแล้ว 6,500", "ณัฐธิดา ศ. ยืนยันเข้าอยู่ห้อง A1203 แล้ว", e.at);
+      if (e.type === "FUNDS_REFUNDED") push("DEAL_REFUNDED", "คืนเงินแล้ว", "คืนเงินที่ยังกันไว้ให้ผู้เช่าแล้ว", e.at);
+    }
+    if (state.cancelBy && state.cancelBy !== state.role)
+      push(
+        "CANCEL_REQUESTED",
+        "มีคำขอยกเลิกดีล",
+        "อีกฝ่ายขอยกเลิกดีลห้อง A1203 — ยินยอมเพื่อคืนเงินที่ยังกันไว้",
+        DEMO_TIMES.fundsLocked,
+      );
+    return delay({ items, unreadCount: items.filter((n) => !n.readAt).length });
+  },
+
+  markAllRead: async (): Promise<{ unreadCount: number }> => {
+    save({ ...load(), notificationsRead: true });
+    return delay({ unreadCount: 0 });
+  },
 
   /** T8 — โอนหาคู่ดีลที่ยังไม่จบ → เตือน */
   precheckTransfer: async (toAccountId: string): Promise<TransferPrecheckDTO> => {

@@ -160,7 +160,7 @@ Adminer: http://localhost:8081 · server `db` · user `ksure` · password `ksure
 | 5 | Auth เดโม + Home API | ✅ |
 | 6 | Deal core: state machine, ledger, idempotency + tests | ✅ |
 | 7 | เชื่อม Frontend ↔ API + polling real-time | ✅ |
-| 8 | Flow ทางเลือก (ปฏิเสธ, ยกเลิก, หมดอายุ, T8 โอนนอกดีล) + หน้าจอ D* | ⬜ |
+| 8 | Flow ทางเลือก (ปฏิเสธ, ยกเลิก, หมดอายุ, T8 โอนนอกดีล) + หน้าจอ D* | ✅ |
 | 9 | E2E, PWA, HTTPS บนมือถือ, ซ้อมเดโม | ⬜ |
 | 10 | (ภายหลัง) AWS ตามสเปกต้นฉบับ | ⬜ |
 

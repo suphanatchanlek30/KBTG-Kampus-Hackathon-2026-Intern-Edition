@@ -11,17 +11,17 @@ import { errorMessage } from "@/lib/api/errors";
 import { DEMO_TRANSFER } from "@/mocks/fixtures";
 import { TransferView } from "./TransferView";
 
-/**
- * /transfer — โอนเงิน + T8 เตือนเมื่อโอนหาคู่ดีลที่ยังไม่จบ
- * เดโมใช้ยอด/บันทึกตามสคริปต์ (3,000 "ค่าส่วนกลางล่วงหน้า") หาผู้รับคนแรก = ผู้ให้เช่า · Phase 8 จะให้เลือกผู้รับ/กรอกยอดเอง
- */
+/** /transfer — โอนเงิน + T8 เตือนเมื่อโอนหาคู่ดีลที่ยังไม่จบ */
 export function TransferScreen() {
   const router = useRouter();
   const [warning, setWarning] = useState<string | null>(null);
   const { data: payees } = usePayees();
   const transfer = useCreateTransfer();
-  const { amountSatang, memo } = DEMO_TRANSFER;
-  const payee = payees?.[0];
+  // ค่าเริ่มต้นตามสคริปต์เดโม (3,000 "ค่าส่วนกลางล่วงหน้า" หาผู้ให้เช่า) — แก้ได้
+  const [amountSatang, setAmount] = useState<number>(DEMO_TRANSFER.amountSatang);
+  const [memo, setMemo] = useState<string>(DEMO_TRANSFER.memo);
+  const [picked, setPicked] = useState<string | null>(null);
+  const payee = payees?.find((p) => p.accountId === picked) ?? payees?.[0];
 
   const precheck = useMutation({
     mutationFn: () => precheckTransfer(payee!.accountId, amountSatang),
@@ -57,6 +57,10 @@ export function TransferScreen() {
       payee={payee}
       amountSatang={amountSatang}
       memo={memo}
+      payees={payees}
+      onPayeeChange={(p) => setPicked(p.accountId)}
+      onAmountChange={setAmount}
+      onMemoChange={setMemo}
       checking={precheck.isPending || transfer.isPending}
       warning={warning}
       onBack={() => router.back()}

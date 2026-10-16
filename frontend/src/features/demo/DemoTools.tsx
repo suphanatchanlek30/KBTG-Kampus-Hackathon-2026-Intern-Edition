@@ -3,12 +3,13 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { toast } from "@/components/ui/Toast";
 import { env } from "@/config/env";
 import { demoLogin, demoReset, hardNavigate, logout } from "@/features/auth/api";
-import { useMe } from "@/features/deals/hooks";
+import { getHome } from "@/features/deals/api";
+import { queryKeys, useExpireNow, useMe } from "@/features/deals/hooks";
 import { errorMessage } from "@/lib/api/errors";
 import { cn } from "@/lib/cn";
 import type { MockScenario } from "@/mocks/handlers";
@@ -30,7 +31,29 @@ const SCENARIOS: { id: MockScenario; label: string }[] = [
 function DemoControls({ large = false, onDone }: { large?: boolean; onDone?: () => void }) {
   const qc = useQueryClient();
   const router = useRouter();
-  const role = useMe().data?.user.role;
+  // แผงนี้ hydrate คนละจังหวะกับหน้า — ส่วนที่ขึ้นกับข้อมูลต้องแสดงหลัง hydrate เท่านั้น ไม่งั้น HTML ไม่ตรงกับ server
+  // (และห้ามโหลด /home ล่วงหน้าที่นี่: ถ้าข้อมูลมาก่อนหน้าหลัก hydrate หน้าหลักจะไม่ตรงกับ skeleton จาก server)
+  const hydrated = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+  const me = useMe().data;
+  const role = hydrated ? me?.user.role : undefined;
+  const expire = useExpireNow();
+
+  const expireNow = async () => {
+    // ดีลที่ยังไม่จบของฉัน (ผู้เช่าที่ยังไม่ตอบ = คำขอที่รออยู่) — โหลดตอนกด
+    const home = await qc.fetchQuery({ queryKey: queryKeys.home, queryFn: getHome }).catch(() => null);
+    const id = home?.activeDeals[0]?.dealId ?? home?.pendingInvites[0]?.dealId;
+    if (!id) return toast.error("ไม่มีดีลที่ยังไม่จบ");
+    expire.mutate(id, {
+      onSuccess: (deal) => {
+        onDone?.();
+        router.push(`/deals/${deal.id}/result`);
+      },
+    });
+  };
 
   const switchRole = async (next: Role) => {
     try {
@@ -96,6 +119,17 @@ function DemoControls({ large = false, onDone }: { large?: boolean; onDone?: () 
           </button>
         ))}
       </div>
+      <button
+        type="button"
+        disabled={expire.isPending}
+        onClick={expireNow}
+        className={cn(
+          "rounded-lg text-left text-warn hover:bg-card2 disabled:text-muted disabled:opacity-60",
+          large ? "px-3 py-2.5 text-body" : "px-2 py-1",
+        )}
+      >
+        ให้ดีลหมดอายุตอนนี้ (คืนเงินอัตโนมัติ)
+      </button>
       {!env.useMock && (
         <button
           type="button"

@@ -46,7 +46,7 @@ export function InviteReviewScreen() {
               reject.mutate(deal, {
                 onSuccess: () => {
                   setConfirmReject(false);
-                  router.replace("/home");
+                  router.replace(`/deals/${deal.id}/result`); // D3
                 },
               })
             }
