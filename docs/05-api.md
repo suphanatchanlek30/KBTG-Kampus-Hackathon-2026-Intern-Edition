@@ -222,7 +222,27 @@
 // 201 → DealDTO (state WAITING_ACCEPT, มี invite.qrUrl)
 ```
 - server คำนวณ `mainDepositSatang = total − booking`, `expiresAt = moveInDate + 2 วัน 23:59:59 (+07)`, `ref_no`, `share_code`, invite (24 ชม.)
-- validation: `0 < booking < total`, `viewingAt > now`, `moveInDate ≥ viewingAt (วันไทย)`, ห้องต้องเป็นของผู้ให้เช่าคนนี้
+- validation: `0 < booking < total`, `viewingAt > now`, `moveInDate ≥ viewingAt (วันไทย)`, ห้องต้องเป็นของผู้ให้เช่าคนนี้ · `total ≤ 100,000,000` สตางค์
+- `invite.qrUrl` = `<APP_BASE_URL>/invites/<token>`
+
+### ลำดับการตรวจของทุก action (หลัง `SELECT … FOR UPDATE`)
+1. เป็นคู่ดีลไหม → `403 NOT_DEAL_PARTY` (role ผิดถูกกันตั้งแต่ route → `403 FORBIDDEN_ROLE`)
+2. state + action + role อยู่ในตาราง transition ไหม → `409 DEAL_STATE_CONFLICT`
+3. `version` ตรงไหม → `409 VERSION_MISMATCH`
+4. ดีลยังไม่หมดอายุ → `410 INVITE_EXPIRED`
+
+state ตรวจก่อน version เพื่อให้ "กดปล่อยซ้ำหลังปล่อยแล้ว (key ใหม่)" ได้ `DEAL_STATE_CONFLICT` · คำตอบที่ส่งซ้ำจาก Idempotency-Key เดิมมี header `Idempotent-Replayed: true`
+
+> คำตอบที่บันทึกไว้สำหรับ Idempotency-Key **ตัด `invite.qrUrl` ออก** (token จริงห้ามอยู่ใน DB) — สร้างดีล/ออก QR ซ้ำด้วย key เดิมจึงไม่ได้ `qrUrl` ให้เรียก #11 ออกใหม่ · log ของ API บันทึก path แบบ pattern (`/invites/:code`) ไม่ใช่รหัสจริง
+
+### #9 `GET /deals?status=active|closed`
+```json
+{ "items": [ { "id": "…", "refNo": "KS-691014-0458", "state": "RELEASED", "projectName": "The Park สุขุมวิท 64",
+               "unitNo": "A1203", "totalSatang": 650000, "myRole": "LANDLORD", "createdAt": "…" } ] }
+```
+
+### #13 `GET /users/lookup?phone=0890001432`
+`{ "shortName": "ณัฐธิดา ศ." }` · ไม่ใช่ผู้เช่า/ไม่พบ → `404`
 
 ### #12 `POST /deals/{id}/invite/send` (L4 "ส่งเข้าแอปผู้เช่า")
 ```json

@@ -25,6 +25,7 @@ type Deps struct {
 	CookieSecure  bool
 	Users         *service.UserService
 	Notifications *service.NotificationService
+	Deals         *service.DealService
 	// nil = ปิด /demo/* (DEMO_TOOLS_ENABLED=false)
 	Demo *service.DemoService
 }

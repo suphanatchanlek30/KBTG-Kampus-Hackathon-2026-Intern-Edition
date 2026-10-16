@@ -90,3 +90,126 @@ type DemoResetDTO struct {
 	Scenario string  `json:"scenario"`
 	DealID   *string `json:"dealId"`
 }
+
+// ---- Deal (docs/05-api.md §3 DealDTO) ----
+
+type DealPropertyDTO struct {
+	ID           string `json:"id"`
+	PropertyType string `json:"propertyType"`
+	ProjectName  string `json:"projectName"`
+	UnitNo       string `json:"unitNo"`
+	DetailLabel  string `json:"detailLabel"`
+	NearbyLabel  string `json:"nearbyLabel"`
+}
+
+type PartyDTO struct {
+	DisplayName     string `json:"displayName"`
+	ShortName       string `json:"shortName"`
+	BankName        string `json:"bankName,omitempty"`
+	AccountNoMasked string `json:"accountNoMasked"`
+	NameVerified    *bool  `json:"nameVerified,omitempty"`
+}
+
+type DealAmountsDTO struct {
+	TotalSatang       int64 `json:"totalSatang"`
+	BookingFeeSatang  int64 `json:"bookingFeeSatang"`
+	MainDepositSatang int64 `json:"mainDepositSatang"`
+	FeeSatang         int64 `json:"feeSatang"`
+	ReleasedSatang    int64 `json:"releasedSatang"`
+	HeldSatang        int64 `json:"heldSatang"`
+	RefundedSatang    int64 `json:"refundedSatang"`
+}
+
+type TrancheDTO struct {
+	Key          string  `json:"key"`
+	AmountSatang int64   `json:"amountSatang"`
+	Status       string  `json:"status"`
+	ReleasedAt   *string `json:"releasedAt"`
+}
+
+type InviteDTO struct {
+	ExpiresAt string `json:"expiresAt"`
+	// ส่งเฉพาะตอนสร้าง/ออกใหม่ — DB เก็บแค่ hash ของ token จึงอ่านซ้ำไม่ได้
+	QrURL  string  `json:"qrUrl,omitempty"`
+	SentAt *string `json:"sentAt"`
+}
+
+type CancelDTO struct {
+	LandlordRequestedAt *string `json:"landlordRequestedAt"`
+	TenantRequestedAt   *string `json:"tenantRequestedAt"`
+}
+
+type TimelineItemDTO struct {
+	Type         string `json:"type"`
+	At           string `json:"at"`
+	AmountSatang *int64 `json:"amountSatang"`
+}
+
+// AccountBalanceDTO แนบมากับคำตอบของ lock (T4 "ยอดที่ใช้ได้ตอนนี้")
+type AccountBalanceDTO struct {
+	AvailableSatang int64 `json:"availableSatang"`
+	HeldSatang      int64 `json:"heldSatang"`
+}
+
+type DealDTO struct {
+	ID             string             `json:"id"`
+	RefNo          string             `json:"refNo"`
+	ShareCode      string             `json:"shareCode"`
+	State          string             `json:"state"`
+	Version        int32              `json:"version"`
+	DealType       string             `json:"dealType"`
+	Property       DealPropertyDTO    `json:"property"`
+	Landlord       PartyDTO           `json:"landlord"`
+	Tenant         *PartyDTO          `json:"tenant"`
+	Amounts        DealAmountsDTO     `json:"amounts"`
+	Tranches       []TrancheDTO       `json:"tranches"`
+	ViewingAt      string             `json:"viewingAt"`
+	MoveInDate     string             `json:"moveInDate"`
+	ExpiresAt      string             `json:"expiresAt"`
+	Invite         *InviteDTO         `json:"invite"`
+	Cancel         CancelDTO          `json:"cancel"`
+	HasOpenIssue   bool               `json:"hasOpenIssue"`
+	MyRole         string             `json:"myRole"`
+	NextActor      *string            `json:"nextActor"`
+	AllowedActions []string           `json:"allowedActions"`
+	Timeline       []TimelineItemDTO  `json:"timeline"`
+	CreatedAt      string             `json:"createdAt"`
+	Account        *AccountBalanceDTO `json:"account,omitempty"`
+}
+
+// Redacted คือสำเนาที่ไม่มี qrUrl — ใช้เก็บใน idempotency_keys เพราะ token จริงต้องไม่อยู่ใน DB
+// (ส่งซ้ำด้วย key เดิมจะไม่ได้ qrUrl → frontend เรียก POST /deals/{id}/invite เพื่อออกใหม่)
+func (d DealDTO) Redacted() any {
+	if d.Invite != nil && d.Invite.QrURL != "" {
+		inv := *d.Invite
+		inv.QrURL = ""
+		d.Invite = &inv
+	}
+	return d
+}
+
+type DealSummaryDTO struct {
+	ID          string `json:"id"`
+	RefNo       string `json:"refNo"`
+	State       string `json:"state"`
+	ProjectName string `json:"projectName"`
+	UnitNo      string `json:"unitNo"`
+	TotalSatang int64  `json:"totalSatang"`
+	MyRole      string `json:"myRole"`
+	CreatedAt   string `json:"createdAt"`
+}
+
+type DealListDTO struct {
+	Items []DealSummaryDTO `json:"items"`
+}
+
+type InviteSentDTO struct {
+	SentTo struct {
+		ShortName string `json:"shortName"`
+	} `json:"sentTo"`
+	SentAt string `json:"sentAt"`
+}
+
+type UserLookupDTO struct {
+	ShortName string `json:"shortName"`
+}

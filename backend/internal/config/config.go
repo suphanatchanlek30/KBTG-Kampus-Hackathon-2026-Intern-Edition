@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -27,6 +28,8 @@ type Config struct {
 	CookieSecure bool
 	// DEMO_FROZEN_NOW: ให้นาฬิกาของระบบเริ่มที่เวลานี้แล้วเดินต่อ (nil = เวลาจริง)
 	DemoFrozenNow *time.Time
+	// URL ของหน้าเว็บ (frontend) — ใช้สร้างลิงก์ใน QR: <APP_BASE_URL>/invites/<token>
+	AppBaseURL string
 }
 
 const minJWTSecretLen = 32
@@ -45,6 +48,7 @@ func Load() (Config, error) {
 		LogLevel:         stringEnv("LOG_LEVEL", "info"),
 		SessionTTL:       durationEnv("SESSION_TTL", 12*time.Hour, &errs),
 		CookieSecure:     boolEnv("COOKIE_SECURE", false, &errs),
+		AppBaseURL:       strings.TrimRight(stringEnv("APP_BASE_URL", "http://localhost:3000"), "/"),
 	}
 
 	if v := os.Getenv("DEMO_FROZEN_NOW"); v != "" {

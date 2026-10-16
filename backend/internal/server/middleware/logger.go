@@ -9,7 +9,8 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 )
 
-// RequestLogger log ทุก request เป็น JSON บรรทัดเดียว (ไม่ log query string/body — อาจมี token)
+// RequestLogger log ทุก request เป็น JSON บรรทัดเดียว
+// ไม่ log query string/body และใช้ path แบบ pattern (/invites/:code) — path จริงอาจมี invite token หรือ share code
 // ต้องวางหลัง requestid และหลัง error handler ทำงานแล้ว จึงอ่าน status จริงได้
 func RequestLogger(log *slog.Logger) fiber.Handler {
 	return func(c fiber.Ctx) error {
@@ -30,7 +31,7 @@ func RequestLogger(log *slog.Logger) fiber.Handler {
 		attrs := []any{
 			"request_id", requestid.FromContext(c),
 			"method", c.Method(),
-			"path", c.Path(),
+			"path", logPath(c),
 			"status", status,
 			"latency_ms", time.Since(start).Milliseconds(),
 		}
@@ -40,4 +41,12 @@ func RequestLogger(log *slog.Logger) fiber.Handler {
 		log.Log(c.Context(), level, "request", attrs...)
 		return nil
 	}
+}
+
+// logPath = pattern ของ route ที่ตรง · ไม่ตรง route ไหนเลย (404 — Route() ค้างที่ middleware "/") ใช้ path จริง
+func logPath(c fiber.Ctx) string {
+	if r := c.Route(); r != nil && r.Path != "" && r.Path != "/" {
+		return r.Path
+	}
+	return c.Path()
 }

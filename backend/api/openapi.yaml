@@ -162,6 +162,206 @@ paths:
                   unreadCount: { type: integer }
         "400": { $ref: "#/components/responses/Error" }
         "401": { $ref: "#/components/responses/Error" }
+  /deals:
+    get:
+      summary: ดีลของฉัน
+      operationId: listDeals
+      tags: [deals]
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [active, closed] } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/DealSummary" } }
+        "401": { $ref: "#/components/responses/Error" }
+    post:
+      summary: สร้างดีล → WAITING_ACCEPT + คำเชิญ QR (LANDLORD)
+      operationId: createDeal
+      tags: [deals]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [propertyId, totalSatang, bookingFeeSatang, viewingAt, moveInDate]
+              properties:
+                propertyId: { type: string, format: uuid }
+                totalSatang: { type: integer, format: int64, minimum: 1, maximum: 100000000 }
+                bookingFeeSatang: { type: integer, format: int64, description: "0 < booking < total" }
+                viewingAt: { type: string, format: date-time, description: ต้องอยู่ในอนาคต }
+                moveInDate: { type: string, format: date, description: ไม่ก่อนวันดูห้อง (เวลาไทย) }
+      responses:
+        "201": { $ref: "#/components/responses/Deal" }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+  /deals/{id}:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    get:
+      summary: ดีล + ไทม์ไลน์ + งวดเงิน (คู่ดีลเท่านั้น)
+      operationId: getDeal
+      tags: [deals]
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+  /deals/{id}/invite:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: ออก QR ใหม่ (อันเก่าใช้ไม่ได้) — LANDLORD
+      operationId: reissueInvite
+      tags: [deals]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "409": { $ref: "#/components/responses/Error" }
+        "410": { $ref: "#/components/responses/Error" }
+  /deals/{id}/invite/send:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: ส่งคำขอเข้าแอปผู้เช่า (IN_APP) หรือตามเบอร์ (PHONE) — LANDLORD
+      operationId: sendInvite
+      tags: [deals]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                channel: { type: string, enum: [IN_APP, PHONE], default: IN_APP }
+                phone: { type: string, example: "0890001432" }
+      responses:
+        "200":
+          description: ส่งแล้ว
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sentTo, sentAt]
+                properties:
+                  sentTo: { type: object, required: [shortName], properties: { shortName: { type: string } } }
+                  sentAt: { type: string, format: date-time }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+  /deals/{id}/reject:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: ปฏิเสธดีล WAITING_ACCEPT → REJECTED (TENANT)
+      operationId: rejectDeal
+      tags: [deal actions]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody: { $ref: "#/components/requestBodies/Version" }
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "409": { $ref: "#/components/responses/Error" }
+  /deals/{id}/lock:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: ยอมรับ + กันเงิน WAITING_ACCEPT → FUNDS_LOCKED (TENANT)
+      operationId: lockDeal
+      tags: [deal actions]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version, inviteCode, method]
+              properties:
+                version: { type: integer }
+                inviteCode: { type: string, description: share code หรือ token จาก QR ของดีลนี้ }
+                method: { type: string, enum: [FACE_ID, PIN], description: เก็บเป็นข้อมูลประกอบเท่านั้น ไม่มีค่า PIN }
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "410": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /deals/{id}/confirm-viewing:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: ยืนยันดูห้อง → ปล่อยค่าจอง (FUNDS_LOCKED → BOOKING_FEE_RELEASED)
+      operationId: confirmViewing
+      tags: [deal actions]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version, checklist]
+              properties:
+                version: { type: integer }
+                checklist:
+                  type: array
+                  description: ต้องครบทั้ง 3 ข้อ
+                  items: { type: string, enum: [VIEWED_ROOM, ROOM_MATCHES, LANDLORD_MATCHES] }
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+  /deals/{id}/confirm-move-in:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: ยืนยันเข้าอยู่ → ปล่อยมัดจำหลัก (BOOKING_FEE_RELEASED → RELEASED)
+      operationId: confirmMoveIn
+      tags: [deal actions]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version, checklist]
+              properties:
+                version: { type: integer }
+                checklist:
+                  type: array
+                  items: { type: string, enum: [GOT_KEYS, ROOM_USABLE, CONTRACT_SIGNED] }
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+  /invites/{code}:
+    get:
+      summary: ผู้เช่าดูดีลจาก share code หรือ token (T2) — จำกัด 30 ครั้ง/นาที
+      operationId: previewInvite
+      tags: [deals]
+      parameters:
+        - { name: code, in: path, required: true, schema: { type: string }, example: KS-8F4Q21 }
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "404": { $ref: "#/components/responses/Error" }
+        "410": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /users/lookup:
+    get:
+      summary: หาผู้เช่าจากเบอร์มือถือ (คืนแค่ชื่อย่อ) — LANDLORD
+      operationId: lookupUser
+      tags: [deals]
+      parameters:
+        - { name: phone, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, required: [shortName], properties: { shortName: { type: string } } }
+        "404": { $ref: "#/components/responses/Error" }
   /demo/reset:
     post:
       summary: รีเซ็ตข้อมูลเดโมตาม scenario (มีเมื่อ DEMO_TOOLS_ENABLED=true)
@@ -193,7 +393,34 @@ components:
       type: apiKey
       in: cookie
       name: ks_session
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: UUID ต่อการกดหนึ่งครั้ง — ส่งซ้ำ key เดิมได้คำตอบเดิม (header Idempotent-Replayed true)
+      schema: { type: string, maxLength: 255 }
+    DealID:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  requestBodies:
+    Version:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [version]
+            properties:
+              version: { type: integer }
   responses:
+    Deal:
+      description: DealDTO
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Deal" }
     Error:
       description: error (ดู code)
       content:
@@ -283,6 +510,108 @@ components:
         title: { type: string }
         body: { type: string }
         readAt: { type: [string, "null"], format: date-time }
+        createdAt: { type: string, format: date-time }
+    Party:
+      type: object
+      required: [displayName, shortName, accountNoMasked]
+      properties:
+        displayName: { type: string }
+        shortName: { type: string }
+        bankName: { type: string }
+        accountNoMasked: { type: string }
+        nameVerified: { type: boolean }
+    DealState:
+      type: string
+      enum: [WAITING_ACCEPT, REJECTED, FUNDS_LOCKED, BOOKING_FEE_RELEASED, RELEASED, EXPIRED, REFUNDED]
+    Deal:
+      type: object
+      description: docs/05-api.md §3 DealDTO
+      required: [id, refNo, shareCode, state, version, dealType, property, landlord, tenant, amounts, tranches,
+                 viewingAt, moveInDate, expiresAt, invite, cancel, hasOpenIssue, myRole, nextActor, allowedActions,
+                 timeline, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        refNo: { type: string, example: KS-691014-0458 }
+        shareCode: { type: string, example: KS-8F4Q21 }
+        state: { $ref: "#/components/schemas/DealState" }
+        version: { type: integer }
+        dealType: { type: string, enum: [RENTAL_DEPOSIT] }
+        property: { $ref: "#/components/schemas/Property" }
+        landlord: { $ref: "#/components/schemas/Party" }
+        tenant:
+          oneOf: [{ $ref: "#/components/schemas/Party" }, { type: "null" }]
+        amounts:
+          type: object
+          required: [totalSatang, bookingFeeSatang, mainDepositSatang, feeSatang, releasedSatang, heldSatang, refundedSatang]
+          properties:
+            totalSatang: { type: integer, format: int64 }
+            bookingFeeSatang: { type: integer, format: int64 }
+            mainDepositSatang: { type: integer, format: int64 }
+            feeSatang: { type: integer, format: int64 }
+            releasedSatang: { type: integer, format: int64 }
+            heldSatang: { type: integer, format: int64 }
+            refundedSatang: { type: integer, format: int64 }
+        tranches:
+          type: array
+          items:
+            type: object
+            required: [key, amountSatang, status, releasedAt]
+            properties:
+              key: { type: string, enum: [BOOKING_FEE, MAIN_DEPOSIT] }
+              amountSatang: { type: integer, format: int64 }
+              status: { type: string, enum: [PENDING, HELD, RELEASED, REFUNDED] }
+              releasedAt: { type: [string, "null"], format: date-time }
+        viewingAt: { type: string, format: date-time }
+        moveInDate: { type: string, format: date }
+        expiresAt: { type: string, format: date-time }
+        invite:
+          oneOf:
+            - type: object
+              required: [expiresAt, sentAt]
+              properties:
+                expiresAt: { type: string, format: date-time }
+                qrUrl: { type: string, description: เฉพาะตอนสร้าง/ออกใหม่ }
+                sentAt: { type: [string, "null"], format: date-time }
+            - type: "null"
+        cancel:
+          type: object
+          required: [landlordRequestedAt, tenantRequestedAt]
+          properties:
+            landlordRequestedAt: { type: [string, "null"], format: date-time }
+            tenantRequestedAt: { type: [string, "null"], format: date-time }
+        hasOpenIssue: { type: boolean }
+        myRole: { type: string, enum: [LANDLORD, TENANT] }
+        nextActor: { type: [string, "null"], enum: [TENANT, null] }
+        allowedActions:
+          type: array
+          items: { type: string, enum: [REJECT, LOCK, CONFIRM_VIEWING, CONFIRM_MOVE_IN, CANCEL, REPORT_ISSUE] }
+        timeline:
+          type: array
+          items:
+            type: object
+            required: [type, at, amountSatang]
+            properties:
+              type: { type: string }
+              at: { type: string, format: date-time }
+              amountSatang: { type: [integer, "null"], format: int64 }
+        createdAt: { type: string, format: date-time }
+        account:
+          type: object
+          description: เฉพาะคำตอบของ lock (T4 ยอดที่ใช้ได้ตอนนี้)
+          properties:
+            availableSatang: { type: integer, format: int64 }
+            heldSatang: { type: integer, format: int64 }
+    DealSummary:
+      type: object
+      required: [id, refNo, state, projectName, unitNo, totalSatang, myRole, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        refNo: { type: string }
+        state: { $ref: "#/components/schemas/DealState" }
+        projectName: { type: string }
+        unitNo: { type: string }
+        totalSatang: { type: integer, format: int64 }
+        myRole: { type: string, enum: [LANDLORD, TENANT] }
         createdAt: { type: string, format: date-time }
     HealthStatus:
       type: object
