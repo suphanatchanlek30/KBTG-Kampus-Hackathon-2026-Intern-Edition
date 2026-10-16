@@ -40,7 +40,8 @@ export function SuccessHero({ icon, size }: SuccessHeroProps) {
         animate={full ? { scale: [1, 1.08, 1] } : undefined}
         transition={{ duration: 0.25, delay: bumpAt, ease: "easeOut" }}
       >
-        <HeroCircle size={size}>
+        {/* glow อยู่ใน ScreenBackground hero — ถ้าใส่ที่ตัววงกลม ขอบบนจะถูกพื้นที่เลื่อนตัด */}
+        <HeroCircle size={size} glow={false}>
           <HeroGlyph icon={icon} mode={mode} />
         </HeroCircle>
       </motion.div>

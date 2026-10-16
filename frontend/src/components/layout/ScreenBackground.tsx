@@ -39,6 +39,8 @@ export type HeroBackgroundOptions = {
   size: number;
   /** วินาทีต่อรอบของ ripple (L6/T7/T4 = 2.4 · T3 ระหว่างสแกน = 3.2) */
   ripple?: number;
+  /** เลื่อน glow/ripple แนวตั้ง (px, ลบ = ขึ้น) ให้ตรงกับวงกลมจริง เมื่อ layout ต่างจากศูนย์กลางวงแหวนใน Figma (T4 = -4) */
+  offsetY?: number;
 };
 
 type ScreenBackgroundProps = {
@@ -105,10 +107,27 @@ export function ScreenBackground({ screen, hero }: ScreenBackgroundProps) {
         );
       })}
 
+      {/* glow ของวงกลม hero วาดที่ชั้นนี้ (ไม่ถูก <main> ตัดขอบ) — แสดงทุกโหมด รวม reduced/static */}
+      {hero && inner && (
+        <HeroGlow cx={inner.x + inner.w / 2} cy={inner.y + inner.h / 2 + (hero.offsetY ?? 0)} size={hero.size} />
+      )}
       {animated && inner && mode === "full" && (
-        <HeroLoops cx={inner.x + inner.w / 2} cy={inner.y + inner.h / 2} {...hero} />
+        <HeroLoops cx={inner.x + inner.w / 2} cy={inner.y + inner.h / 2 + (hero.offsetY ?? 0)} {...hero} />
       )}
     </div>
+  );
+}
+
+/** เงาเรืองของวงกลม hero (shadow-hero) — โผล่พร้อมวงกลม (spring 0.1s) */
+function HeroGlow({ cx, cy, size }: { cx: number; cy: number; size: number }) {
+  return (
+    <motion.span
+      className="absolute rounded-full shadow-hero"
+      style={{ left: cx - size / 2, top: cy - size / 2, width: size, height: size }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4, delay: 0.15 }}
+    />
   );
 }
 
