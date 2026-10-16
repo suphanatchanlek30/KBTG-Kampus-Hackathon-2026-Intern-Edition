@@ -153,9 +153,9 @@ Adminer: http://localhost:8081 · server `db` · user `ksure` · password `ksure
 | Phase | งาน | สถานะ |
 |---|---|---|
 | 0 | เอกสารออกแบบ + ดึงค่าจาก Figma + หา asset | ✅ |
-| 1 | Frontend foundation (tokens, ฟอนต์, layout, component พื้นฐาน) | 🟡 เหลือทดสอบบนมือถือจริง |
+| 1 | Frontend foundation (tokens, ฟอนต์, layout, component พื้นฐาน) | ✅ |
 | 2 | **หน้าจอทั้ง 14 หน้าแบบ static ด้วย mock data — เทียบ mockup ให้เป๊ะ** | ✅ ([ภาพเทียบ](docs/design/compare/)) |
-| 3 | อนิเมชัน (success rings, Face ID, stepper, bottom sheet …) | 🟡 เหลือทดสอบบนมือถือจริง |
+| 3 | อนิเมชัน (success rings, Face ID, stepper, bottom sheet …) | ✅ |
 | 4 | Backend foundation (Fiber, Postgres, migration, seed) | ✅ |
 | 5 | Auth เดโม + Home API | ✅ |
 | 6 | Deal core: state machine, ledger, idempotency + tests | ✅ |

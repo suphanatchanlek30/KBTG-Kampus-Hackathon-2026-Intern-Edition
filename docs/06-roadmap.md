@@ -31,7 +31,7 @@ flowchart LR
 
 ---
 
-## Phase 1 · Frontend Foundation 🟡 (โค้ดครบ · เหลือ DoD ทดสอบบนมือถือจริง)
+## Phase 1 · Frontend Foundation ✅ (ทดสอบบนมือถือจริงผ่านแล้ว)
 
 ### 1.1 สร้างโปรเจกต์
 
@@ -98,7 +98,7 @@ npx next --version && npm ls tailwindcss motion
 
 ---
 
-## Phase 3 · อนิเมชัน & ความรู้สึก (polish) 🟡 (โค้ดครบ · เหลือ DoD ทดสอบบนมือถือจริง)
+## Phase 3 · อนิเมชัน & ความรู้สึก (polish) ✅ (ทดสอบบนมือถือจริงผ่านแล้ว)
 
 ทำตาม [02 §5](./02-ui-spec.md#5-animation-spec-ค่าจริงที่ต้องใช้) ด้วยค่าที่ระบุไว้ทุกตัว
 
@@ -111,7 +111,7 @@ npx next --version && npm ls tailwindcss motion
 - [x] `prefers-reduced-motion` ปิดลูปทั้งหมด
 - [x] `/dev/overlay` แสดงเฟรมสุดท้าย (`?motion=1` เพื่อดูอนิเมชัน) — เทียบ pixel (ไม่ใช้ fuzz) กับก่อน Phase 3: 9 หน้าเหมือนทุก pixel · L1/T1 ต่าง < 1px · T3 ไอคอนไม่จางจาก pulse · T5/T6 ขอบวงติ๊ก ~18px
 - [x] ลายพื้นหลัง (วงแหวน, ripple, glow) วางกึ่งกลางจอ — มือถือ 360/430px ยังตรงกลาง hero
-- [ ] ทดสอบบนมือถือจริง: ลื่น 60fps (ดู Performance ใน DevTools ไม่มี long task ระหว่างอนิเมชัน)
+- [x] ทดสอบบนมือถือจริง: ลื่น 60fps (ดู Performance ใน DevTools ไม่มี long task ระหว่างอนิเมชัน)
 
 **DoD:** อัดวิดีโอหน้าจอ L6/T7/T4/T3 บนมือถือจริง ดูแล้ว "รู้สึกเหมือนแอปธนาคาร" · reduced motion ทำงาน
 
