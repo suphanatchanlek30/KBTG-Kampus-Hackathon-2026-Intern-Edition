@@ -1,6 +1,10 @@
+"use client";
+
 import { Check } from "lucide-react";
+import { motion } from "motion/react";
 import type { ReactNode } from "react";
-import { Fragment } from "react";
+import { useEnter, useMotionMode } from "@/components/motion/MotionMode";
+import { SPRING_CARD, SPRING_DOT } from "@/components/motion/tokens";
 
 export type ReceiptLine = { key: string; title: string; detail: string; amount: string };
 export type ReceiptField = { label: string; value: ReactNode };
@@ -11,37 +15,58 @@ type ReceiptCardProps = {
   fields: ReceiptField[];
 };
 
+// §5.1: การ์ดเข้าที่ 0.85s (spring) · แถวในการ์ด fade-up stagger 0.06s ตั้งแต่ 0.95s
+const CARD_AT = 0.85;
+const ROWS_AT = 0.95;
+const ROW_STAGGER = 0.06;
+
 /**
  * การ์ดหลักฐานสีขาว L6/T7 (Figma: r20 pad 16 gap 10 · แถวรายการ 36 · เส้นแบ่ง #E6E8EB · key/value 12.5)
  * header = โลโก้ + "หลักฐานดีล" (L6) หรือ stepper (T7)
  */
 export function ReceiptCard({ header, lines, fields }: ReceiptCardProps) {
+  const enter = useEnter();
+  const full = useMotionMode() === "full";
+  const row = (i: number) => enter(ROWS_AT + i * ROW_STAGGER, { y: 8, duration: 0.35 });
+
   return (
-    <section className="flex w-full flex-col gap-2.5 rounded-card bg-white p-4 text-ink">
+    <motion.section
+      className="flex w-full flex-col gap-2.5 rounded-card bg-white p-4 text-ink"
+      {...enter(CARD_AT, { y: 40, spring: SPRING_CARD })}
+    >
       {header}
-      {lines.map((line) => (
-        <div key={line.key} className="flex h-9 items-center gap-2.5">
-          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-neon">
+      {lines.map((line, i) => (
+        <motion.div key={line.key} className="flex h-9 items-center gap-2.5" {...row(i)}>
+          <motion.span
+            className="flex size-6 shrink-0 items-center justify-center rounded-full bg-neon"
+            {...(full && {
+              initial: { scale: 0 },
+              animate: { scale: 1 },
+              transition: { ...SPRING_DOT, delay: ROWS_AT + i * ROW_STAGGER + 0.1 },
+            })}
+          >
             <Check size={13} strokeWidth={2.4} />
-          </span>
+          </motion.span>
           <div className="flex min-w-0 flex-1 flex-col">
             <span className="text-row-title">{line.title}</span>
             <span className="text-micro text-ink-2">{line.detail}</span>
           </div>
           <span className="text-row-title tabular-nums">{line.amount}</span>
-        </div>
+        </motion.div>
       ))}
       <hr className="border-divider-light" />
       <dl className="flex flex-col gap-2.5 text-meta">
-        {fields.map((f) => (
-          <Fragment key={f.label}>
-            <div className="flex h-[19px] items-center justify-between gap-3">
-              <dt className="text-ink-2">{f.label}</dt>
-              <dd className="text-right font-medium">{f.value}</dd>
-            </div>
-          </Fragment>
+        {fields.map((f, i) => (
+          <motion.div
+            key={f.label}
+            className="flex h-[19px] items-center justify-between gap-3"
+            {...row(lines.length + i)}
+          >
+            <dt className="text-ink-2">{f.label}</dt>
+            <dd className="text-right font-medium">{f.value}</dd>
+          </motion.div>
         ))}
       </dl>
-    </section>
+    </motion.section>
   );
 }

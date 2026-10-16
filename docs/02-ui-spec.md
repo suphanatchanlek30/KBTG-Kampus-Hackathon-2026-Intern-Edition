@@ -391,7 +391,11 @@ export const formatBaht = (satang: number, decimals: 0 | 2 = 0) =>
 
 ### 5.7 การเปลี่ยนหน้า (Page transitions)
 
-App Router ทำ exit animation ยาก → ใช้ **enter-only** ผ่าน `src/app/(app)/template.tsx` (re-mount ทุกครั้งที่เปลี่ยน route)
+App Router ทำ exit animation ยาก → ใช้ **enter-only** ผ่าน prop `enter` ของ `AppShell` (`push` · `modal` · `fade`)
+
+> ทำไมไม่ใช้ `template.tsx`: เปิด Cache Components ไว้ หน้าที่เคยเปิดถูกเก็บใน `<Activity>` แล้วแสดงซ้ำโดยไม่ remount — template จึงไม่เล่นอนิเมชัน
+> ส่วน `motion` เล่น `initial → animate` ใหม่เองทุกครั้งที่ Activity แสดงหน้า → อนิเมชันเข้าของทุกหน้าเล่นทุกครั้งที่เข้าหน้า
+> status bar / home indicator ปลอมไม่ขยับตามหน้า
 
 | ประเภทหน้า | Enter |
 |---|---|

@@ -19,6 +19,7 @@ type HomeViewProps = { home: HomeDTO; onMenu?: () => void };
 export function LandlordHomeView({ home, onMenu }: HomeViewProps) {
   return (
     <AppShell
+      enter="fade"
       background={<ScreenBackground screen="L1" />}
       header={
         <HomeHeader
@@ -47,6 +48,7 @@ export function TenantHomeView({ home, onMenu }: HomeViewProps) {
   const invite = home.pendingInvites[0];
   return (
     <AppShell
+      enter="fade"
       background={<ScreenBackground screen="T1" />}
       header={
         <HomeHeader

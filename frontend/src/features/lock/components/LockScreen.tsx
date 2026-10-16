@@ -63,6 +63,7 @@ export function LockScreen() {
       accountType={me.account.accountType}
       accountNoMasked={me.account.accountNoMasked}
       phase={locked ? "success" : phase}
+      pending={lock.isPending}
       onClose={() => router.back()}
       onUsePin={() => toast.success("PIN pad (D2) จะเปิดใช้ใน Phase 8")}
       onRetry={() => setAttempt((a) => a + 1)}

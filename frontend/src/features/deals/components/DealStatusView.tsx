@@ -67,6 +67,7 @@ export function DealStatusView({ deal, onBack, onShare, onAction }: DealStatusVi
 
   return (
     <AppShell
+      enter="push"
       background={<ScreenBackground screen="L5" />}
       header={<AppHeader title="สถานะดีล" left="back" right="share" onLeft={onBack} onRight={onShare} />}
       footer={

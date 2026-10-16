@@ -1,8 +1,11 @@
 "use client";
 
 import { ArrowUpDown, Download, Eye, EyeOff, Landmark, List } from "lucide-react";
+import { motion } from "motion/react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { CountUp } from "@/components/motion/CountUp";
+import { useMotionMode } from "@/components/motion/MotionMode";
 import { Badge } from "@/components/ui/Badge";
 import { MintCardDecor } from "@/components/ui/MintCardDecor";
 import { formatBaht } from "@/lib/format/money";
@@ -14,9 +17,33 @@ const ACTIONS = [
   { label: "รายการ", icon: List, href: "/home" },
 ] as const;
 
+// ยอดเงิน count-up เฉพาะครั้งแรกของ session (§5.6)
+const COUNTED_KEY = "ks-balance-counted";
+const balanceCounted = () => {
+  try {
+    return sessionStorage.getItem(COUNTED_KEY) === "1";
+  } catch {
+    return true;
+  }
+};
+
 /** การ์ดยอดเงิน L1/T1 (Figma: 353×187 · r28 · grad-mint · pad 20) */
 export function BalanceCard({ account }: { account: AccountDTO }) {
+  const full = useMotionMode() === "full";
   const [hidden, setHidden] = useState(false);
+  // นับครั้งที่กดปุ่มตา — 0 = ยังไม่เคยกด ไม่ต้องเล่น crossfade ตอน mount
+  const [toggles, setToggles] = useState(0);
+  const [countUp] = useState(() => typeof window !== "undefined" && !balanceCounted());
+  const counting = full && countUp;
+
+  useEffect(() => {
+    if (!counting) return;
+    try {
+      sessionStorage.setItem(COUNTED_KEY, "1");
+    } catch {
+      // sessionStorage ใช้ไม่ได้ (private mode) — นับทุกครั้งที่ mount ก็ไม่เสียหาย
+    }
+  }, [counting]);
 
   return (
     <section className="relative overflow-hidden rounded-card-xl bg-grad-mint p-5 text-ink-mint shadow-mint">
@@ -34,12 +61,28 @@ export function BalanceCard({ account }: { account: AccountDTO }) {
 
       <p className="relative mt-3 text-caption">ยอดเงินที่ใช้ได้</p>
       <div className="relative mt-px flex items-center gap-2">
-        <span className="text-amount-balance text-ink tabular-nums">
-          {hidden ? "••••••" : formatBaht(account.availableSatang, 2)}
-        </span>
+        {/* ซ่อน/แสดงยอด: crossfade + blur 4px → 0 (0.2s) */}
+        <motion.span
+          key={hidden ? "hidden" : "shown"}
+          className="text-amount-balance text-ink tabular-nums"
+          initial={full && toggles > 0 ? { opacity: 0, filter: "blur(4px)" } : false}
+          animate={{ opacity: 1, filter: "blur(0px)" }}
+          transition={{ duration: 0.2 }}
+        >
+          {hidden ? (
+            "••••••"
+          ) : counting && toggles === 0 ? (
+            <CountUp satang={account.availableSatang} duration={0.6} />
+          ) : (
+            formatBaht(account.availableSatang, 2)
+          )}
+        </motion.span>
         <button
           type="button"
-          onClick={() => setHidden((h) => !h)}
+          onClick={() => {
+            setHidden((h) => !h);
+            setToggles((t) => t + 1);
+          }}
           aria-label={hidden ? "แสดงยอดเงิน" : "ซ่อนยอดเงิน"}
           aria-pressed={hidden}
           className="rounded-full p-0.5"

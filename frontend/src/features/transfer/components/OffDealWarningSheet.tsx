@@ -1,6 +1,8 @@
 "use client";
 
 import { Ban, Lock, MessageCircle, TriangleAlert } from "lucide-react";
+import { motion } from "motion/react";
+import { useHaptic, useMotionMode } from "@/components/motion/MotionMode";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
 import { RulesList } from "@/components/ui/RulesList";
@@ -15,6 +17,9 @@ type OffDealWarningSheetProps = {
 
 /** T8 — เตือนเมื่อโอนเงินหาคู่ดีลที่ยังไม่จบ (Figma: sheet ขาว r32 · pad 10/20/36/20 · gap 10) */
 export function OffDealWarningSheet({ open, message, onCancelTransfer, onProceed }: OffDealWarningSheetProps) {
+  const full = useMotionMode() === "full";
+  // ไอคอนเตือนเขย่าหลัง sheet ขึ้น 0.25s + สั่น (§5.8)
+  useHaptic(open ? [30, 60, 30] : null, 250);
   return (
     <BottomSheet
       open={open}
@@ -25,7 +30,13 @@ export function OffDealWarningSheet({ open, message, onCancelTransfer, onProceed
       <div className="flex w-full flex-col items-center gap-2.5">
         <div className="pt-1.5">
           <span className="flex size-[60px] items-center justify-center rounded-full bg-warn-soft text-warn-edge">
-            <TriangleAlert size={26} strokeWidth={1.8} />
+            <motion.span
+              className="flex"
+              animate={full ? { rotate: [0, -8, 8, -6, 6, 0] } : undefined}
+              transition={{ duration: 0.5, delay: 0.25 }}
+            >
+              <TriangleAlert size={26} strokeWidth={1.8} />
+            </motion.span>
           </span>
         </div>
         <h2 className="text-sheet-title">หยุดก่อน! นี่อาจเป็นการขอเงินนอกดีล</h2>

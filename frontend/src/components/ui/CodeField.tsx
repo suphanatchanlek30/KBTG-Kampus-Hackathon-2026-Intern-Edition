@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Copy } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "./Toast";
 
@@ -28,8 +29,20 @@ export function CodeField({ label, code }: { label: string; code: string }) {
     <div className="flex h-[46px] items-center gap-2.5 rounded-tile bg-ink px-3.5">
       <span className="text-caption text-muted">{label}</span>
       <span className="flex-1 text-code select-all">{code}</span>
-      <button type="button" onClick={copy} aria-label={`คัดลอก${label}`} className="text-neon">
-        {copied ? <Check size={16} strokeWidth={1.8} /> : <Copy size={16} strokeWidth={1.5} />}
+      <button type="button" onClick={copy} aria-label={`คัดลอก${label}`} className="grid text-neon">
+        {/* Copy ↔ Check crossfade 0.15s ซ้อนในช่องเดียวกัน (§5.8) */}
+        <AnimatePresence initial={false}>
+          <motion.span
+            key={copied ? "check" : "copy"}
+            className="[grid-area:1/1]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            {copied ? <Check size={16} strokeWidth={1.8} /> : <Copy size={16} strokeWidth={1.5} />}
+          </motion.span>
+        </AnimatePresence>
       </button>
     </div>
   );
