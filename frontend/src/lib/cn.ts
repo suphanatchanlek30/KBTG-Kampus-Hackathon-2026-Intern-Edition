@@ -76,6 +76,7 @@ const twMerge = extendTailwindMerge({
       shadow: [
         "cta",
         "hero",
+        "hero-sm",
         "mint",
         "phone",
         "scan",

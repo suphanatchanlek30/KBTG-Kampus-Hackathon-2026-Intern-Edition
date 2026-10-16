@@ -18,13 +18,16 @@ export function InfoNote({
   return (
     <div
       className={cn(
-        "flex gap-2.5 rounded-card border px-4 py-3.5",
-        tone === "neon" ? "border-neon/35 bg-neon/12 text-mint-text" : "border-warn/35 bg-warn/12 text-warn-text",
+        "flex gap-2.5",
+        // neon (L4): r20 · pad 14/16 · 12.5/19.4 · warn (T5): r14 · pad 12/14 · 12/18 ไม่มีขอบ
+        tone === "neon"
+          ? "rounded-card border border-neon/35 bg-neon/12 px-4 py-3.5 text-meta leading-[19.4px] text-mint-text"
+          : "rounded-tile bg-warn/12 px-3.5 py-3 text-caption leading-[18px] text-warn-text",
         className,
       )}
     >
       <span className={cn("shrink-0", tone === "neon" ? "text-neon" : "text-warn")}>{icon}</span>
-      <div className="text-meta leading-[19.4px]">{children}</div>
+      <div>{children}</div>
     </div>
   );
 }

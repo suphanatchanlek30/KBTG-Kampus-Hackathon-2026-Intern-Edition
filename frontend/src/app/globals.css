@@ -62,6 +62,7 @@
   /* ---- เงา (§1.1) ---- */
   --shadow-cta: 0 10px 26px rgb(93 245 145 / 0.22);
   --shadow-hero: 0 0 50px rgb(93 245 145 / 0.35), 0 0 0 12px rgb(93 245 145 / 0.1);
+  --shadow-hero-sm: 0 0 36px rgb(93 245 145 / 0.3), 0 0 0 10px rgb(93 245 145 / 0.1);
   --shadow-mint: 0 16px 36px rgb(103 221 144 / 0.1);
   --shadow-phone: 0 30px 60px rgb(0 0 0 / 0.6), 0 0 0 1px rgb(255 255 255 / 0.08);
   --shadow-scan: 0 8px 22px rgb(93 245 145 / 0.3);

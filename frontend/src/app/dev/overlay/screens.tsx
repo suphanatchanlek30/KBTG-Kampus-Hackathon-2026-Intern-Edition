@@ -1,19 +1,22 @@
 import type { ComponentType } from "react";
+import { ConfirmReleaseView } from "@/features/deals/components/ConfirmReleaseView";
 import { CreateDealView } from "@/features/deals/components/CreateDealView";
 import { DealStatusView } from "@/features/deals/components/DealStatusView";
 import { ShareInviteView } from "@/features/deals/components/ShareInviteView";
 import { ReviewDealView } from "@/features/deals/components/ReviewDealView";
 import { DEFAULT_DRAFT } from "@/features/deals/store";
 import { InviteReviewView } from "@/features/invites/components/InviteReviewView";
+import { LockedView } from "@/features/lock/components/LockedView";
 import { LockView } from "@/features/lock/components/LockView";
 import { LandlordHomeView, TenantHomeView } from "@/features/home/components/HomeViews";
-import { DEMO_PROPERTY, DEMO_USERS, makeDeal, makeHome } from "@/mocks/fixtures";
+import { DEMO_PROPERTY, DEMO_USERS, makeDeal, makeHome, makeMe } from "@/mocks/fixtures";
 
 export const SCREEN_IDS = ["L1", "L2", "L3", "L4", "L5", "L6", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8"] as const;
 
 export type ScreenId = (typeof SCREEN_IDS)[number];
 
 const invited = (role: "LANDLORD" | "TENANT") => makeDeal("WAITING_ACCEPT", role);
+const tenantLocked = makeDeal("FUNDS_LOCKED", "TENANT");
 
 /**
  * หน้าจอจริงที่วางใต้ mockup — render ชั้นแสดงผลด้วย fixture ตรงๆ (ไม่ผ่าน mock DB)
@@ -34,6 +37,11 @@ export const SCREENS: Partial<Record<ScreenId, ComponentType>> = {
   ),
   L4: () => <ShareInviteView deal={invited("LANDLORD")} inviteUrl="https://ksure.demo/invites/KS-8F4Q21" />,
   L5: () => <DealStatusView deal={makeDeal("FUNDS_LOCKED", "LANDLORD")} />,
+  T4: () => <LockedView deal={tenantLocked} account={makeMe("TENANT", tenantLocked).account} />,
+  T5: () => <ConfirmReleaseView kind="viewing" deal={tenantLocked} checked={[true, true, true]} />,
+  T6: () => (
+    <ConfirmReleaseView kind="move-in" deal={makeDeal("BOOKING_FEE_RELEASED", "TENANT")} checked={[true, true, true]} />
+  ),
   T1: () => <TenantHomeView home={makeHome("TENANT", invited("TENANT"))} />,
   T2: () => <InviteReviewView deal={invited("TENANT")} />,
   T3: () => (
