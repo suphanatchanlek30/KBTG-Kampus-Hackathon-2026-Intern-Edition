@@ -3,7 +3,6 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { ScreenSkeleton } from "@/components/layout/ScreenSkeleton";
-import { toast } from "@/components/ui/Toast";
 import { useDeal, useMe } from "@/features/deals/hooks";
 import { CompleteView } from "./CompleteView";
 
@@ -28,8 +27,6 @@ export function CompleteScreen() {
       account={me.account}
       onClose={() => router.replace("/home")}
       onDone={() => router.replace("/home")}
-      onShare={() => toast.success("แชร์หลักฐานจะเปิดใช้ใน Phase 8")}
-      onSaveProof={() => toast.success("บันทึกหลักฐานจะเปิดใช้ใน Phase 8 (ใส่ลายน้ำ SIMULATED)")}
     />
   );
 }

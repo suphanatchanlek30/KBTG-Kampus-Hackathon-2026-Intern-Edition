@@ -81,15 +81,8 @@ export function ConfirmReleaseScreen({ kind }: { kind: ReleaseKind }) {
             <Button variant="secondary" onClick={() => router.replace(`/deals/${deal.id}`)}>
               ยังไม่ได้ไปดูห้อง (กลับไปก่อน)
             </Button>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setSheetOpen(false);
-                toast.success("แจ้งปัญหาห้องไม่ตรงจะเปิดใช้ใน Phase 8");
-              }}
-            >
-              ห้องไม่ตรงกับดีล → แจ้งปัญหา
-            </Button>
+            {/* แจ้งปัญหา (Phase 8) ยังไม่ทำ — กดแล้วไม่เกิดอะไรขึ้น */}
+            <Button variant="secondary">ห้องไม่ตรงกับดีล → แจ้งปัญหา</Button>
           </div>
         ) : (
           <div className="flex flex-col gap-4">

@@ -3,7 +3,6 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ScreenSkeleton } from "@/components/layout/ScreenSkeleton";
-import { toast } from "@/components/ui/Toast";
 import { useDeal, useLockDeal, useMe } from "@/features/deals/hooks";
 import { LockView, type ScanPhase } from "./LockView";
 
@@ -65,7 +64,6 @@ export function LockScreen() {
       phase={locked ? "success" : phase}
       pending={lock.isPending}
       onClose={() => router.back()}
-      onUsePin={() => toast.success("PIN pad (D2) จะเปิดใช้ใน Phase 8")}
       onRetry={() => setAttempt((a) => a + 1)}
     />
   );
