@@ -177,9 +177,37 @@
 ```json
 // req
 { "username": "tenant" }
-// 200 → Set-Cookie: ks_session=…; HttpOnly; SameSite=Lax; Path=/
+// 200 → Set-Cookie: ks_session=…; HttpOnly; SameSite=Lax; Path=/; Max-Age=43200 (SESSION_TTL)
 { "user": { "...": "MeDTO.user" } }
 ```
+- username ที่ไม่มี → `401 UNAUTHENTICATED` · `POST /auth/logout` → `204` + cookie หมดอายุ
+- JWT (HS256, `JWT_SECRET`) เก็บแค่ `sub` = user id, `role`, `exp` — middleware ตรวจลายเซ็น/อัลกอริทึม/วันหมดอายุทุก request
+
+### #7 `GET /properties` (🅛)
+```json
+{ "items": [ { "id": "…", "propertyType": "คอนโด", "projectName": "The Park สุขุมวิท 64", "unitNo": "A1203",
+               "detailLabel": "1 ห้องนอน · 28 ตร.ม. · ชั้น 12", "nearbyLabel": "BTS ปุณณวิถี" } ] }
+```
+
+### #22 `GET /notifications` · #23 `POST /notifications/read`
+```json
+// GET → ล่าสุด 50 รายการ
+{ "items": [ { "id": "…", "type": "DEAL_INVITE", "dealId": "…", "title": "คำขอ K Sure ใหม่", "body": "จากคุณสมชาย ใ.",
+               "readAt": null, "createdAt": "2026-10-14T10:26:00+07:00" } ],
+  "unreadCount": 1 }
+// POST req: { "ids": ["…"] } หรือ { "all": true } (ไม่ระบุทั้งคู่ → 400) · id ของคนอื่นถูกข้าม
+// 200
+{ "unreadCount": 0 }
+```
+
+### #27 `POST /demo/reset?scenario=`
+```json
+// scenario: fresh (ค่าเริ่มต้น) | waiting_accept | funds_locked | booking_released | released
+// 200
+{ "scenario": "funds_locked", "dealId": "…" }   // fresh → dealId: null
+```
+- ต้องล็อกอิน (role ไหนก็ได้) · ลงทะเบียน route เฉพาะเมื่อ `DEMO_TOOLS_ENABLED=true` (ไม่งั้น 404)
+- scenario ไม่รู้จัก → `400 VALIDATION_FAILED`
 
 ### #8 `POST /deals` (L3 "สร้างคำขอ K Sure")
 ```json

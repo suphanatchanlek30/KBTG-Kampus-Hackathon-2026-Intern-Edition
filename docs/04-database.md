@@ -423,6 +423,8 @@ INSERT INTO properties (landlord_id, property_type, project_name, unit_no, detai
 > - **DB scenario** คงเวลาของวันและระยะห่างตาม mockup แต่ยึดวันนี้: สร้างคำขอ = วันนี้ 10:24 (ถ้าเลยแล้วใช้ `now() − 7 นาที`) · คำเชิญ = +24 ชม. · ยอมรับ = +7 นาที · นัดดูห้อง = วันอาทิตย์ถัดไป 14:00 · วันเข้าอยู่ = วันที่ 1 ของเดือนถัดไป (ต้องหลังวันดูห้อง) · หมดอายุ = วันเข้าอยู่ + 2 วัน 23:59:59
 > - ทางเลือกเสริม: env `DEMO_FROZEN_NOW=2026-10-14T10:31:00+07:00` ให้ทั้ง worker และ validation อ่านเวลาจาก clock เดียวกัน (ทำ `Clock` interface ใน Go แทนการเรียก `time.Now()` ตรงๆ — test ง่ายขึ้นด้วย)
 >
+> - scenario ที่ "ดูห้อง/เข้าอยู่แล้ว" (`booking_released`, `released`) ยังคงวันนัดในอนาคต (ดีลไม่หมดอายุ) แต่ประทับเวลาการยืนยันเป็น `now − 2 นาที` / `now − 1 นาที` เพื่อให้ทุกเหตุการณ์อยู่ในอดีตและเรียงลำดับถูก — โค้ด: `backend/internal/service/demo_service.go` (`ComputeDemoTimes`)
+>
 > **วิธีล้างข้อมูล:** ใช้ `TRUNCATE ledger_events, deal_events, deal_invites, notifications, transfers, idempotency_keys, deals, ref_counters RESTART IDENTITY CASCADE` แล้ว reset ยอด `demo_accounts` กลับค่าเริ่มต้น — **ห้ามใช้ `DELETE`** กับ `ledger_events` เพราะ trigger append-only จะ raise error (`TRUNCATE` ไม่เรียก row-level trigger) · integration test teardown ใช้วิธีเดียวกัน
 
 | scenario | ผลลัพธ์ | หน้าที่ทดสอบ |

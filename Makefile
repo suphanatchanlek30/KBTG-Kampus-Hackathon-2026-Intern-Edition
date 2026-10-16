@@ -1,7 +1,8 @@
 # คำสั่งลัดของ repo — ต้องมี Docker, Go และ goose/sqlc/air (make tools)
 # DB ใน docker compose เปิดพอร์ต 5432 ไว้ให้คำสั่งบนเครื่องใช้ได้
 
-DB_URL ?= postgres://ksure:ksure_dev_only@localhost:5432/ksure?sslmode=disable
+DB_URL      ?= postgres://ksure:ksure_dev_only@localhost:5432/ksure?sslmode=disable
+TEST_DB_URL ?= postgres://ksure:ksure_dev_only@localhost:5432/ksure_test?sslmode=disable
 GOBIN  := $(shell go env GOPATH)/bin
 GOOSE  := $(GOBIN)/goose -dir backend/migrations postgres "$(DB_URL)"
 
@@ -39,8 +40,10 @@ db-reset: ## ล้าง schema ทั้งหมดแล้ว migrate + see
 	$(GOOSE) reset
 	$(GOOSE) up
 
-test: ## go test ทั้ง backend
-	cd backend && go test ./...
+test: ## go test ทั้ง backend รวม integration (ใช้ DB ksure_test แยกจากข้อมูลเดโม — ต้อง make up ก่อน)
+	@docker compose exec -T db psql -U ksure -d ksure -tAc "SELECT 1 FROM pg_database WHERE datname = 'ksure_test'" | grep -q 1 \
+		|| docker compose exec -T db createdb -U ksure ksure_test
+	cd backend && TEST_DATABASE_URL="$(TEST_DB_URL)" go test -count=1 ./...
 
 sqlc: ## generate โค้ดจาก backend/internal/repository/queries
 	cd backend && $(GOBIN)/sqlc generate

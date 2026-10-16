@@ -147,14 +147,15 @@ go version
 
 ---
 
-## Phase 5 · Auth เดโม + Home API
+## Phase 5 · Auth เดโม + Home API ✅
 
-- [ ] `POST /auth/demo-login`, `POST /auth/logout` (JWT cookie)
-- [ ] middleware auth + role guard
-- [ ] `GET /me`, `GET /home`, `GET /properties`, `GET /notifications`, `POST /notifications/read`
-- [ ] `POST /demo/reset?scenario=` ทุก scenario ใน [04 §5](./04-database.md#demo-scenarios-ใช้กับ-post-demoreset-scenario) — **วันที่คำนวณจาก `now()`** (ไม่ใช่วันที่ใน mockup) และล้างด้วย `TRUNCATE ... RESTART IDENTITY CASCADE`
-- [ ] `Clock` interface (+ env `DEMO_FROZEN_NOW` ถ้าต้องการ) แทนการเรียก `time.Now()` ตรงๆ
-- [ ] เขียน `api/openapi.yaml` ส่วนนี้
+- [x] `POST /auth/demo-login`, `POST /auth/logout` (JWT cookie `ks_session` · HttpOnly · SameSite=Lax · `SESSION_TTL`, `COOKIE_SECURE`)
+- [x] middleware auth + role guard (ผูกราย route — path ที่ไม่มีจริงยังได้ 404)
+- [x] `GET /me`, `GET /home`, `GET /properties`, `GET /notifications`, `POST /notifications/read`
+- [x] `POST /demo/reset?scenario=` ทุก scenario ใน [04 §5](./04-database.md#demo-scenarios-ใช้กับ-post-demoreset-scenario) — **วันที่คำนวณจาก `now()`** (ไม่ใช่วันที่ใน mockup) และล้างด้วย `TRUNCATE ... RESTART IDENTITY CASCADE`
+- [x] `Clock` interface + env `DEMO_FROZEN_NOW` (เริ่มที่เวลานั้นแล้วเดินต่อ) แทนการเรียก `time.Now()` ตรงๆ
+- [x] เขียน `api/openapi.yaml` ส่วนนี้ (ผ่าน `redocly lint`)
+- [x] Integration test กับ Postgres จริง (`make test` ใช้ DB `ksure_test` แยก): cookie flags, 401 ทุก route, role guard, ยอดเงินทุก scenario, อ่านแจ้งเตือนของคนอื่นไม่ได้
 
 **DoD:** ล็อกอิน 2 role ด้วย curl/Bruno/Postman ได้ · `/me` คืนยอดถูกต้อง · role ผิดได้ 403
 
