@@ -20,7 +20,6 @@ const MIN_TOTAL_MS = 2400;
 export function LockScreen() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { bfcacheId } = router;
   const { data: deal } = useDeal(id);
   const { data: me } = useMe();
   const lock = useLockDeal();
@@ -60,7 +59,6 @@ export function LockScreen() {
 
   return (
     <LockView
-      key={bfcacheId}
       amountSatang={deal.amounts.totalSatang}
       accountType={me.account.accountType}
       accountNoMasked={me.account.accountNoMasked}

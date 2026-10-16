@@ -23,18 +23,14 @@ type CountUpProps = {
 export function CountUp({ satang, decimals = 2, duration = 1, delay = 0, className }: CountUpProps) {
   const mode = useMotionMode();
   const ref = useRef<HTMLSpanElement>(null);
-  // Activity ซ่อนแล้วแสดงหน้าเดิม (back/forward) effect จะรันใหม่ — นับครั้งเดียวต่อ mount เหมือนอนิเมชันอื่น
-  const played = useRef(false);
   const final = formatBaht(satang, decimals);
   const counting = mode === "full";
 
   useEffect(() => {
     const el = ref.current;
     if (!el || !counting) return;
-    if (played.current) {
-      el.textContent = final;
-      return;
-    }
+    // Activity แสดงหน้าเดิมอีกครั้ง effect รันใหม่ = นับใหม่ พร้อมกับที่ motion เล่นอนิเมชันเข้าใหม่
+    el.textContent = formatBaht(0, decimals);
     const controls = animate(0, satang, {
       duration,
       delay,
@@ -42,13 +38,9 @@ export function CountUp({ satang, decimals = 2, duration = 1, delay = 0, classNa
       onUpdate: (v) => {
         el.textContent = formatBaht(Math.round(v), decimals);
       },
-      onComplete: () => {
-        played.current = true;
-      },
     });
-    // ไม่ตั้ง played ใน cleanup — StrictMode รัน effect 2 รอบตอน dev แล้วจะไม่ได้นับเลย
     return () => controls.stop();
-  }, [counting, satang, decimals, duration, delay, final]);
+  }, [counting, satang, decimals, duration, delay]);
 
   return (
     <span className={cn("tabular-nums", className)}>

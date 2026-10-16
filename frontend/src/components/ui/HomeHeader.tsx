@@ -1,5 +1,10 @@
+"use client";
+
 import { Bell, Menu } from "lucide-react";
+import { motion } from "motion/react";
 import Image from "next/image";
+import { useState } from "react";
+import { useMotionMode } from "@/components/motion/MotionMode";
 import { brand } from "@/config/brand";
 import { Badge } from "./Badge";
 import { IconButton } from "./IconButton";
@@ -14,6 +19,16 @@ type HomeHeaderProps = {
 
 /** Header หน้าหลัก L1/T1 (Figma: สูง 64 · pad 0/20 · gap 12 · โลโก้ 42×42 r14) */
 export function HomeHeader({ greeting, name, notificationCount = 0, onBell, onMenu }: HomeHeaderProps) {
+  const full = useMotionMode() === "full";
+  // จำนวนแจ้งเตือนเพิ่มขึ้น → badge เด้ง + กระดิ่งส่าย (§5.6) — เทียบกับค่าของ render ก่อนหน้า
+  const [seenCount, setSeenCount] = useState(notificationCount);
+  const [rings, setRings] = useState(0);
+  if (notificationCount !== seenCount) {
+    setSeenCount(notificationCount);
+    if (notificationCount > seenCount) setRings((r) => r + 1);
+  }
+  const ringing = full && rings > 0;
+
   return (
     <header className="flex h-16 items-center gap-3 px-5">
       <div className="flex size-[42px] shrink-0 items-center justify-center rounded-tile border border-line bg-card">
@@ -27,11 +42,27 @@ export function HomeHeader({ greeting, name, notificationCount = 0, onBell, onMe
         aria-label={notificationCount > 0 ? `แจ้งเตือน ${notificationCount} รายการ` : "แจ้งเตือน"}
         onClick={onBell}
       >
-        <Bell size={17} strokeWidth={1.35} />
+        <motion.span
+          key={`bell-${rings}`}
+          className="flex"
+          animate={ringing ? { rotate: [0, -14, 12, -8, 6, 0] } : undefined}
+          transition={{ duration: 0.6 }}
+        >
+          <Bell size={17} strokeWidth={1.35} />
+        </motion.span>
         {notificationCount > 0 && (
-          <Badge variant="count" className="absolute -top-0.5 left-6" aria-hidden>
-            {notificationCount > 9 ? "9+" : notificationCount}
-          </Badge>
+          <motion.span
+            key={`badge-${rings}`}
+            className="absolute -top-0.5 left-6 flex"
+            initial={ringing ? { scale: 0 } : false}
+            animate={{ scale: 1 }}
+            // spring เด้งเกินราว 1.25 แล้วกลับ 1
+            transition={{ type: "spring", stiffness: 520, damping: 14 }}
+          >
+            <Badge variant="count" aria-hidden>
+              {notificationCount > 9 ? "9+" : notificationCount}
+            </Badge>
+          </motion.span>
         )}
       </IconButton>
       <IconButton aria-label="เมนู" onClick={onMenu}>

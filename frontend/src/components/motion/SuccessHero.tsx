@@ -2,6 +2,7 @@
 
 import { motion, type Transition } from "motion/react";
 import { HeroCircle } from "@/components/ui/HeroCircle";
+import { LockGlyph } from "./LockGlyph";
 import { useHaptic, useMotionMode, type MotionMode } from "./MotionMode";
 import { EASE_IN_OUT, EASE_OUT_EXPO, REDUCED_FADE, SPRING_HERO } from "./tokens";
 
@@ -36,7 +37,6 @@ export function SuccessHero({ icon, size }: SuccessHeroProps) {
   return (
     <motion.div {...enter(mode)}>
       <motion.div
-        initial={false}
         animate={full ? { scale: [1, 1.08, 1] } : undefined}
         transition={{ duration: 0.25, delay: bumpAt, ease: "easeOut" }}
       >
@@ -61,6 +61,18 @@ function HeroGlyph({ icon, mode }: { icon: HeroIcon; mode: MotionMode }) {
   const full = mode === "full";
   const draw = full ? { initial: { pathLength: 0 }, animate: { pathLength: 1 }, transition: DRAW } : {};
 
+  if (icon === "lock") {
+    // ห่วงกุญแจ "ล็อกลง" y −6 → 0 ที่ t=0.4
+    return (
+      <LockGlyph
+        size={size}
+        strokeWidth={stroke}
+        dropPx={full ? 6 : undefined}
+        transition={{ duration: 0.3, delay: 0.4, ease: EASE_OUT_EXPO }}
+      />
+    );
+  }
+
   return (
     <svg
       aria-hidden
@@ -78,20 +90,6 @@ function HeroGlyph({ icon, mode }: { icon: HeroIcon; mode: MotionMode }) {
         <>
           <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
           <motion.path d="m9 12 2 2 4-4" {...draw} />
-        </>
-      )}
-      {icon === "lock" && (
-        <>
-          <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-          {/* ห่วงกุญแจ "ล็อกลง" y −6px → 0 (4 หน่วย viewBox × 1.5) ที่ t=0.4 */}
-          <motion.path
-            d="M7 11V7a5 5 0 0 1 10 0v4"
-            {...(full && {
-              initial: { y: -4 },
-              animate: { y: 0 },
-              transition: { duration: 0.3, delay: 0.4, ease: EASE_OUT_EXPO },
-            })}
-          />
         </>
       )}
     </svg>

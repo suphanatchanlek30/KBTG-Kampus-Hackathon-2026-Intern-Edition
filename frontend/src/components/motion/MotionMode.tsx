@@ -1,7 +1,7 @@
 "use client";
 
 import { useReducedMotion, type TargetAndTransition, type Transition } from "motion/react";
-import { createContext, useContext, useEffect, useRef, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { EASE_OUT_EXPO, REDUCED_FADE } from "./tokens";
 
 /**
@@ -57,18 +57,31 @@ export function useEnter() {
   };
 }
 
+/**
+ * ค่าที่ผู้ใช้ "เห็นล่าสุด" — ค่าตอน mount แล้วอัปเดตทุกครั้งที่หน้าถูกซ่อน (Activity ของ Cache Components)
+ * ใช้ตรวจว่าค่าเปลี่ยนตั้งแต่ครั้งก่อนที่เห็น เพื่อเล่นอนิเมชัน "เพิ่งเปลี่ยน" ครั้งเดียว ไม่ซ้ำทุกครั้งที่กลับมาหน้านี้
+ */
+export function useLastSeen<T>(value: T): T {
+  const [seen, setSeen] = useState(value);
+  const pending = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useLayoutEffect(() => {
+    clearTimeout(pending.current);
+    // เลื่อนไป tick ถัดไป: StrictMode (dev) จำลองซ่อน→แสดงทันที setup ที่ตามมาจะยกเลิกได้
+    // ค่าเปลี่ยนระหว่างที่ยังแสดงอยู่ก็ถูกยกเลิกเช่นกัน — baseline เปลี่ยนเฉพาะตอนซ่อนจริง
+    return () => {
+      pending.current = setTimeout(() => setSeen(value), 0);
+    };
+  }, [value]);
+  return seen;
+}
+
 /** สั่นตามจังหวะอนิเมชัน (haptic ยังทำงานใน reduced motion — ไม่ใช่การเคลื่อนไหว) · null = ไม่สั่น */
 export function useHaptic(pattern: number[] | null, delayMs: number) {
   const mode = useMotionMode();
   const key = pattern?.join(",") ?? "";
-  // สั่นครั้งเดียวต่อ mount — Activity แสดงหน้าเดิมซ้ำ (back/forward) effect จะรันใหม่
-  const fired = useRef(false);
   useEffect(() => {
-    if (mode === "static" || !key || fired.current) return;
-    const t = setTimeout(() => {
-      fired.current = true;
-      navigator.vibrate?.(key.split(",").map(Number));
-    }, delayMs);
+    if (mode === "static" || !key) return;
+    const t = setTimeout(() => navigator.vibrate?.(key.split(",").map(Number)), delayMs);
     return () => clearTimeout(t);
   }, [mode, key, delayMs]);
 }
