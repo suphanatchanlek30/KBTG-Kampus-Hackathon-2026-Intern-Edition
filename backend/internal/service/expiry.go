@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -41,17 +42,20 @@ func (s *DealService) ExpireDue(ctx context.Context) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("list due deals: %w", err)
 	}
+	// ดีลหนึ่งพังต้องไม่ขวางดีลอื่น (ไม่งั้นดีลที่ error ซ้ำๆ จะบังการคืนเงินอัตโนมัติของทุกดีลทุกรอบ)
 	expired := 0
+	var errs []error
 	for _, id := range ids {
 		ok, err := s.expireOne(ctx, id, false)
 		if err != nil {
-			return expired, fmt.Errorf("expire %s: %w", id, err)
+			errs = append(errs, fmt.Errorf("expire %s: %w", id, err))
+			continue
 		}
 		if ok {
 			expired++
 		}
 	}
-	return expired, nil
+	return expired, errors.Join(errs...)
 }
 
 // ExpireNow — POST /demo/deals/{id}/expire-now: ให้ดีล active หมดอายุทันที (โชว์การคืนเงินอัตโนมัติบนเวที)
