@@ -45,8 +45,8 @@ func NextStates(from domain.DealState, action domain.Action, actor domain.Role) 
 	return nil, domain.NewError(domain.CodeDealStateConflict, "ดีลนี้ไม่อยู่ในสถานะที่ทำรายการนี้ได้")
 }
 
-// แจ้งปัญหา (D4) ไม่เปลี่ยน state จึงไม่อยู่ในตาราง transition
-var reportIssueStates = []domain.DealState{domain.StateFundsLocked}
+// แจ้งปัญหา (D4) ไม่เปลี่ยน state จึงไม่อยู่ในตาราง transition — ทำได้ระหว่างรอดูห้อง (ก่อนปล่อยค่าจอง)
+func canReportIssue(state domain.DealState) bool { return state == domain.StateFundsLocked }
 
 // actionOrder = ลำดับใน allowedActions (ตรงกับ frontend mock)
 var actionOrder = []domain.Action{
@@ -59,7 +59,7 @@ func AllowedActions(state domain.DealState, role domain.Role) []domain.Action {
 	out := []domain.Action{}
 	for _, a := range actionOrder {
 		if a == domain.ActionReportIssue {
-			if role == domain.RoleTenant && slices.Contains(reportIssueStates, state) {
+			if role == domain.RoleTenant && canReportIssue(state) {
 				out = append(out, a)
 			}
 			continue

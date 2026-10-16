@@ -53,6 +53,9 @@ func registerRoutes(app *fiber.App, deps Deps) {
 	v1.Post("/deals/:id/lock", authed, tenantOnly, idem, deals.Lock)
 	v1.Post("/deals/:id/confirm-viewing", authed, tenantOnly, idem, deals.ConfirmViewing)
 	v1.Post("/deals/:id/confirm-move-in", authed, tenantOnly, idem, deals.ConfirmMoveIn)
+	v1.Post("/deals/:id/cancel", authed, idem, deals.Cancel)
+	v1.Post("/deals/:id/report-issue", authed, tenantOnly, idem, deals.ReportIssue)
+	v1.Get("/deals/:id/calendar.ics", authed, deals.Calendar)
 	v1.Get("/users/lookup", authed, landlordOnly, deals.LookupUser)
 	// 30 ครั้ง/นาที/ผู้ใช้ — พอสำหรับคนจริง แต่สุ่มเดา share code (32^6 แบบ) ไม่ได้
 	v1.Get("/invites/:code", authed, tenantOnly, middleware.PerUserRateLimit(30, time.Minute), deals.PreviewInvite)
@@ -65,5 +68,6 @@ func registerRoutes(app *fiber.App, deps Deps) {
 	if deps.Demo != nil {
 		demo := handler.NewDemoHandler(deps.Demo)
 		v1.Post("/demo/reset", authed, demo.Reset)
+		v1.Post("/demo/deals/:id/expire-now", authed, deals.ExpireNow)
 	}
 }

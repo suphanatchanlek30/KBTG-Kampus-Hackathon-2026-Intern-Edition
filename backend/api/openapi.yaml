@@ -453,6 +453,53 @@ paths:
         "400": { $ref: "#/components/responses/Error" }
         "404": { $ref: "#/components/responses/Error" }
         "422": { $ref: "#/components/responses/Error" }
+  /deals/{id}/cancel:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: ขอยกเลิก (ฝ่ายแรก) / ยินยอมยกเลิก (ฝ่ายที่สอง → REFUNDED คืนยอดที่ยังไม่ปล่อย)
+      operationId: cancelDeal
+      tags: [deal actions]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody: { $ref: "#/components/requestBodies/Version" }
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "410": { $ref: "#/components/responses/Error" }
+  /deals/{id}/report-issue:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: แจ้งห้องไม่ตรงกับดีล (TENANT · FUNDS_LOCKED) → hasOpenIssue · เงินยังกันไว้
+      operationId: reportIssue
+      tags: [deal actions]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody: { $ref: "#/components/requestBodies/Version" }
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+  /deals/{id}/calendar.ics:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    get:
+      summary: ไฟล์ปฏิทิน (นัดดูห้อง + วันเข้าอยู่)
+      operationId: dealCalendar
+      tags: [deals]
+      responses:
+        "200":
+          description: text/calendar (RFC 5545)
+          content:
+            text/calendar:
+              schema: { type: string }
+        "403": { $ref: "#/components/responses/Error" }
+  /demo/deals/{id}/expire-now:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: ให้ดีล active หมดอายุทันที (Demo tools) — มีเงินกัน → คืนอัตโนมัติ
+      operationId: demoExpireNow
+      tags: [demo]
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "409": { $ref: "#/components/responses/Error" }
   /demo/reset:
     post:
       summary: รีเซ็ตข้อมูลเดโมตาม scenario (มีเมื่อ DEMO_TOOLS_ENABLED=true)

@@ -108,11 +108,28 @@ func (s *DealService) buildDealDTO(ctx context.Context, q *db.Queries, d db.Deal
 	}
 
 	state := domain.DealState(d.State)
+	iRequested, theyRequested := d.LandlordCancelRequestedAt != nil, d.TenantCancelRequestedAt != nil
+	if role == domain.RoleTenant {
+		iRequested, theyRequested = theyRequested, iRequested
+	}
 	for _, a := range AllowedActions(state, role) {
+		// ขอยกเลิกไปแล้ว → รออีกฝ่าย · แจ้งปัญหาไปแล้ว → ไม่ต้องแจ้งซ้ำ
+		if (a == domain.ActionCancel && iRequested) || (a == domain.ActionReportIssue && d.HasOpenIssue) {
+			continue
+		}
 		out.AllowedActions = append(out.AllowedActions, string(a))
 	}
-	if r := NextActor(state); r != nil {
-		v := string(*r)
+	next := NextActor(state)
+	if next != nil && iRequested != theyRequested {
+		// มีคำขอยกเลิกค้างอยู่ — คนที่ต้องทำต่อคือฝ่ายที่ยังไม่ได้ยินยอม
+		other := domain.RoleLandlord
+		if (role == domain.RoleLandlord) == iRequested {
+			other = domain.RoleTenant
+		}
+		next = &other
+	}
+	if next != nil {
+		v := string(*next)
 		out.NextActor = &v
 	}
 	return out, nil

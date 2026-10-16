@@ -27,8 +27,9 @@ import (
 )
 
 var (
-	app  *fiber.App
-	pool *pgxpool.Pool
+	app   *fiber.App
+	pool  *pgxpool.Pool
+	deals *service.DealService
 )
 
 // ผู้ใช้คนที่สาม (ไม่ใช่คู่ดีล) — ใช้ทดสอบ NOT_DEAL_PARTY และ rate limit
@@ -67,6 +68,7 @@ func TestMain(m *testing.M) {
 	bkk, _ := time.LoadLocation("Asia/Bangkok")
 	clk := clock.System{}
 	repo := repository.New(pool)
+	deals = service.NewDealService(repo, clk, bkk, 24*time.Hour, "http://app.test")
 	app = server.New(server.Deps{
 		Log:           log,
 		DB:            pool,
@@ -74,7 +76,7 @@ func TestMain(m *testing.M) {
 		Users:         service.NewUserService(repo, clk, bkk),
 		Notifications: service.NewNotificationService(repo, clk, bkk),
 		Demo:          service.NewDemoService(repo, clk, bkk, 24*time.Hour),
-		Deals:         service.NewDealService(repo, clk, bkk, 24*time.Hour, "http://app.test"),
+		Deals:         deals,
 		Transfers:     service.NewTransferService(repo, clk),
 	})
 

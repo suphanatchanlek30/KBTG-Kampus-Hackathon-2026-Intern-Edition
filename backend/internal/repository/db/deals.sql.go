@@ -151,6 +151,43 @@ func (q *Queries) GetDealForUpdate(ctx context.Context, id uuid.UUID) (Deal, err
 	return i, err
 }
 
+const getDealForUpdateSkipLocked = `-- name: GetDealForUpdateSkipLocked :one
+SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at FROM deals WHERE id = $1 FOR UPDATE SKIP LOCKED
+`
+
+// ขั้น 2: ได้ 0 แถว = มีคนถือ lock อยู่ (เช่น ผู้เช่ากำลัง confirm) → ข้าม รอบหน้าค่อยดู
+func (q *Queries) GetDealForUpdateSkipLocked(ctx context.Context, id uuid.UUID) (Deal, error) {
+	row := q.db.QueryRow(ctx, getDealForUpdateSkipLocked, id)
+	var i Deal
+	err := row.Scan(
+		&i.ID,
+		&i.RefNo,
+		&i.ShareCode,
+		&i.LandlordID,
+		&i.LandlordAccountID,
+		&i.TenantID,
+		&i.TenantAccountID,
+		&i.PropertyID,
+		&i.DealType,
+		&i.Currency,
+		&i.TotalSatang,
+		&i.BookingFeeSatang,
+		&i.MainDepositSatang,
+		&i.FeeSatang,
+		&i.ViewingAt,
+		&i.MoveInDate,
+		&i.ExpiresAt,
+		&i.State,
+		&i.Version,
+		&i.LandlordCancelRequestedAt,
+		&i.TenantCancelRequestedAt,
+		&i.HasOpenIssue,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getInviteByTokenHash = `-- name: GetInviteByTokenHash :one
 SELECT id, deal_id, token_hash, channel, target_user_id, expires_at, revoked_at, created_at FROM deal_invites WHERE token_hash = $1
 `
@@ -190,6 +227,22 @@ func (q *Queries) GetLatestInvite(ctx context.Context, dealID uuid.UUID) (DealIn
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const hasActiveInvite = `-- name: HasActiveInvite :one
+SELECT EXISTS (SELECT 1 FROM deal_invites WHERE deal_id = $1 AND revoked_at IS NULL AND expires_at > $2)
+`
+
+type HasActiveInviteParams struct {
+	DealID uuid.UUID
+	Now    time.Time
+}
+
+func (q *Queries) HasActiveInvite(ctx context.Context, arg HasActiveInviteParams) (bool, error) {
+	row := q.db.QueryRow(ctx, hasActiveInvite, arg.DealID, arg.Now)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const listDealEvents = `-- name: ListDealEvents :many
@@ -275,6 +328,37 @@ func (q *Queries) ListDealsForUser(ctx context.Context, userID uuid.UUID) ([]Lis
 	return items, nil
 }
 
+const listDueDeals = `-- name: ListDueDeals :many
+SELECT d.id FROM deals d
+ WHERE d.state IN ('WAITING_ACCEPT', 'FUNDS_LOCKED', 'BOOKING_FEE_RELEASED')
+   AND (d.expires_at <= $1
+        OR (d.state = 'WAITING_ACCEPT' AND NOT EXISTS (
+              SELECT 1 FROM deal_invites i WHERE i.deal_id = d.id AND i.expires_at > $1 AND i.revoked_at IS NULL)))
+ ORDER BY d.expires_at
+ LIMIT 50
+`
+
+// ขั้น 1 ของ expiry worker: หา candidate แบบไม่ล็อก (docs/04-database.md §6.5)
+func (q *Queries) ListDueDeals(ctx context.Context, now time.Time) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, listDueDeals, now)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listLedgerEvents = `-- name: ListLedgerEvents :many
 SELECT id, deal_id, event_type, amount_satang, from_account_id, to_account_id, actor_id, idempotency_key, metadata, created_at FROM ledger_events WHERE deal_id = $1 ORDER BY id
 `
@@ -308,6 +392,25 @@ func (q *Queries) ListLedgerEvents(ctx context.Context, dealID uuid.UUID) ([]Led
 		return nil, err
 	}
 	return items, nil
+}
+
+const markDealIssue = `-- name: MarkDealIssue :execrows
+UPDATE deals SET has_open_issue = true, version = version + 1, updated_at = $1
+ WHERE id = $2 AND version = $3
+`
+
+type MarkDealIssueParams struct {
+	Now     time.Time
+	ID      uuid.UUID
+	Version int32
+}
+
+func (q *Queries) MarkDealIssue(ctx context.Context, arg MarkDealIssueParams) (int64, error) {
+	result, err := q.db.Exec(ctx, markDealIssue, arg.Now, arg.ID, arg.Version)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const markDealNotificationsRead = `-- name: MarkDealNotificationsRead :exec
@@ -369,6 +472,39 @@ func (q *Queries) ShareCodeExists(ctx context.Context, shareCode string) (bool, 
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const updateDealCancel = `-- name: UpdateDealCancel :execrows
+UPDATE deals
+   SET state = $1, version = version + 1, updated_at = $2,
+       landlord_cancel_requested_at = COALESCE($3, landlord_cancel_requested_at),
+       tenant_cancel_requested_at = COALESCE($4, tenant_cancel_requested_at)
+ WHERE id = $5 AND version = $6
+`
+
+type UpdateDealCancelParams struct {
+	State               DealState
+	Now                 time.Time
+	LandlordRequestedAt *time.Time
+	TenantRequestedAt   *time.Time
+	ID                  uuid.UUID
+	Version             int32
+}
+
+// บันทึกคำขอยกเลิกของฝ่ายหนึ่ง (state เดิม) หรือฝ่ายที่สองยินยอม (state = REFUNDED) — version+1 เสมอ
+func (q *Queries) UpdateDealCancel(ctx context.Context, arg UpdateDealCancelParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateDealCancel,
+		arg.State,
+		arg.Now,
+		arg.LandlordRequestedAt,
+		arg.TenantRequestedAt,
+		arg.ID,
+		arg.Version,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const updateDealState = `-- name: UpdateDealState :execrows
