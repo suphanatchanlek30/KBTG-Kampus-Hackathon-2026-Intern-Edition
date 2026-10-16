@@ -48,17 +48,26 @@ func NewDealService(repo *repository.Repository, c clock.Clock, loc *time.Locati
 
 // ---- อ่าน ----
 
-// Get — GET /deals/{id}: เฉพาะคู่ดีล
+// Get — GET /deals/{id}: คู่ดีล · หรือผู้เช่าที่กำลังพิจารณาคำเชิญที่ยังใช้ได้ (preview ไม่มีข้อมูลผู้เช่า)
 func (s *DealService) Get(ctx context.Context, actor domain.Actor, rawID string) (dto.DealDTO, error) {
 	d, err := s.findDeal(ctx, s.repo.Queries, rawID, false)
 	if err != nil {
 		return dto.DealDTO{}, err
 	}
 	role, ok := partyRole(d, actor)
-	if !ok {
-		return dto.DealDTO{}, errNotParty()
+	if ok {
+		return s.buildDealDTO(ctx, s.repo.Queries, d, role, viewOpts{})
 	}
-	return s.buildDealDTO(ctx, s.repo.Queries, d, role, viewOpts{})
+	// ผู้เช่าที่ยังไม่ได้ตอบคำเชิญ (T2 → T3) ยังไม่ใช่คู่ดีล แต่ต้องเห็นดีลเพื่อกันเงิน — ให้ดูแบบเดียวกับ /invites
+	if actor.Role == domain.RoleTenant && !d.TenantID.Valid && domain.DealState(d.State) == domain.StateWaitingAccept {
+		now := s.clock.Now()
+		if _, err := s.repo.GetActiveInvite(ctx, db.GetActiveInviteParams{DealID: d.ID, Now: now}); err == nil && now.Before(d.ExpiresAt) {
+			return s.buildDealDTO(ctx, s.repo.Queries, d, domain.RoleTenant, viewOpts{invitePreview: true})
+		} else if err != nil && !repository.IsNotFound(err) {
+			return dto.DealDTO{}, fmt.Errorf("get active invite: %w", err)
+		}
+	}
+	return dto.DealDTO{}, errNotParty()
 }
 
 // List — GET /deals?status=active|closed

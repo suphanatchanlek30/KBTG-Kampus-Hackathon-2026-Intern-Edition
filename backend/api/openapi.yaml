@@ -206,7 +206,7 @@ paths:
   /deals/{id}:
     parameters: [{ $ref: "#/components/parameters/DealID" }]
     get:
-      summary: ดีล + ไทม์ไลน์ + งวดเงิน (คู่ดีลเท่านั้น)
+      summary: ดีล + ไทม์ไลน์ + งวดเงิน — คู่ดีล หรือผู้เช่าที่มีคำเชิญที่ยังใช้ได้ (preview ไม่มีข้อมูลผู้เช่า)
       operationId: getDeal
       tags: [deals]
       responses:
@@ -362,6 +362,97 @@ paths:
             application/json:
               schema: { type: object, required: [shortName], properties: { shortName: { type: string } } }
         "404": { $ref: "#/components/responses/Error" }
+  /transfers/payees:
+    get:
+      summary: ผู้รับโอนที่เลือกได้ (บัญชีหลักของผู้ใช้เดโมคนอื่น)
+      operationId: listPayees
+      tags: [transfers]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [accountId, displayName, bankName, accountNoMasked]
+                      properties:
+                        accountId: { type: string, format: uuid }
+                        displayName: { type: string }
+                        bankName: { type: string }
+                        accountNoMasked: { type: string }
+  /transfers/precheck:
+    post:
+      summary: ตรวจว่ากำลังโอนหาคู่ดีลที่ยังไม่จบไหม (T8)
+      operationId: precheckTransfer
+      tags: [transfers]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [toAccountId]
+              properties:
+                toAccountId: { type: string, format: uuid }
+                amountSatang: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: warning = null คือโอนได้ตามปกติ
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [warning]
+                properties:
+                  warning:
+                    oneOf:
+                      - type: object
+                        required: [code, dealId, unitNo, message]
+                        properties:
+                          code: { type: string, enum: [OFF_DEAL_PAYMENT] }
+                          dealId: { type: string, format: uuid }
+                          unitNo: { type: string }
+                          message: { type: string }
+                      - type: "null"
+  /transfers:
+    post:
+      summary: โอนจำลอง (CONFIRM) หรือบันทึกว่ายกเลิกหลังเห็นคำเตือน (CANCEL)
+      operationId: createTransfer
+      tags: [transfers]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [toAccountId, amountSatang, action]
+              properties:
+                toAccountId: { type: string, format: uuid }
+                amountSatang: { type: integer, format: int64, minimum: 1 }
+                memo: { type: string, maxLength: 100 }
+                action: { type: string, enum: [CONFIRM, CANCEL] }
+      responses:
+        "201":
+          description: บันทึกแล้ว — warningShown คำนวณที่ server
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, status, warningShown]
+                properties:
+                  id: { type: string, format: uuid }
+                  status: { type: string, enum: [COMPLETED_SIMULATED, CANCELLED_BY_USER] }
+                  warningShown: { type: boolean }
+        "400": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
   /demo/reset:
     post:
       summary: รีเซ็ตข้อมูลเดโมตาม scenario (มีเมื่อ DEMO_TOOLS_ENABLED=true)

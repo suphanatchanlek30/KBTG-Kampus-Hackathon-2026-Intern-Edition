@@ -1,6 +1,8 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { ErrorScreen } from "@/components/layout/ErrorScreen";
 import { ScreenSkeleton } from "@/components/layout/ScreenSkeleton";
 import { toast } from "@/components/ui/Toast";
 import { brand } from "@/config/brand";
@@ -12,7 +14,20 @@ import { DealStatusView, type DealStatusAction } from "./DealStatusView";
 export function DealStatusScreen() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { data: deal } = useDeal(id);
+  const { data: deal, error } = useDeal(id);
+
+  // ผู้ให้เช่าเฝ้าหน้านี้อยู่แล้วผู้เช่าปล่อยเงินครบ (เห็นผ่าน polling) → ไป L6 เอง (docs/05-api.md §5)
+  // เปิดดีลที่จบไปแล้วตั้งแต่แรกไม่ย้าย — ดูสถานะได้ และมีปุ่มไปใบเสร็จ
+  const seenState = useRef<string | null>(null);
+  const released = deal?.myRole === "LANDLORD" && deal.state === "RELEASED";
+  useEffect(() => {
+    if (!deal) return;
+    const prev = seenState.current;
+    seenState.current = deal.state;
+    if (released && prev !== null && prev !== "RELEASED") router.replace(`/deals/${deal.id}/complete`);
+  }, [deal, released, router]);
+
+  if (error && !deal) return <ErrorScreen error={error} />;
 
   if (!deal) return <ScreenSkeleton />;
 

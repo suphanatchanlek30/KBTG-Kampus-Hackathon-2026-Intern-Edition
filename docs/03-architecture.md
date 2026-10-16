@@ -337,7 +337,7 @@ Frontend รัน **นอก** Docker (`npm run dev`) เพื่อ hot relo
 | `API_ORIGIN` | `http://localhost:8080` | frontend (rewrites) |
 | `NEXT_PUBLIC_USE_MOCK` | `true` / `false` | frontend |
 | `NEXT_PUBLIC_SHOW_DEMO_BADGE` | `true` | frontend |
-| `NEXT_PUBLIC_POLL_MS` | `3000` | frontend |
+| `NEXT_PUBLIC_POLL_MS` | `2000` | frontend — polling หน้าสถานะดีล (L5 / D8) |
 
 ---
 

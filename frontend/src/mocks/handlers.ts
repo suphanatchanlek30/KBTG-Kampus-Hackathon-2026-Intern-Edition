@@ -75,7 +75,7 @@ function requireDeal(id: string): DealDTO {
 async function transition(id: string, role: Role, from: DealState, to: DealState): Promise<DealDTO> {
   const state = load();
   const deal = requireDeal(id);
-  if (state.role !== role) throw new ApiError("FORBIDDEN", 403);
+  if (state.role !== role) throw new ApiError("FORBIDDEN_ROLE", 403);
   if (deal.state !== from) throw new ApiError("DEAL_STATE_CONFLICT", 409);
   save({ ...state, dealState: to });
   return delay(currentDeal()!);
@@ -92,15 +92,16 @@ export const mockApi = {
   getInvite: async (code: string): Promise<DealDTO> => {
     const deal = currentDeal();
     const normalized = decodeURIComponent(code).trim().toUpperCase();
-    if (!deal || (normalized !== DEMO_SHARE_CODE && code !== DEMO_DEAL_ID)) throw new ApiError("INVITE_INVALID", 404);
+    if (!deal || (normalized !== DEMO_SHARE_CODE && code !== DEMO_DEAL_ID))
+      throw new ApiError("NOT_FOUND", 404, "รหัสดีลไม่ถูกต้อง");
     return delay(deal);
   },
 
   createDeal: async (input: CreateDealInput): Promise<DealDTO> => {
     const state = load();
-    if (state.role !== "LANDLORD") throw new ApiError("FORBIDDEN", 403);
+    if (state.role !== "LANDLORD") throw new ApiError("FORBIDDEN_ROLE", 403);
     if (!(input.bookingFeeSatang > 0 && input.bookingFeeSatang < input.totalSatang))
-      throw new ApiError("VALIDATION_FAILED", 422);
+      throw new ApiError("VALIDATION_FAILED", 400);
     save({ ...state, dealState: "WAITING_ACCEPT", inviteSent: false, input });
     return delay(currentDeal()!);
   },

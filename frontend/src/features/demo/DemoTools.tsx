@@ -1,13 +1,17 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
+import { toast } from "@/components/ui/Toast";
 import { env } from "@/config/env";
+import { demoLogin, demoReset, hardNavigate, logout } from "@/features/auth/api";
 import { useMe } from "@/features/deals/hooks";
+import { errorMessage } from "@/lib/api/errors";
 import { cn } from "@/lib/cn";
-import { mockApi, type MockScenario } from "@/mocks/handlers";
+import type { MockScenario } from "@/mocks/handlers";
 import type { Role } from "@/types/api";
 
 const SCENARIOS: { id: MockScenario; label: string }[] = [
@@ -19,7 +23,8 @@ const SCENARIOS: { id: MockScenario; label: string }[] = [
 ];
 
 /**
- * สลับ role / รีเซ็ตข้อมูล mock — ใช้ทั้งแผงข้างกรอบโทรศัพท์ (desktop) และ sheet จากปุ่มเมนูหน้าหลัก (มือถือ)
+ * สลับ role / รีเซ็ตข้อมูลเดโม — ใช้ทั้งแผงข้างกรอบโทรศัพท์ (desktop) และ sheet จากปุ่มเมนูหน้าหลัก (มือถือ)
+ * mock: เปลี่ยนใน sessionStorage · API จริง: สลับ role = ล็อกอินเป็นอีกบัญชี, รีเซ็ต = POST /demo/reset (ทุกเครื่องเห็นพร้อมกัน)
  * `large` = ขนาดปุ่มสำหรับนิ้วบนมือถือ
  */
 function DemoControls({ large = false, onDone }: { large?: boolean; onDone?: () => void }) {
@@ -27,20 +32,33 @@ function DemoControls({ large = false, onDone }: { large?: boolean; onDone?: () 
   const router = useRouter();
   const role = useMe().data?.user.role;
 
+  const switchRole = async (next: Role) => {
+    try {
+      await demoLogin(next);
+    } catch (err) {
+      return toast.error(errorMessage(err));
+    }
+    onDone?.();
+    // เปลี่ยนผู้ใช้ → โหลดหน้าใหม่ทั้งหน้า (หน้าใน <Activity> ของผู้ใช้เดิมต้องไม่ค้าง)
+    hardNavigate("/home");
+  };
+
   // ล้าง cache ทั้งหมด (ไม่ใช่แค่ invalidate) — หน้าที่ค้างอยู่ใน <Activity> จะโหลดข้อมูลใหม่เสมอเมื่อกลับมาแสดง
   // กันกรณีกดรีเซ็ตเร็วระหว่างที่ mutation ก่อนหน้ายัง invalidate ไม่เสร็จ แล้วหน้าหลักค้างข้อมูลเก่า
-  const switchRole = (next: Role) => {
-    mockApi.setRole(next);
+  const reset = async (scenario: MockScenario) => {
+    try {
+      await demoReset(scenario);
+    } catch (err) {
+      return toast.error(errorMessage(err));
+    }
     void qc.resetQueries();
     onDone?.();
     router.push("/home");
   };
 
-  const reset = (scenario: MockScenario) => {
-    mockApi.reset(scenario);
-    void qc.resetQueries();
-    onDone?.();
-    router.push("/home");
+  const signOut = async () => {
+    await logout().catch(() => undefined);
+    hardNavigate("/login");
   };
 
   return (
@@ -78,12 +96,25 @@ function DemoControls({ large = false, onDone }: { large?: boolean; onDone?: () 
           </button>
         ))}
       </div>
+      {!env.useMock && (
+        <button
+          type="button"
+          onClick={signOut}
+          className={cn(
+            "flex items-center gap-2 rounded-lg text-left text-muted hover:bg-card2 hover:text-white",
+            large ? "px-3 py-2.5 text-body" : "px-2 py-1",
+          )}
+        >
+          <LogOut size={large ? 16 : 13} strokeWidth={1.5} />
+          ออกจากระบบ
+        </button>
+      )}
     </>
   );
 }
 
 /**
- * Demo tools ข้างกรอบโทรศัพท์ (desktop) — สลับ role / รีเซ็ตข้อมูล mock
+ * Demo tools ข้างกรอบโทรศัพท์ (desktop) — สลับ role / รีเซ็ตข้อมูลเดโม
  * มือถือกดปุ่มเมนูที่หน้าหลัก (DemoMenuSheet) หรือใช้ /home?as=tenant หรือ ?as=landlord
  */
 export function DemoTools() {
@@ -92,13 +123,11 @@ export function DemoTools() {
   useEffect(() => {
     // อ่าน ?as= ตอน mount (ฝั่ง client เท่านั้น) — แผงนี้ซ่อนบนมือถือแต่ยัง mount อยู่ จึงใช้ได้ทุกขนาดจอ
     const as = new URLSearchParams(window.location.search).get("as");
-    if (as === "tenant" || as === "landlord") {
-      mockApi.setRole(as === "tenant" ? "TENANT" : "LANDLORD");
-      void qc.resetQueries();
-    }
+    if (as !== "tenant" && as !== "landlord") return;
+    void demoLogin(as === "tenant" ? "TENANT" : "LANDLORD").then(() =>
+      env.useMock ? qc.resetQueries() : hardNavigate(window.location.pathname),
+    );
   }, [qc]);
-
-  if (!env.useMock) return null;
 
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-line bg-card p-4 text-caption">
@@ -108,9 +137,8 @@ export function DemoTools() {
   );
 }
 
-/** Sheet จากปุ่มเมนูหน้าหลัก — ให้สลับ role / รีเซ็ตบนมือถือจริงได้ (เฉพาะโหมด mock) */
+/** Sheet จากปุ่มเมนูหน้าหลัก — ให้สลับ role / รีเซ็ต / ออกจากระบบบนมือถือจริงได้ */
 export function DemoMenuSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  if (!env.useMock) return null;
   return (
     <BottomSheet open={open} onClose={onClose} title="โหมดทดลอง">
       <DemoControls large onDone={onClose} />

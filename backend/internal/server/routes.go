@@ -57,6 +57,11 @@ func registerRoutes(app *fiber.App, deps Deps) {
 	// 30 ครั้ง/นาที/ผู้ใช้ — พอสำหรับคนจริง แต่สุ่มเดา share code (32^6 แบบ) ไม่ได้
 	v1.Get("/invites/:code", authed, tenantOnly, middleware.PerUserRateLimit(30, time.Minute), deals.PreviewInvite)
 
+	transfers := handler.NewTransferHandler(deps.Transfers)
+	v1.Get("/transfers/payees", authed, transfers.Payees)
+	v1.Post("/transfers/precheck", authed, transfers.Precheck)
+	v1.Post("/transfers", authed, idem, transfers.Create)
+
 	if deps.Demo != nil {
 		demo := handler.NewDemoHandler(deps.Demo)
 		v1.Post("/demo/reset", authed, demo.Reset)

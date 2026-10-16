@@ -126,3 +126,16 @@ export type PayeeDTO = { accountId: string; displayName: string; bankName: strin
 
 /** POST /deals/{id}/invite/send (#12) */
 export type InviteSentDTO = { sentTo: { shortName: string }; sentAt: string };
+
+/** POST /transfers (#26) */
+export type TransferResultDTO = {
+  id: string;
+  status: "COMPLETED_SIMULATED" | "CANCELLED_BY_USER";
+  warningShown: boolean;
+};
+
+/** POST /auth/demo-login (#3) */
+export type LoginDTO = { user: MeDTO["user"] };
+
+/** POST /demo/reset (#27) — ชื่อ scenario ฝั่ง backend */
+export type DemoScenario = "fresh" | "waiting_accept" | "funds_locked" | "booking_released" | "released";
