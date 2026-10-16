@@ -114,7 +114,7 @@ cd frontend && npm install && npm run dev   # http://localhost:3000
 ```
 
 ### เดโม 2 เครื่องด้วย API จริง
-1. `make up` · ตั้ง `NEXT_PUBLIC_USE_MOCK=false` ใน `frontend/.env.local` แล้ว `npm run dev`
+1. `make up` · ใน `frontend/.env.local` ตั้ง `NEXT_PUBLIC_USE_MOCK=false` และ `NEXT_PUBLIC_POLL_MS=2000` (ค่าตาม `.env.local.example`) แล้ว `npm run dev`
 2. เครื่อง A (ผู้ให้เช่า) และเครื่อง B (ผู้เช่า) เปิดแอป → หน้า `/login` เลือกบัญชีคนละฝั่ง
 3. ไล่สคริปต์เดโม [01 §9](docs/01-user-flow.md#9-สคริปต์เดโมบนเวที-2-เครื่อง-3-นาที) — จอ A อัปเดตเองภายใน ~2 วินาทีเมื่อ B กันเงิน/ปล่อยเงิน
 4. เริ่มใหม่: ปุ่ม ☰ ที่หน้าหลัก (หรือแผง Demo tools บน desktop) → รีเซ็ตดีล — มีผลกับทั้งสองเครื่อง
