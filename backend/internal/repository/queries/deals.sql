@@ -46,7 +46,8 @@ SELECT * FROM deal_invites
  LIMIT 1;
 
 -- name: GetLatestInvite :one
-SELECT * FROM deal_invites WHERE deal_id = $1 AND revoked_at IS NULL ORDER BY created_at DESC, id DESC LIMIT 1;
+-- คำเชิญล่าสุด (รวมที่ถูก revoke แล้วหลังผู้เช่าตอบ) — DealDTO.invite แสดงเป็นประวัติ
+SELECT * FROM deal_invites WHERE deal_id = $1 ORDER BY created_at DESC, id DESC LIMIT 1;
 
 -- name: GetInviteByTokenHash :one
 SELECT * FROM deal_invites WHERE token_hash = $1;

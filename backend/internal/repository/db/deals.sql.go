@@ -172,9 +172,10 @@ func (q *Queries) GetInviteByTokenHash(ctx context.Context, tokenHash []byte) (D
 }
 
 const getLatestInvite = `-- name: GetLatestInvite :one
-SELECT id, deal_id, token_hash, channel, target_user_id, expires_at, revoked_at, created_at FROM deal_invites WHERE deal_id = $1 AND revoked_at IS NULL ORDER BY created_at DESC, id DESC LIMIT 1
+SELECT id, deal_id, token_hash, channel, target_user_id, expires_at, revoked_at, created_at FROM deal_invites WHERE deal_id = $1 ORDER BY created_at DESC, id DESC LIMIT 1
 `
 
+// คำเชิญล่าสุด (รวมที่ถูก revoke แล้วหลังผู้เช่าตอบ) — DealDTO.invite แสดงเป็นประวัติ
 func (q *Queries) GetLatestInvite(ctx context.Context, dealID uuid.UUID) (DealInvite, error) {
 	row := q.db.QueryRow(ctx, getLatestInvite, dealID)
 	var i DealInvite

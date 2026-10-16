@@ -38,6 +38,17 @@ func ledgerCount(t *testing.T, dealID, typ string) int {
 	return n
 }
 
+// tokenStored = มี invite token ตัวจริงอยู่ในคำตอบที่บันทึกไว้ (ต้องไม่มี — DB เก็บได้แค่ hash)
+func tokenStored(t *testing.T, tok string) bool {
+	t.Helper()
+	var n int
+	if err := pool.QueryRow(context.Background(),
+		`SELECT count(*) FROM idempotency_keys WHERE response_body::text LIKE '%' || $1 || '%'`, tok).Scan(&n); err != nil {
+		t.Fatal(err)
+	}
+	return n > 0
+}
+
 func str(m map[string]any, path ...string) string {
 	var cur any = m
 	for _, p := range path {
@@ -85,7 +96,8 @@ func TestFullDealFlow(t *testing.T) {
 	landlord, tenant := login(t, "landlord"), login(t, "tenant")
 	resetDeal(t, landlord, "fresh")
 
-	res, deal := landlord.post("/deals", newDealBody(t, landlord, 650_000, 100_000))
+	createBody, createKey := newDealBody(t, landlord, 650_000, 100_000), uuid.NewString()
+	res, deal := landlord.post("/deals", createBody, createKey)
 	if res.StatusCode != http.StatusCreated || str(deal, "state") != "WAITING_ACCEPT" || version(deal) != 1 {
 		t.Fatalf("create: %d %v", res.StatusCode, deal)
 	}
@@ -100,9 +112,17 @@ func TestFullDealFlow(t *testing.T) {
 	if !strings.HasPrefix(qrURL, "http://app.test/invites/") {
 		t.Fatalf("qrUrl = %q", qrURL)
 	}
-	// qrUrl ไม่ถูกส่งซ้ำเมื่ออ่านดีลอีกครั้ง (token ไม่ได้เก็บ)
+	// token ตัวจริงต้องไม่อยู่ใน DB: อ่านดีลซ้ำ / ส่งซ้ำด้วย key เดิม ไม่ได้ qrUrl และคำตอบที่บันทึกไม่มี token
+	token := strings.TrimPrefix(qrURL, "http://app.test/invites/")
 	if _, again := landlord.do(http.MethodGet, "/deals/"+id, ""); str(again, "invite", "qrUrl") != "" {
 		t.Error("qrUrl leaked on GET")
+	}
+	if res, replay := landlord.post("/deals", createBody, createKey); res.StatusCode != http.StatusCreated ||
+		str(replay, "id") != id || str(replay, "invite", "qrUrl") != "" {
+		t.Errorf("replayed create: %d %v", res.StatusCode, replay)
+	}
+	if tokenStored(t, token) {
+		t.Error("raw invite token stored in idempotency_keys")
 	}
 
 	res, sent := landlord.post("/deals/"+id+"/invite/send", `{"channel":"IN_APP"}`)
@@ -115,7 +135,6 @@ func TestFullDealFlow(t *testing.T) {
 	}
 
 	// เปิดได้ทั้งจาก share code และ token ใน QR — ยังไม่เห็นข้อมูลผู้เช่า
-	token := strings.TrimPrefix(qrURL, "http://app.test/invites/")
 	for _, code := range []string{str(deal, "shareCode"), token} {
 		res, preview := tenant.do(http.MethodGet, "/invites/"+code, "")
 		if res.StatusCode != http.StatusOK || preview["tenant"] != nil || str(preview, "myRole") != "TENANT" {
@@ -132,6 +151,10 @@ func TestFullDealFlow(t *testing.T) {
 	_, ll := landlord.do(http.MethodGet, "/deals/"+id, "")
 	if str(ll, "state") != "FUNDS_LOCKED" || str(ll, "tenant", "shortName") != "ณัฐธิดา ศ." || num(ll, "amounts", "heldSatang") != 650_000 {
 		t.Fatalf("landlord view: %v", ll)
+	}
+	// คำเชิญถูก revoke แล้วแต่ยังแสดงเป็นประวัติ (เวลาส่ง) เหมือน frontend mock
+	if ll["invite"] == nil || str(ll, "invite", "sentAt") == "" {
+		t.Errorf("invite after lock = %v", ll["invite"])
 	}
 
 	res, viewed := tenant.post("/deals/"+id+"/confirm-viewing",
@@ -378,6 +401,9 @@ func TestReissueInviteRevokesOldQR(t *testing.T) {
 	}
 	if res, _ := tenant.do(http.MethodGet, "/invites/"+newToken, ""); res.StatusCode != http.StatusOK {
 		t.Errorf("new token: %d", res.StatusCode)
+	}
+	if tokenStored(t, oldToken) || tokenStored(t, newToken) {
+		t.Error("raw invite token stored in idempotency_keys")
 	}
 	if res, _ := tenant.do(http.MethodGet, "/invites/KS-ZZZZZZ", ""); res.StatusCode != http.StatusNotFound {
 		t.Errorf("unknown code: %d", res.StatusCode)

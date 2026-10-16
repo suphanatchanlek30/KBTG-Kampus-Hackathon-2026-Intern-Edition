@@ -233,6 +233,8 @@
 
 state ตรวจก่อน version เพื่อให้ "กดปล่อยซ้ำหลังปล่อยแล้ว (key ใหม่)" ได้ `DEAL_STATE_CONFLICT` · คำตอบที่ส่งซ้ำจาก Idempotency-Key เดิมมี header `Idempotent-Replayed: true`
 
+> คำตอบที่บันทึกไว้สำหรับ Idempotency-Key **ตัด `invite.qrUrl` ออก** (token จริงห้ามอยู่ใน DB) — สร้างดีล/ออก QR ซ้ำด้วย key เดิมจึงไม่ได้ `qrUrl` ให้เรียก #11 ออกใหม่ · log ของ API บันทึก path แบบ pattern (`/invites/:code`) ไม่ใช่รหัสจริง
+
 ### #9 `GET /deals?status=active|closed`
 ```json
 { "items": [ { "id": "…", "refNo": "KS-691014-0458", "state": "RELEASED", "projectName": "The Park สุขุมวิท 64",

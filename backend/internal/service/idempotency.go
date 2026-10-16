@@ -25,6 +25,9 @@ type Response struct {
 	Replayed bool
 }
 
+// redactor = คำตอบที่มีข้อมูลห้ามเก็บ (เช่น QR token ใน DealDTO)
+type redactor interface{ Redacted() any }
+
 // runIdempotent รัน action ใน transaction เดียวกับการบันทึกคำตอบ (docs/05-api.md §1 Idempotency)
 //
 //  1. ล็อก (user, key) ด้วย advisory lock — request key เดิมที่มาพร้อมกันต้องรอคิว
@@ -32,6 +35,7 @@ type Response struct {
 //  3. ยังไม่มี: รัน fn แล้วบันทึกคำตอบก่อน commit — commit ไม่ผ่าน = ไม่มีทั้งผลของ action และคำตอบ
 //
 // บันทึกเฉพาะคำตอบที่สำเร็จ — fn คืน error (เช่น ยอดไม่พอ) = rollback ทั้งหมด ลองใหม่ด้วย key เดิมได้
+// ผลลัพธ์ที่มีความลับ (redactor) เก็บเป็นฉบับตัดความลับ แต่ตอบครั้งแรกด้วยฉบับเต็ม
 func runIdempotent(ctx context.Context, repo *repository.Repository, actor domain.Actor, req IdemRequest,
 	now time.Time, status int, fn func(q *db.Queries) (any, error)) (Response, error) {
 	var out Response
@@ -59,9 +63,15 @@ func runIdempotent(ctx context.Context, repo *repository.Repository, actor domai
 		if err != nil {
 			return fmt.Errorf("marshal response: %w", err)
 		}
+		stored := body
+		if r, ok := result.(redactor); ok {
+			if stored, err = json.Marshal(r.Redacted()); err != nil {
+				return fmt.Errorf("marshal stored response: %w", err)
+			}
+		}
 		if err := q.InsertIdempotencyKey(ctx, db.InsertIdempotencyKeyParams{
 			UserID: actor.UserID, Key: req.Key, MethodPath: req.MethodPath, RequestHash: req.RequestHash,
-			StatusCode: int32(status), ResponseBody: body, CreatedAt: now,
+			StatusCode: int32(status), ResponseBody: stored, CreatedAt: now,
 		}); err != nil {
 			return fmt.Errorf("save idempotency key: %w", err)
 		}

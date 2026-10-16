@@ -177,6 +177,17 @@ type DealDTO struct {
 	Account        *AccountBalanceDTO `json:"account,omitempty"`
 }
 
+// Redacted คือสำเนาที่ไม่มี qrUrl — ใช้เก็บใน idempotency_keys เพราะ token จริงต้องไม่อยู่ใน DB
+// (ส่งซ้ำด้วย key เดิมจะไม่ได้ qrUrl → frontend เรียก POST /deals/{id}/invite เพื่อออกใหม่)
+func (d DealDTO) Redacted() any {
+	if d.Invite != nil && d.Invite.QrURL != "" {
+		inv := *d.Invite
+		inv.QrURL = ""
+		d.Invite = &inv
+	}
+	return d
+}
+
 type DealSummaryDTO struct {
 	ID          string `json:"id"`
 	RefNo       string `json:"refNo"`
