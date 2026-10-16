@@ -332,7 +332,7 @@ Frontend รัน **นอก** Docker (`npm run dev`) เพื่อ hot relo
 | `LOG_LEVEL` | `info` | api — `debug` / `info` / `warn` / `error` |
 | `SESSION_TTL` | `12h` | api — อายุ cookie `ks_session` |
 | `COOKIE_SECURE` | `false` | api — `true` เมื่อเปิดผ่าน HTTPS |
-| `DEMO_FROZEN_NOW` | `2026-10-14T10:26:00+07:00` | api — (ไม่บังคับ) นาฬิกาเริ่มที่เวลานี้แล้วเดินต่อ |
+| `DEMO_FROZEN_NOW` | `2026-10-14T10:40:00+07:00` | api — (ไม่บังคับ) นาฬิกาเริ่มที่เวลานี้แล้วเดินต่อ |
 | `API_ORIGIN` | `http://localhost:8080` | frontend (rewrites) |
 | `NEXT_PUBLIC_USE_MOCK` | `true` / `false` | frontend |
 | `NEXT_PUBLIC_SHOW_DEMO_BADGE` | `true` | frontend |

@@ -100,10 +100,10 @@ cp frontend/.env.local.example frontend/.env.local
 make up                       # postgres :5432 · api :8080 · adminer :8081
 curl localhost:8080/api/v1/readyz   # {"status":"ready"}
 
-# ลองล็อกอินเดโม + ดูข้อมูล (cookie เก็บไว้ในไฟล์ jar)
-curl -c jar -H 'content-type: application/json' -d '{"username":"tenant"}' localhost:8080/api/v1/auth/demo-login
-curl -b jar -X POST 'localhost:8080/api/v1/demo/reset?scenario=funds_locked'
-curl -b jar localhost:8080/api/v1/home
+# ลองล็อกอินเดโม + ดูข้อมูล (cookie เก็บไว้นอก repo — ข้างในเป็น JWT ห้าม commit)
+curl -c /tmp/ksure.jar -H 'content-type: application/json' -d '{"username":"tenant"}' localhost:8080/api/v1/auth/demo-login
+curl -b /tmp/ksure.jar -X POST 'localhost:8080/api/v1/demo/reset?scenario=funds_locked'
+curl -b /tmp/ksure.jar localhost:8080/api/v1/home
 
 # 3) Frontend
 cd frontend && npm install && npm run dev   # http://localhost:3000
