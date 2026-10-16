@@ -20,5 +20,11 @@ export function ResultScreen() {
 
   if (error && !deal) return <ErrorScreen error={error} />;
   if (!deal || notFailed) return <ScreenSkeleton />;
-  return <ResultView deal={deal} onHome={() => router.replace("/home")} />;
+  return (
+    <ResultView
+      deal={deal}
+      onHome={() => router.replace("/home")}
+      onNewDeal={deal.myRole === "LANDLORD" ? () => router.push("/deals/new") : undefined}
+    />
+  );
 }
