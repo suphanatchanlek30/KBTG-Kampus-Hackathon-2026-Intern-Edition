@@ -25,6 +25,7 @@ export function PhoneFrame({ children, forceFrame, aside, className }: PhoneFram
       className="min-h-dvh bg-bg md:gap-10 md:p-8 framed:flex framed:items-center framed:justify-center framed:bg-white"
     >
       <div
+        data-phone-scope
         className={cn(
           "relative mx-auto flex h-dvh w-full max-w-[430px] transform-gpu flex-col overflow-hidden bg-bg",
           "framed:mx-0 framed:w-[393px] framed:max-w-none framed:shrink-0 framed:rounded-frame framed:shadow-phone",
@@ -34,6 +35,8 @@ export function PhoneFrame({ children, forceFrame, aside, className }: PhoneFram
         )}
       >
         {children}
+        {/* ชั้นบนสุดของกรอบ — BottomSheet portal มาที่นี่ (อยู่เหนือ header/footer ของทุกหน้า) */}
+        <div data-phone-overlay />
         <Toaster />
       </div>
       {!forceFrame && (
