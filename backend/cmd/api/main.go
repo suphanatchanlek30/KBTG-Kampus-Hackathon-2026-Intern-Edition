@@ -70,6 +70,7 @@ func run() error {
 		CookieSecure:  cfg.CookieSecure,
 		Users:         service.NewUserService(repo, clk, cfg.Location),
 		Notifications: service.NewNotificationService(repo, clk, cfg.Location),
+		Deals:         service.NewDealService(repo, clk, cfg.Location, cfg.InviteTTL, cfg.AppBaseURL),
 	}
 	if cfg.DemoToolsEnabled {
 		deps.Demo = service.NewDemoService(repo, clk, cfg.Location, cfg.InviteTTL)

@@ -330,6 +330,7 @@ Frontend รัน **นอก** Docker (`npm run dev`) เพื่อ hot relo
 | `DEMO_TOOLS_ENABLED` | `true` | api — เปิด `/demo/*` |
 | `MIGRATE_ON_START` | `true` | api — รัน goose up ตอน start |
 | `LOG_LEVEL` | `info` | api — `debug` / `info` / `warn` / `error` |
+| `APP_BASE_URL` | `http://localhost:3000` | api — ลิงก์ใน QR คำเชิญ (เดโมบนมือถือใช้ IP เครื่อง) |
 | `SESSION_TTL` | `12h` | api — อายุ cookie `ks_session` |
 | `COOKIE_SECURE` | `false` | api — `true` เมื่อเปิดผ่าน HTTPS |
 | `DEMO_FROZEN_NOW` | `2026-10-14T10:40:00+07:00` | api — (ไม่บังคับ) นาฬิกาเริ่มที่เวลานี้แล้วเดินต่อ |

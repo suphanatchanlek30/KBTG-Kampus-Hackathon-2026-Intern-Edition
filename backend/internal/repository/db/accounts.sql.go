@@ -7,9 +7,92 @@ package db
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
+
+const adjustAccount = `-- name: AdjustAccount :exec
+UPDATE demo_accounts
+   SET balance_satang = balance_satang + $1, held_satang = held_satang + $2, updated_at = $3
+ WHERE id = $4
+`
+
+type AdjustAccountParams struct {
+	BalanceDelta int64
+	HeldDelta    int64
+	Now          time.Time
+	ID           uuid.UUID
+}
+
+// เปลี่ยนยอดแบบบวก/ลบ — CHECK ในตารางกันยอดติดลบและ held > balance เป็นด่านสุดท้าย
+func (q *Queries) AdjustAccount(ctx context.Context, arg AdjustAccountParams) error {
+	_, err := q.db.Exec(ctx, adjustAccount,
+		arg.BalanceDelta,
+		arg.HeldDelta,
+		arg.Now,
+		arg.ID,
+	)
+	return err
+}
+
+const getAccount = `-- name: GetAccount :one
+SELECT id, user_id, bank_name, account_type, account_no_masked, balance_satang, held_satang, is_primary, created_at, updated_at FROM demo_accounts WHERE id = $1
+`
+
+func (q *Queries) GetAccount(ctx context.Context, id uuid.UUID) (DemoAccount, error) {
+	row := q.db.QueryRow(ctx, getAccount, id)
+	var i DemoAccount
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.BankName,
+		&i.AccountType,
+		&i.AccountNoMasked,
+		&i.BalanceSatang,
+		&i.HeldSatang,
+		&i.IsPrimary,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getAccountsForUpdate = `-- name: GetAccountsForUpdate :many
+SELECT id, user_id, bank_name, account_type, account_no_masked, balance_satang, held_satang, is_primary, created_at, updated_at FROM demo_accounts WHERE id = ANY($1::uuid[]) ORDER BY id FOR UPDATE
+`
+
+// ล็อกหลายบัญชีเรียงตาม id เสมอ — กัน deadlock เมื่อสอง transaction ล็อกคู่บัญชีเดียวกันสลับลำดับ
+func (q *Queries) GetAccountsForUpdate(ctx context.Context, ids []uuid.UUID) ([]DemoAccount, error) {
+	rows, err := q.db.Query(ctx, getAccountsForUpdate, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []DemoAccount{}
+	for rows.Next() {
+		var i DemoAccount
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.BankName,
+			&i.AccountType,
+			&i.AccountNoMasked,
+			&i.BalanceSatang,
+			&i.HeldSatang,
+			&i.IsPrimary,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const getPrimaryAccount = `-- name: GetPrimaryAccount :one
 SELECT id, user_id, bank_name, account_type, account_no_masked, balance_satang, held_satang, is_primary, created_at, updated_at FROM demo_accounts WHERE user_id = $1 AND is_primary

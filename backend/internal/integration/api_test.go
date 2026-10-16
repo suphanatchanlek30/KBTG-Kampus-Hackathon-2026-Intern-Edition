@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/suphanatchanlek30/ksure/backend/internal/platform/clock"
 	"github.com/suphanatchanlek30/ksure/backend/internal/platform/database"
@@ -25,7 +26,19 @@ import (
 	"github.com/suphanatchanlek30/ksure/backend/migrations"
 )
 
-var app *fiber.App
+var (
+	app  *fiber.App
+	pool *pgxpool.Pool
+)
+
+// ผู้ใช้คนที่สาม (ไม่ใช่คู่ดีล) — ใช้ทดสอบ NOT_DEAL_PARTY และ rate limit
+const outsiderSQL = `
+INSERT INTO users (id, username, role, display_name, short_name, phone) VALUES
+  ('00000000-0000-0000-0000-00000000c001', 'outsider', 'TENANT', 'คนนอก ทดสอบ', 'คนนอก ท.', '0800000000')
+ON CONFLICT DO NOTHING;
+INSERT INTO demo_accounts (id, user_id, bank_name, account_type, account_no_masked, balance_satang) VALUES
+  ('00000000-0000-0000-0000-0000000cc001', '00000000-0000-0000-0000-00000000c001', 'กสิกรไทย', 'ออมทรัพย์', 'xxx-x-x0000', 5000000)
+ON CONFLICT DO NOTHING;`
 
 func TestMain(m *testing.M) {
 	url := os.Getenv("TEST_DATABASE_URL")
@@ -35,13 +48,19 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 	log := slog.New(slog.NewJSONHandler(io.Discard, nil))
 
-	pool, err := database.Connect(ctx, url)
+	var err error
+	pool, err = database.Connect(ctx, url)
 	if err != nil {
 		slog.Error("connect test db", "error", err)
 		os.Exit(1)
 	}
 	if err := database.Migrate(ctx, pool, migrations.FS, log); err != nil {
 		slog.Error("migrate test db", "error", err)
+		os.Exit(1)
+	}
+
+	if _, err := pool.Exec(ctx, outsiderSQL); err != nil {
+		slog.Error("seed outsider", "error", err)
 		os.Exit(1)
 	}
 
@@ -55,6 +74,7 @@ func TestMain(m *testing.M) {
 		Users:         service.NewUserService(repo, clk, bkk),
 		Notifications: service.NewNotificationService(repo, clk, bkk),
 		Demo:          service.NewDemoService(repo, clk, bkk, 24*time.Hour),
+		Deals:         service.NewDealService(repo, clk, bkk, 24*time.Hour, "http://app.test"),
 	})
 
 	code := m.Run()
@@ -70,6 +90,12 @@ type client struct {
 
 func (c *client) do(method, path, body string) (*http.Response, map[string]any) {
 	c.t.Helper()
+	return c.doWith(method, path, body, nil)
+}
+
+// doWith ส่ง header เพิ่ม (เช่น Idempotency-Key)
+func (c *client) doWith(method, path, body string, headers map[string]string) (*http.Response, map[string]any) {
+	c.t.Helper()
 	var r io.Reader
 	if body != "" {
 		r = strings.NewReader(body)
@@ -80,6 +106,9 @@ func (c *client) do(method, path, body string) (*http.Response, map[string]any) 
 	}
 	if c.cookie != nil {
 		req.AddCookie(c.cookie)
+	}
+	for k, v := range headers {
+		req.Header.Set(k, v)
 	}
 	res, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
 	if err != nil {

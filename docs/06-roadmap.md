@@ -161,22 +161,23 @@ go version
 
 ---
 
-## Phase 6 · Deal Core (หัวใจของระบบ)
+## Phase 6 · Deal Core (หัวใจของระบบ) ✅
 
-- [ ] `domain/` enums + `AppError` (รหัส error ตาม [05 §1](./05-api.md#รูปแบบ-error))
-- [ ] `service/statemachine.go` + **unit test ทุก transition** (ถูกและผิด) ตาม [04 §2](./04-database.md#deal_state-ตรงกับ-state-machine-ในสเปก)
-- [ ] `platform/token`: ref no, share code, invite token + hash
-- [ ] `POST /deals`, `GET /deals`, `GET /deals/{id}`, `POST /deals/{id}/invite`, `/invite/send`, `GET /users/lookup`
-- [ ] `GET /invites/{codeOrToken}` + rate limit (Fiber limiter middleware)
-- [ ] `POST /deals/{id}/reject`, `/lock`, `/confirm-viewing`, `/confirm-move-in` ตาม transaction ใน [04 §6](./04-database.md#6-transaction-ของแต่ละ-action)
-- [ ] Idempotency middleware + การบันทึกใน tx เดียวกัน
-- [ ] `allowedActions` / `nextActor` ใน `DealDTO`
-- [ ] **Integration tests:**
-  - [ ] flow สำเร็จเต็ม: create → lock → confirm-viewing → confirm-move-in → ยอดเงินทั้งสองบัญชีถูก (ผู้ให้เช่า 49,350.00 / ผู้เช่า 22,000.00)
-  - [ ] ยิง confirm-viewing ซ้ำ 5 ครั้ง key เดียวกัน → ledger มี `RELEASE_BOOKING_FEE` 1 แถว
-  - [ ] ยิง confirm-viewing 2 request พร้อมกัน (key ต่างกัน) → สำเร็จ 1, `409` 1
-  - [ ] landlord เรียก confirm → `403` · ผู้ใช้อื่นอ่านดีล → `403`
-  - [ ] ยอดไม่พอ → `422` และไม่มี ledger event
+- [x] `domain/` enums (`DealState`, `Action`) + `AppError` (รหัส error ตาม [05 §1](./05-api.md#รูปแบบ-error))
+- [x] `service/statemachine.go` + **unit test ทุก transition** (ถูกและผิด — 10 state × 6 action × 3 actor = 180 กรณี) ตาม [04 §2](./04-database.md#deal_state-ตรงกับ-state-machine-ในสเปก)
+- [x] `platform/token`: ref no (`KS-YYMMDD-NNNN` ปี พ.ศ.), share code, invite token + hash
+- [x] `POST /deals`, `GET /deals`, `GET /deals/{id}`, `POST /deals/{id}/invite`, `/invite/send`, `GET /users/lookup`
+- [x] `GET /invites/{codeOrToken}` + rate limit 30 ครั้ง/นาที/ผู้ใช้ (Fiber limiter)
+- [x] `POST /deals/{id}/reject`, `/lock`, `/confirm-viewing`, `/confirm-move-in` ตาม transaction ใน [04 §6](./04-database.md#6-transaction-ของแต่ละ-action) — ตรวจหลังได้ row lock ตามลำดับ state → version → วันหมดอายุ
+- [x] Idempotency middleware + การบันทึกใน tx เดียวกัน (advisory lock ต่อ user+key — key เดิมที่มาพร้อมกันได้คำตอบเดียวกัน)
+- [x] `allowedActions` / `nextActor` ใน `DealDTO` (ตรงกับ frontend mock)
+- [x] **Integration tests:**
+  - [x] flow สำเร็จเต็ม: create → lock → confirm-viewing → confirm-move-in → ยอดเงินทั้งสองบัญชีถูก (ผู้ให้เช่า 49,350.00 / ผู้เช่า 22,000.00)
+  - [x] ยิง confirm-viewing ซ้ำ 5 ครั้ง key เดียวกัน → ledger มี `RELEASE_BOOKING_FEE` 1 แถว (ทั้งยิงต่อกันและยิงพร้อมกัน)
+  - [x] ยิง confirm-viewing 2 request พร้อมกัน (key ต่างกัน) → สำเร็จ 1, `409` 1 (5 รอบ, ผ่าน `-race`)
+  - [x] landlord เรียก confirm → `403` · ผู้ใช้อื่นอ่านดีล → `403`
+  - [x] ยอดไม่พอ → `422` และไม่มี ledger event
+  - [x] เพิ่ม: reject, ออก QR ใหม่แล้ว token เก่าได้ 410, version เก่า → 409, checklist ไม่ครบ → 400, ไม่มี Idempotency-Key → 400, rate limit → 429
 
 **DoD:** `make test` ผ่านทั้งหมด · OpenAPI ครบทุก endpoint ของ Phase นี้
 

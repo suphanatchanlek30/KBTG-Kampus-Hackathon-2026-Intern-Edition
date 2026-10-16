@@ -82,7 +82,7 @@
 
 ## 🚀 Getting started
 
-> ตอนนี้ frontend ใช้ mock data (`NEXT_PUBLIC_USE_MOCK=true`) — backend มี login เดโม, `/me`, `/home`, แจ้งเตือน และ `/demo/reset` แล้ว ส่วนดีล (สร้าง/กันเงิน/ปล่อยเงิน) มาใน Phase 6 และต่อกับหน้าจอใน Phase 7
+> ตอนนี้ frontend ใช้ mock data (`NEXT_PUBLIC_USE_MOCK=true`) — backend มี login เดโม, `/me`, `/home`, แจ้งเตือน และ `/demo/reset` แล้ว และ API ของดีลครบ (สร้าง/ส่งคำเชิญ/กันเงิน/ปล่อยเงิน) — รอต่อกับหน้าจอใน Phase 7
 
 ### สิ่งที่ต้องติดตั้ง
 - Node.js LTS ล่าสุด + npm
@@ -150,7 +150,7 @@ Adminer: http://localhost:8081 · server `db` · user `ksure` · password `ksure
 | 3 | อนิเมชัน (success rings, Face ID, stepper, bottom sheet …) | 🟡 เหลือทดสอบบนมือถือจริง |
 | 4 | Backend foundation (Fiber, Postgres, migration, seed) | ✅ |
 | 5 | Auth เดโม + Home API | ✅ |
-| 6 | Deal core: state machine, ledger, idempotency + tests | ⬜ |
+| 6 | Deal core: state machine, ledger, idempotency + tests | ✅ |
 | 7 | เชื่อม Frontend ↔ API + polling real-time | ⬜ |
 | 8 | Flow ทางเลือก (ปฏิเสธ, ยกเลิก, หมดอายุ, T8 โอนนอกดีล) + หน้าจอ D* | ⬜ |
 | 9 | E2E, PWA, HTTPS บนมือถือ, ซ้อมเดโม | ⬜ |
