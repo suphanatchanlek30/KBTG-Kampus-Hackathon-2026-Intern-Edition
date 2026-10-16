@@ -1,0 +1,31 @@
+# sqlc generate → internal/repository/db (ห้ามแก้ไฟล์ที่ generate มือ) · schema อ่านจาก migrations ของ goose
+version: "2"
+sql:
+  - engine: postgresql
+    schema: migrations
+    queries: internal/repository/queries
+    gen:
+      go:
+        package: db
+        out: internal/repository/db
+        sql_package: pgx/v5
+        emit_json_tags: false
+        emit_empty_slices: true
+        emit_enum_valid_method: true
+        emit_all_enum_values: true
+        overrides:
+          - db_type: uuid
+            go_type: github.com/google/uuid.UUID
+          - db_type: uuid
+            nullable: true
+            go_type:
+              import: github.com/google/uuid
+              type: NullUUID
+          - db_type: timestamptz
+            go_type: time.Time
+          - db_type: timestamptz
+            nullable: true
+            go_type:
+              import: time
+              type: Time
+              pointer: true

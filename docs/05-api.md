@@ -45,6 +45,7 @@
 | 422 | `INSUFFICIENT_BALANCE` | ยอดใช้ได้ไม่พอกันเงิน | toast ใน T3 |
 | 429 | `RATE_LIMITED` | ดู invite ถี่เกิน | toast |
 | 500 | `INTERNAL` | อื่นๆ | toast + requestId |
+| 503 | `NOT_READY` | `/readyz` ต่อ DB ไม่ได้ (ใช้กับ health check เท่านั้น) | – |
 
 ---
 
