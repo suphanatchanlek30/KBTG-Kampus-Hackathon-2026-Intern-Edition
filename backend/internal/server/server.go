@@ -26,6 +26,7 @@ type Deps struct {
 	Users         *service.UserService
 	Notifications *service.NotificationService
 	Deals         *service.DealService
+	Transfers     *service.TransferService
 	// nil = ปิด /demo/* (DEMO_TOOLS_ENABLED=false)
 	Demo *service.DemoService
 }

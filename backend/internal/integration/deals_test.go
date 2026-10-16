@@ -142,6 +142,14 @@ func TestFullDealFlow(t *testing.T) {
 		}
 	}
 
+	// T3 โหลดดีลด้วย id ก่อนกันเงิน — ผู้เช่าที่มีคำเชิญเห็นแบบ preview · คนอื่นยังได้ 403
+	if res, pre := tenant.do(http.MethodGet, "/deals/"+id, ""); res.StatusCode != http.StatusOK || pre["tenant"] != nil {
+		t.Fatalf("tenant GET before lock: %d %v", res.StatusCode, pre)
+	}
+	if res, _ := login(t, "landlord").do(http.MethodGet, "/deals/"+id, ""); res.StatusCode != http.StatusOK {
+		t.Fatalf("landlord GET: %d", res.StatusCode)
+	}
+
 	res, locked := tenant.post("/deals/"+id+"/lock",
 		fmt.Sprintf(`{"version":1,"inviteCode":%q,"method":"FACE_ID"}`, str(deal, "shareCode")))
 	if res.StatusCode != http.StatusOK || str(locked, "state") != "FUNDS_LOCKED" || num(locked, "account", "availableSatang") != 2_200_000 {

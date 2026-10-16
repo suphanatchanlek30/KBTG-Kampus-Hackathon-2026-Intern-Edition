@@ -75,6 +75,7 @@ func TestMain(m *testing.M) {
 		Notifications: service.NewNotificationService(repo, clk, bkk),
 		Demo:          service.NewDemoService(repo, clk, bkk, 24*time.Hour),
 		Deals:         service.NewDealService(repo, clk, bkk, 24*time.Hour, "http://app.test"),
+		Transfers:     service.NewTransferService(repo, clk),
 	})
 
 	code := m.Run()

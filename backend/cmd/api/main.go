@@ -71,6 +71,7 @@ func run() error {
 		Users:         service.NewUserService(repo, clk, cfg.Location),
 		Notifications: service.NewNotificationService(repo, clk, cfg.Location),
 		Deals:         service.NewDealService(repo, clk, cfg.Location, cfg.InviteTTL, cfg.AppBaseURL),
+		Transfers:     service.NewTransferService(repo, clk),
 	}
 	if cfg.DemoToolsEnabled {
 		deps.Demo = service.NewDemoService(repo, clk, cfg.Location, cfg.InviteTTL)

@@ -213,3 +213,33 @@ type InviteSentDTO struct {
 type UserLookupDTO struct {
 	ShortName string `json:"shortName"`
 }
+
+// ---- Transfer (T8) ----
+
+type PayeeDTO struct {
+	AccountID       string `json:"accountId"`
+	DisplayName     string `json:"displayName"`
+	BankName        string `json:"bankName"`
+	AccountNoMasked string `json:"accountNoMasked"`
+}
+
+type PayeesDTO struct {
+	Items []PayeeDTO `json:"items"`
+}
+
+type TransferWarningDTO struct {
+	Code    string `json:"code"`
+	DealID  string `json:"dealId"`
+	UnitNo  string `json:"unitNo"`
+	Message string `json:"message"`
+}
+
+type TransferPrecheckDTO struct {
+	Warning *TransferWarningDTO `json:"warning"`
+}
+
+type TransferDTO struct {
+	ID           string `json:"id"`
+	Status       string `json:"status"`
+	WarningShown bool   `json:"warningShown"`
+}
