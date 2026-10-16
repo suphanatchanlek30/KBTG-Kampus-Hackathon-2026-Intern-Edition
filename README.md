@@ -51,7 +51,8 @@
 | Database | PostgreSQL (Docker) |
 | Test | Go test · Vitest · Playwright |
 
-> เลขเวอร์ชันจริงจะจดไว้ที่นี่หลัง setup (Phase 1 / Phase 4)
+**เวอร์ชันที่ติดตั้งจริง (Frontend · 16 ต.ค. 2569):** Node 24.21 · Next.js 16.4.2 (Turbopack, `cacheComponents`) · React 19.3 · TypeScript 5.9 · Tailwind CSS 4.3 · motion 14.3 · TanStack Query 5.104 · Zustand 5.0 · Axios 1.20 · zod 4.6 · Vitest 5.0
+> Backend จะจดเพิ่มหลัง setup (Phase 4)
 
 ---
 
@@ -99,6 +100,8 @@ make migrate seed             # สร้างตาราง + ข้อมู
 
 # 3) Frontend
 cd frontend && npm install && npm run dev   # http://localhost:3000
+#    หน้า dev: /dev/components (แคตตาล็อก) · /dev/overlay?screen=L1 (วาง mockup ทับ)
+#    ตรวจ: npm run lint · npm run typecheck · npm test · npm run build
 ```
 
 ### เปิดบนมือถือ
@@ -128,8 +131,8 @@ cd frontend && npm install && npm run dev   # http://localhost:3000
 | Phase | งาน | สถานะ |
 |---|---|---|
 | 0 | เอกสารออกแบบ + ดึงค่าจาก Figma + หา asset | ✅ |
-| 1 | Frontend foundation (tokens, ฟอนต์, layout, component พื้นฐาน) | ⬜ |
-| 2 | **หน้าจอทั้ง 14 หน้าแบบ static ด้วย mock data — เทียบ mockup ให้เป๊ะ** | ⬜ |
+| 1 | Frontend foundation (tokens, ฟอนต์, layout, component พื้นฐาน) | 🟡 เหลือทดสอบบนมือถือจริง |
+| 2 | **หน้าจอทั้ง 14 หน้าแบบ static ด้วย mock data — เทียบ mockup ให้เป๊ะ** | ✅ ([ภาพเทียบ](docs/design/compare/)) |
 | 3 | อนิเมชัน (success rings, Face ID, stepper, bottom sheet …) | ⬜ |
 | 4 | Backend foundation (Fiber, Postgres, migration, seed) | ⬜ |
 | 5 | Auth เดโม + Home API | ⬜ |

@@ -25,13 +25,13 @@ flowchart LR
 - [ ] **ตัดสินใจเรื่องแบรนด์** — ข้อความแบรนด์ทั้งหมดอยู่ใน `frontend/src/config/brand.ts` ไฟล์เดียว เปลี่ยนได้ภายหลัง
 - [ ] **อนุมัติหน้าจอ D0–D12** ที่ต้องออกแบบเพิ่ม ([01 §7](./01-user-flow.md#7-หน้าจอที่-ไม่มีใน-mockup-ต้องออกแบบเพิ่มให้เข้าชุด--️-รอผู้ใช้อนุมัติ))
 - [ ] หา asset ตาม [07-assets.md](./07-assets.md) (อย่างน้อย: โลโก้ SVG + ลิงก์ Figma ถ้ามี)
-- [ ] สร้างไฟล์ `.gitignore`, `.editorconfig`, `.env.example`
+- [x] สร้างไฟล์ `.gitignore`, `.editorconfig`, `.env.example`
 
 **DoD:** ทุกข้อติ๊กครบ · โฟลเดอร์ `assets/brand/` มีโลโก้ SVG
 
 ---
 
-## Phase 1 · Frontend Foundation
+## Phase 1 · Frontend Foundation 🟡 (โค้ดครบ · เหลือ DoD ทดสอบบนมือถือจริง)
 
 ### 1.1 สร้างโปรเจกต์
 
@@ -48,24 +48,24 @@ npx next --version && npm ls tailwindcss motion
 ```
 
 ### 1.2 งาน
-- [ ] ลบหน้าตัวอย่างของ Next ออก · ตั้ง `<html lang="th">`
-- [ ] `globals.css`: ใส่ `@theme` tokens ทั้งหมดจาก [02 §1.4](./02-ui-spec.md#14-tailwind-v4-css-first) + `body { background: var(--color-bg); color: white; }`
-- [ ] ฟอนต์ Poppins + Noto Sans Thai ผ่าน `next/font/google` (weights 400/500/600/700)
-- [ ] viewport meta + `viewport-fit=cover` + `themeColor`
-- [ ] `config/brand.ts` (ชื่อแบรนด์, ชื่อแอปธนาคาร, ข้อความ disclaimer)
-- [ ] `lib/format/money.ts`, `date.ts` (พ.ศ.), `account.ts` + **unit test** (Vitest) ทุกรูปแบบใน [02 §3](./02-ui-spec.md#3-การจัดรูปแบบข้อมูล-สำคัญมากต่อความ-เป๊ะ)
-- [ ] Layout: `PhoneFrame` (desktop เท่านั้น), `StatusBar`, `HomeIndicator`, `AppShell`, `StickyFooter`
-- [ ] Copy asset จาก `assets/` → `public/`
-- [ ] UI พื้นฐาน: `Button`, `Card`, `Badge`, `AppHeader`, `HomeHeader`, `BottomNav`, `BottomSheet`, `Toast`, `Skeleton`
-- [ ] หน้า `/dev/components` — แคตตาล็อกทุก component ทุก variant
-- [ ] หน้า `/dev/overlay?screen=L1` — วางรูป mockup โปร่งแสงทับหน้าจริง (opacity slider) ใช้เทียบความเป๊ะ
-- [ ] Prettier + ESLint ผ่าน
+- [x] ลบหน้าตัวอย่างของ Next ออก · ตั้ง `<html lang="th">`
+- [x] `globals.css`: ใส่ `@theme` tokens ทั้งหมดจาก [02 §1.4](./02-ui-spec.md#14-tailwind-v4-css-first) + `body { background: var(--color-bg); color: white; }`
+- [x] ฟอนต์ Poppins + Noto Sans Thai ผ่าน `next/font/google` (weights 400/500/600/700)
+- [x] viewport meta + `viewport-fit=cover` + `themeColor`
+- [x] `config/brand.ts` (ชื่อแบรนด์, ชื่อแอปธนาคาร, ข้อความ disclaimer)
+- [x] `lib/format/money.ts`, `date.ts` (พ.ศ.), `account.ts` + **unit test** (Vitest) ทุกรูปแบบใน [02 §3](./02-ui-spec.md#3-การจัดรูปแบบข้อมูล-สำคัญมากต่อความ-เป๊ะ)
+- [x] Layout: `PhoneFrame` (desktop เท่านั้น), `StatusBar`, `HomeIndicator`, `AppShell`, `StickyFooter`
+- [x] Copy asset จาก `assets/` → `public/`
+- [x] UI พื้นฐาน: `Button`, `Card`, `Badge`, `AppHeader`, `HomeHeader`, `BottomNav`, `BottomSheet`, `Toast`, `Skeleton`
+- [x] หน้า `/dev/components` — แคตตาล็อกทุก component ทุก variant
+- [x] หน้า `/dev/overlay?screen=L1` — วางรูป mockup โปร่งแสงทับหน้าจริง (opacity slider) ใช้เทียบความเป๊ะ
+- [x] Prettier + ESLint ผ่าน
 
 **DoD:** `npm run dev` แล้วเปิดบนมือถือผ่าน `http://<IP เครื่อง>:3000` ได้ · desktop เห็นกรอบโทรศัพท์ · `/dev/components` แสดงปุ่ม/การ์ดสีถูกต้อง · test format ผ่าน
 
 ---
 
-## Phase 2 · หน้าจอทั้งหมดแบบ static (mock data) ⭐ สำคัญที่สุด
+## Phase 2 · หน้าจอทั้งหมดแบบ static (mock data) ⭐ สำคัญที่สุด ✅
 
 ตั้ง `NEXT_PUBLIC_USE_MOCK=true` · สร้าง `src/mocks/fixtures.ts` ด้วย **ค่าตรง mockup ทุกตัว** (ชื่อ, ยอด, วันที่, `KS-691014-0458`, `KS-8F4Q21` — ดู [01 §2](./01-user-flow.md#2-ตัวละครและข้อมูลเดโม-ใช้ค่าตรงกับ-mockup-เป๊ะ)) · ทำ mock api ที่ "ขยับ state ได้" ในหน่วยความจำ เพื่อกดผ่าน flow ได้จริง
 
@@ -87,10 +87,12 @@ npx next --version && npm ls tailwindcss motion
 | 12 | **T8** เตือนโอนนอกดีล | หน้าโอนเงิน + BottomSheet light |
 
 ต่อหน้าจอ:
-- [ ] ทำตาม [02-ui-spec](./02-ui-spec.md) · ข้อความไทยตรงทุกตัว
-- [ ] เทียบด้วย `/dev/overlay` ที่ 393×852 — ต่างไม่เกิน ~2px
-- [ ] ทดสอบที่ 360 / 390 / 430px ไม่มี scroll แนวนอน
-- [ ] ปุ่ม/ลิงก์ทุกอันพาไปหน้าที่ถูกต้องตาม route map ([01 §8](./01-user-flow.md#8-route-map-หน้าจอ--url))
+- [x] ทำตาม [02-ui-spec](./02-ui-spec.md) · ข้อความไทยตรงทุกตัว (ดึงจาก `figma-spec/*.md`)
+- [x] เทียบด้วย `/dev/overlay` ที่ 393×852 — ต่างไม่เกิน ~2–3px (ข้อยกเว้นที่ตั้งใจ: ดู [design/compare/README.md](./design/compare/README.md))
+- [x] ทดสอบที่ 360 / 390 / 430px ไม่มี scroll แนวนอน (ตรวจอัตโนมัติ 54 หน้า×state)
+- [x] ปุ่ม/ลิงก์ทุกอันพาไปหน้าที่ถูกต้องตาม route map ([01 §8](./01-user-flow.md#8-route-map-หน้าจอ--url))
+
+> หมายเหตุ Phase 2: หน้าที่ flow ต้องผ่านแต่ยังไม่มีดีไซน์ — **D1** (L5 ก่อนกันเงิน), **D8** (สถานะฝั่งผู้เช่า), **D9** (การ์ดดีลบนหน้าหลัก), **D4/D5** (sheet), **D6** (คำเชิญใช้ไม่ได้), **D10** (แท็บเบอร์มือถือ) — ทำเป็น placeholder ตามคำอธิบายใน [01 §7](./01-user-flow.md#7-หน้าจอที่-ไม่มีใน-mockup-ต้องออกแบบเพิ่มให้เข้าชุด--️-รอผู้ใช้อนุมัติ) รออนุมัติดีไซน์
 
 **DoD:** กดผ่าน flow ผู้ให้เช่า L1→L6 และผู้เช่า T1→T7 + T8 ได้ครบด้วย mock · ภาพ side-by-side ทั้ง 14 หน้าจอเทียบกับ `docs/design/screens/` ผ่านการตรวจด้วยตา (เก็บ screenshot ไว้ใน `docs/design/compare/`)
 
