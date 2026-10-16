@@ -25,13 +25,13 @@ flowchart LR
 - [ ] **ตัดสินใจเรื่องแบรนด์** — ข้อความแบรนด์ทั้งหมดอยู่ใน `frontend/src/config/brand.ts` ไฟล์เดียว เปลี่ยนได้ภายหลัง
 - [ ] **อนุมัติหน้าจอ D0–D12** ที่ต้องออกแบบเพิ่ม ([01 §7](./01-user-flow.md#7-หน้าจอที่-ไม่มีใน-mockup-ต้องออกแบบเพิ่มให้เข้าชุด--️-รอผู้ใช้อนุมัติ))
 - [ ] หา asset ตาม [07-assets.md](./07-assets.md) (อย่างน้อย: โลโก้ SVG + ลิงก์ Figma ถ้ามี)
-- [ ] สร้างไฟล์ `.gitignore`, `.editorconfig`, `.env.example`
+- [x] สร้างไฟล์ `.gitignore`, `.editorconfig`, `.env.example`
 
 **DoD:** ทุกข้อติ๊กครบ · โฟลเดอร์ `assets/brand/` มีโลโก้ SVG
 
 ---
 
-## Phase 1 · Frontend Foundation
+## Phase 1 · Frontend Foundation 🟡 (โค้ดครบ · เหลือ DoD ทดสอบบนมือถือจริง)
 
 ### 1.1 สร้างโปรเจกต์
 
@@ -48,18 +48,18 @@ npx next --version && npm ls tailwindcss motion
 ```
 
 ### 1.2 งาน
-- [ ] ลบหน้าตัวอย่างของ Next ออก · ตั้ง `<html lang="th">`
-- [ ] `globals.css`: ใส่ `@theme` tokens ทั้งหมดจาก [02 §1.4](./02-ui-spec.md#14-tailwind-v4-css-first) + `body { background: var(--color-bg); color: white; }`
-- [ ] ฟอนต์ Poppins + Noto Sans Thai ผ่าน `next/font/google` (weights 400/500/600/700)
-- [ ] viewport meta + `viewport-fit=cover` + `themeColor`
-- [ ] `config/brand.ts` (ชื่อแบรนด์, ชื่อแอปธนาคาร, ข้อความ disclaimer)
-- [ ] `lib/format/money.ts`, `date.ts` (พ.ศ.), `account.ts` + **unit test** (Vitest) ทุกรูปแบบใน [02 §3](./02-ui-spec.md#3-การจัดรูปแบบข้อมูล-สำคัญมากต่อความ-เป๊ะ)
-- [ ] Layout: `PhoneFrame` (desktop เท่านั้น), `StatusBar`, `HomeIndicator`, `AppShell`, `StickyFooter`
-- [ ] Copy asset จาก `assets/` → `public/`
-- [ ] UI พื้นฐาน: `Button`, `Card`, `Badge`, `AppHeader`, `HomeHeader`, `BottomNav`, `BottomSheet`, `Toast`, `Skeleton`
-- [ ] หน้า `/dev/components` — แคตตาล็อกทุก component ทุก variant
-- [ ] หน้า `/dev/overlay?screen=L1` — วางรูป mockup โปร่งแสงทับหน้าจริง (opacity slider) ใช้เทียบความเป๊ะ
-- [ ] Prettier + ESLint ผ่าน
+- [x] ลบหน้าตัวอย่างของ Next ออก · ตั้ง `<html lang="th">`
+- [x] `globals.css`: ใส่ `@theme` tokens ทั้งหมดจาก [02 §1.4](./02-ui-spec.md#14-tailwind-v4-css-first) + `body { background: var(--color-bg); color: white; }`
+- [x] ฟอนต์ Poppins + Noto Sans Thai ผ่าน `next/font/google` (weights 400/500/600/700)
+- [x] viewport meta + `viewport-fit=cover` + `themeColor`
+- [x] `config/brand.ts` (ชื่อแบรนด์, ชื่อแอปธนาคาร, ข้อความ disclaimer)
+- [x] `lib/format/money.ts`, `date.ts` (พ.ศ.), `account.ts` + **unit test** (Vitest) ทุกรูปแบบใน [02 §3](./02-ui-spec.md#3-การจัดรูปแบบข้อมูล-สำคัญมากต่อความ-เป๊ะ)
+- [x] Layout: `PhoneFrame` (desktop เท่านั้น), `StatusBar`, `HomeIndicator`, `AppShell`, `StickyFooter`
+- [x] Copy asset จาก `assets/` → `public/`
+- [x] UI พื้นฐาน: `Button`, `Card`, `Badge`, `AppHeader`, `HomeHeader`, `BottomNav`, `BottomSheet`, `Toast`, `Skeleton`
+- [x] หน้า `/dev/components` — แคตตาล็อกทุก component ทุก variant
+- [x] หน้า `/dev/overlay?screen=L1` — วางรูป mockup โปร่งแสงทับหน้าจริง (opacity slider) ใช้เทียบความเป๊ะ
+- [x] Prettier + ESLint ผ่าน
 
 **DoD:** `npm run dev` แล้วเปิดบนมือถือผ่าน `http://<IP เครื่อง>:3000` ได้ · desktop เห็นกรอบโทรศัพท์ · `/dev/components` แสดงปุ่ม/การ์ดสีถูกต้อง · test format ผ่าน
 
