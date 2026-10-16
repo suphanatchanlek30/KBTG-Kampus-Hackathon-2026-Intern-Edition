@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronRight, House, KeyRound, TriangleAlert } from "lucide-react";
+import { Check, ChevronRight, House, Key, TriangleAlert } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { ScreenBackground } from "@/components/layout/ScreenBackground";
 import { StickyFooter } from "@/components/layout/StickyFooter";
@@ -90,7 +90,7 @@ export function ConfirmReleaseView({
 
       <div className="pt-2 pb-1.5">
         <HeroCircle size={64}>
-          {viewing ? <House size={28} strokeWidth={2.2} /> : <KeyRound size={28} strokeWidth={2.2} />}
+          {viewing ? <House size={28} strokeWidth={2.2} /> : <Key size={28} strokeWidth={2.2} />}
         </HeroCircle>
       </div>
 

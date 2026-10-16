@@ -1,4 +1,4 @@
-import { Check, Eye, KeyRound, Lock, type LucideIcon } from "lucide-react";
+import { Check, Eye, Key, Lock, type LucideIcon } from "lucide-react";
 import { Fragment, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
@@ -7,7 +7,7 @@ export type StepStatus = "done" | "current" | "upcoming";
 const STEPS: { label: string; icon: LucideIcon }[] = [
   { label: "กันเงิน", icon: Lock },
   { label: "ดูห้อง", icon: Eye },
-  { label: "เข้าอยู่", icon: KeyRound },
+  { label: "เข้าอยู่", icon: Key },
 ];
 
 /**

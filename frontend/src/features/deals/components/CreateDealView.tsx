@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Calendar, ChevronRight, House, KeyRound, Pencil, Wallet } from "lucide-react";
+import { Building2, Calendar, ChevronRight, House, Key, Pencil, Wallet } from "lucide-react";
 import { useId, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { ScreenBackground } from "@/components/layout/ScreenBackground";
@@ -109,7 +109,7 @@ export function CreateDealView({ draft, property, onChange, onNext }: CreateDeal
               className="absolute inset-0 cursor-pointer opacity-0"
             />
           </FormField>
-          <FormField label="วันเข้าอยู่" htmlFor={ids.moveIn} icon={<KeyRound size={16} strokeWidth={1.5} />}>
+          <FormField label="วันเข้าอยู่" htmlFor={ids.moveIn} icon={<Key size={16} strokeWidth={1.5} />}>
             <span className="pointer-events-none truncate text-input">
               {formatDate(`${draft.moveInDate}T00:00:00+07:00`)}
             </span>

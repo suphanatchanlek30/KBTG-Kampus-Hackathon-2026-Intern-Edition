@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Calendar, CalendarCheck, ChevronRight, KeyRound, QrCode, ReceiptText } from "lucide-react";
+import { Building2, Calendar, CalendarCheck, ChevronRight, Key, QrCode, ReceiptText } from "lucide-react";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { ScreenBackground } from "@/components/layout/ScreenBackground";
@@ -41,7 +41,7 @@ function primaryAction(deal: DealDTO): { action: DealStatusAction; label: string
         : { action: "add-viewing", label: "เพิ่มนัดดูห้องลงปฏิทิน", icon: <Calendar size={18} strokeWidth={1.65} /> };
     case "BOOKING_FEE_RELEASED":
       return tenant
-        ? { action: "confirm-move-in", label: "ยืนยันการเข้าอยู่", icon: <KeyRound size={18} strokeWidth={1.65} /> }
+        ? { action: "confirm-move-in", label: "ยืนยันการเข้าอยู่", icon: <Key size={18} strokeWidth={1.65} /> }
         : { action: "add-move-in", label: "เพิ่มวันเข้าอยู่ลงปฏิทิน", icon: <Calendar size={18} strokeWidth={1.65} /> };
     case "RELEASED":
       return { action: "receipt", label: "ดูหลักฐานดีล", icon: <ReceiptText size={18} strokeWidth={1.65} /> };

@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Calendar, ChevronRight, Clock, KeyRound, Lock, ShieldCheck, UserCheck } from "lucide-react";
+import { Building2, Calendar, ChevronRight, Clock, Key, Lock, ShieldCheck, UserCheck } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { ScreenBackground } from "@/components/layout/ScreenBackground";
 import { StickyFooter } from "@/components/layout/StickyFooter";
@@ -87,7 +87,7 @@ export function ReviewDealView({ draft, property, landlord, submitting, onSubmit
         title="มัดจำหลัก"
         amount={formatBaht(mainDeposit)}
         description="ปล่อยเมื่อผู้เช่ากดยืนยัน “ได้รับกุญแจและเข้าอยู่แล้ว”"
-        metaIcon={<KeyRound size={13} strokeWidth={1.3} />}
+        metaIcon={<Key size={13} strokeWidth={1.3} />}
         meta={`วันเข้าอยู่ ${formatDate(moveIn)}`}
       />
 
