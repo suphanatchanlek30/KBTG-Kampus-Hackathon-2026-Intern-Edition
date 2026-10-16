@@ -52,7 +52,7 @@
 | Test | Go test · Vitest · Playwright |
 
 **เวอร์ชันที่ติดตั้งจริง (Frontend · 16 ต.ค. 2569):** Node 24.21 · Next.js 16.4.2 (Turbopack, `cacheComponents`) · React 19.3 · TypeScript 5.9 · Tailwind CSS 4.3 · motion 14.3 · TanStack Query 5.104 · Zustand 5.0 · Axios 1.20 · zod 4.6 · Vitest 5.0
-> Backend จะจดเพิ่มหลัง setup (Phase 4)
+**เวอร์ชันที่ติดตั้งจริง (Backend · 16 ต.ค. 2569):** Go 1.27 · Fiber v3.6.1 · pgx v5.11 · goose v3.29 · sqlc v1.31.1 · air v1.67.4 · PostgreSQL 18 (`postgres:18-alpine`) · Adminer 6.1.2 · Docker Compose v5.5
 
 ---
 
@@ -72,15 +72,17 @@
 │   ├── design/              รูป mockup อ้างอิง (ทั้งชุด + ทีละหน้าจอ)
 │   └── reference/           สเปกระบบต้นฉบับ (DealSafe POC)
 ├── assets/                  ← วางโลโก้/ไอคอน/ภาพที่หามาได้ที่นี่ (มี README บอกในแต่ละโฟลเดอร์)
-├── frontend/                (สร้างใน Phase 1)
-└── backend/                 (สร้างใน Phase 4)
+├── frontend/                Next.js (npm run dev)
+├── backend/                 Go Fiber API — cmd/api, internal/{config,server,handler,domain,repository,platform}, migrations/, api/openapi.yaml
+├── docker-compose.yml       postgres + api (+ adminer)
+└── Makefile                 คำสั่งลัด (make help)
 ```
 
 ---
 
 ## 🚀 Getting started
 
-> ตอนนี้ repo มีแค่เอกสาร — คำสั่งด้านล่างคือเป้าหมายหลังทำ Phase 1–7 เสร็จ (ขั้นตอนสร้างจริงอยู่ใน [docs/06-roadmap.md](docs/06-roadmap.md))
+> ตอนนี้ frontend ใช้ mock data (`NEXT_PUBLIC_USE_MOCK=true`) — backend มีแค่ health check + DB จนกว่าจะถึง Phase 5–7
 
 ### สิ่งที่ต้องติดตั้ง
 - Node.js LTS ล่าสุด + npm
@@ -90,13 +92,13 @@
 ### รัน
 
 ```bash
-# 1) ตั้งค่า env
+# 1) ตั้งค่า env (ไม่บังคับสำหรับ backend — docker compose มีค่าเริ่มต้นให้)
 cp .env.example .env
 cp frontend/.env.local.example frontend/.env.local
 
-# 2) Database + API (Docker)
-docker compose up -d          # postgres :5432, api :8080
-make migrate seed             # สร้างตาราง + ข้อมูลเดโม
+# 2) Database + API (Docker) — api รัน migration + seed เองตอน start
+make up                       # postgres :5432 · api :8080 · adminer :8081
+curl localhost:8080/api/v1/readyz   # {"status":"ready"}
 
 # 3) Frontend
 cd frontend && npm install && npm run dev   # http://localhost:3000
@@ -115,14 +117,21 @@ cd frontend && npm install && npm run dev   # http://localhost:3000
 | `landlord` | ผู้ให้เช่า | สมชาย ใจดี | 42,850.00 |
 | `tenant` | ผู้เช่า | ณัฐธิดา ศรีสุข | 28,500.00 |
 
-### คำสั่งที่ใช้บ่อย (Makefile — จะสร้างใน Phase 4)
+### คำสั่งที่ใช้บ่อย (`make help` ดูทั้งหมด)
 
 | คำสั่ง | ทำอะไร |
 |---|---|
-| `make up` / `make down` | เปิด/ปิด Docker |
-| `make db-reset` | ล้าง DB + migrate + seed ใหม่ |
-| `make test` | test ทั้ง backend + frontend |
-| `make sqlc` | generate Go code จาก SQL |
+| `make up` / `make down` | เปิด/ปิด db + api + adminer |
+| `make logs` | ดู log ของ api (JSON) |
+| `make migrate` / `make migrate-down` | goose up / down ทีละ version |
+| `make seed` | ล้างดีลทั้งหมด แล้วใส่ข้อมูลเดโมตั้งต้นใหม่ |
+| `make db-reset` | ล้าง schema ทั้งหมด + migrate + seed ใหม่ |
+| `make test` | go test ทั้ง backend (frontend: `cd frontend && npm test`) |
+| `make sqlc` | generate Go code จาก `backend/internal/repository/queries` |
+| `make dev` | รัน api บนเครื่องแบบ hot reload (air) — ปิด container api ก่อน (`docker compose stop api`) |
+| `make tools` | ติดตั้ง goose / sqlc / air |
+
+Adminer: http://localhost:8081 · server `db` · user `ksure` · password `ksure_dev_only` · database `ksure`
 
 ---
 
@@ -133,8 +142,8 @@ cd frontend && npm install && npm run dev   # http://localhost:3000
 | 0 | เอกสารออกแบบ + ดึงค่าจาก Figma + หา asset | ✅ |
 | 1 | Frontend foundation (tokens, ฟอนต์, layout, component พื้นฐาน) | 🟡 เหลือทดสอบบนมือถือจริง |
 | 2 | **หน้าจอทั้ง 14 หน้าแบบ static ด้วย mock data — เทียบ mockup ให้เป๊ะ** | ✅ ([ภาพเทียบ](docs/design/compare/)) |
-| 3 | อนิเมชัน (success rings, Face ID, stepper, bottom sheet …) | ⬜ |
-| 4 | Backend foundation (Fiber, Postgres, migration, seed) | ⬜ |
+| 3 | อนิเมชัน (success rings, Face ID, stepper, bottom sheet …) | 🟡 เหลือทดสอบบนมือถือจริง |
+| 4 | Backend foundation (Fiber, Postgres, migration, seed) | ✅ |
 | 5 | Auth เดโม + Home API | ⬜ |
 | 6 | Deal core: state machine, ledger, idempotency + tests | ⬜ |
 | 7 | เชื่อม Frontend ↔ API + polling real-time | ⬜ |

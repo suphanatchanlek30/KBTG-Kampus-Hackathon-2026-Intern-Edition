@@ -1,0 +1,73 @@
+# สัญญา API ของ K Sure — เขียนตาม docs/05-api.md (เพิ่ม endpoint ทีละ Phase)
+openapi: 3.1.0
+info:
+  title: K Sure API (Prototype)
+  version: 0.1.0
+  description: |
+    เงินเป็น integer สตางค์ · เวลาเป็น ISO-8601 มี offset · ทุก response ส่ง header X-Request-ID กลับ
+servers:
+  - url: http://localhost:8080/api/v1
+paths:
+  /healthz:
+    get:
+      summary: process ยังทำงาน (ไม่แตะ DB)
+      operationId: healthz
+      tags: [health]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HealthStatus" }
+              example: { status: ok }
+  /readyz:
+    get:
+      summary: ต่อฐานข้อมูลได้
+      operationId: readyz
+      tags: [health]
+      responses:
+        "200":
+          description: พร้อมรับ request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HealthStatus" }
+              example: { status: ready }
+        "503":
+          description: ต่อ DB ไม่ได้ (code = NOT_READY)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+components:
+  headers:
+    XRequestID:
+      description: รหัสอ้างอิง request — ส่งมาเองได้ ถ้าไม่ส่ง server สร้างให้
+      schema: { type: string }
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [ok, ready] }
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              type: string
+              enum: [VALIDATION_FAILED, IDEMPOTENCY_KEY_REQUIRED, UNAUTHENTICATED, FORBIDDEN_ROLE, NOT_DEAL_PARTY,
+                     NOT_FOUND, DEAL_STATE_CONFLICT, VERSION_MISMATCH, IDEMPOTENCY_CONFLICT, INVITE_EXPIRED,
+                     INSUFFICIENT_BALANCE, RATE_LIMITED, INTERNAL, NOT_READY]
+            message: { type: string, description: ข้อความภาษาไทยพร้อมแสดง }
+            requestId: { type: string }
+            details:
+              type: array
+              items:
+                type: object
+                required: [field, message]
+                properties:
+                  field: { type: string }
+                  message: { type: string }

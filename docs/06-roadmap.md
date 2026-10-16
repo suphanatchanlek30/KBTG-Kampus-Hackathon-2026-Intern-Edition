@@ -117,7 +117,7 @@ npx next --version && npm ls tailwindcss motion
 
 ---
 
-## Phase 4 · Backend Foundation
+## Phase 4 · Backend Foundation ✅
 
 ```bash
 # ที่ root ของ repo
@@ -133,14 +133,15 @@ go install github.com/air-verse/air@latest
 go version
 ```
 
-- [ ] โครงโฟลเดอร์ตาม [03 §3.4](./03-architecture.md#34-backend-backend--layered-handler--service--repository)
-- [ ] `docker-compose.yml` (db + api + adminer) ตาม [03 §3.5](./03-architecture.md#35-docker-compose-แนวทาง) · `.env.example`
-- [ ] `config`, `slog` JSON logger, middleware `recover` / `requestid` / logger
-- [ ] `GET /healthz`, `GET /readyz` (ping DB)
-- [ ] migration `0001_init.sql` + `0002_seed_demo.sql` ตาม [04 §3, §5](./04-database.md) · `goose up` / `goose down` ได้ทั้งคู่
-- [ ] `sqlc.yaml` + query พื้นฐาน → `sqlc generate`
-- [ ] `Dockerfile` multi-stage, รันเป็น non-root
-- [ ] `Makefile`: `make up`, `make down`, `make migrate`, `make seed`, `make db-reset`, `make test`, `make sqlc`
+- [x] โครงโฟลเดอร์ตาม [03 §3.4](./03-architecture.md#34-backend-backend--layered-handler--service--repository) (service/ จะเริ่มใน Phase 5–6) · `Makefile` อยู่ที่ root ของ repo
+- [x] `docker-compose.yml` (db + api + adminer) ตาม [03 §3.5](./03-architecture.md#35-docker-compose-แนวทาง) · `.env.example` — postgres 18 mount ที่ `/var/lib/postgresql` (18+ ย้ายที่เก็บข้อมูล)
+- [x] `config`, `slog` JSON logger, middleware `recover` / `requestid` / logger · error handler กลางตอบรูปแบบ `{ error: { code, message, requestId } }`
+- [x] `GET /healthz`, `GET /readyz` (ping DB — ล่มได้ `503 NOT_READY`)
+- [x] migration `0001_init.sql` + `0002_seed_demo.sql` ตาม [04 §3, §5](./04-database.md) · `goose up` / `goose down` ได้ทั้งคู่ · api รัน `goose up` เองตอน start (ปิดด้วย `MIGRATE_ON_START=false`)
+- [x] `sqlc.yaml` + query พื้นฐาน (users / accounts / properties) → `sqlc generate` · `repository.WithTx`
+- [x] `Dockerfile` multi-stage, รันเป็น non-root (distroless `nonroot`)
+- [x] `Makefile`: `make up`, `make down`, `make migrate`, `make seed`, `make db-reset`, `make test`, `make sqlc` (+ `logs`, `dev`, `tools`)
+- [x] `api/openapi.yaml` เริ่มจาก health + รูปแบบ error
 
 **DoD:** `docker compose up` → `curl localhost:8080/api/v1/readyz` ได้ `200` · Adminer เห็นตารางและข้อมูล seed ถูกต้อง (42,850.00 / 28,500.00)
 
