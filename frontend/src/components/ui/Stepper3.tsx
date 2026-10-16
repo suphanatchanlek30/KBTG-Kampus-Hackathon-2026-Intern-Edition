@@ -3,6 +3,7 @@
 import { Eye, Key, Lock, type LucideIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { Fragment, type ReactNode } from "react";
+import { DrawnCheck } from "@/components/motion/DrawnCheck";
 import { useMotionMode } from "@/components/motion/MotionMode";
 import { EASE_OUT_EXPO, SPRING_DOT } from "@/components/motion/tokens";
 import { cn } from "@/lib/cn";
@@ -83,26 +84,7 @@ export function StepperRow({ statuses, tone = "dark", delay }: StepperRowProps) 
                   />
                 )}
                 {status === "done" ? (
-                  <svg
-                    aria-hidden
-                    width={16}
-                    height={16}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2.4}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <motion.path
-                      d="M20 6 9 17l-5-5"
-                      {...(entering && {
-                        initial: { pathLength: 0 },
-                        animate: { pathLength: 1 },
-                        transition: { duration: 0.3, ease: "easeOut", delay: dotAt(i) + 0.1 },
-                      })}
-                    />
-                  </svg>
+                  <DrawnCheck size={16} strokeWidth={2.4} draw={entering} delay={dotAt(i) + 0.1} />
                 ) : (
                   <Icon size={15} strokeWidth={1.6} />
                 )}

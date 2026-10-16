@@ -33,6 +33,7 @@ export function ReviewDealView({ draft, property, landlord, submitting, onSubmit
 
   return (
     <AppShell
+      enter="push"
       background={<ScreenBackground screen="L3" />}
       header={
         <>

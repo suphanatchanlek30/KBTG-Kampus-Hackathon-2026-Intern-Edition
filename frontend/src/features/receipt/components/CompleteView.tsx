@@ -54,6 +54,7 @@ export function CompleteView({ deal, account, onClose, onShare, onDone, onSavePr
 
   return (
     <AppShell
+      enter="modal"
       background={<ScreenBackground screen={tenantSide ? "T7" : "L6"} hero={{ size: 92 }} />}
       header={<AppHeader left="close" right="share" onLeft={onClose} onRight={onShare} />}
       footer={

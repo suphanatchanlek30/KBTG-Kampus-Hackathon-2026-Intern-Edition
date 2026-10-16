@@ -30,6 +30,7 @@ export function LockedView({ deal, account, onClose, onShare, onViewStatus, onHo
   const enter = useEnter();
   return (
     <AppShell
+      enter="modal"
       background={<ScreenBackground screen="T4" hero={{ size: 84 }} />}
       header={<AppHeader left="close" right="share" onLeft={onClose} onRight={onShare} />}
       footer={

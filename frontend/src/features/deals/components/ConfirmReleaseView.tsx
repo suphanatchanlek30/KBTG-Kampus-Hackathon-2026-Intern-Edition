@@ -52,6 +52,7 @@ export function ConfirmReleaseView({
 
   return (
     <AppShell
+      enter="push"
       background={<ScreenBackground screen={viewing ? "T5" : "T6"} />}
       header={
         <AppHeader title={viewing ? "ยืนยันการดูห้อง" : "ยืนยันการเข้าอยู่"} left="back" right="menu" onLeft={onBack} />

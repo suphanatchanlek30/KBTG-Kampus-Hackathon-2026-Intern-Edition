@@ -54,6 +54,7 @@ export function LockView({
 
   return (
     <AppShell
+      enter="modal"
       background={<ScreenBackground screen="T3" hero={{ size: 84, ripple: 3.2 }} />}
       header={<AppHeader title="ยืนยันการกันเงิน" left="close" right="menu" onLeft={onClose} />}
       footer={

@@ -98,17 +98,18 @@ npx next --version && npm ls tailwindcss motion
 
 ---
 
-## Phase 3 · อนิเมชัน & ความรู้สึก (polish)
+## Phase 3 · อนิเมชัน & ความรู้สึก (polish) 🟡 (โค้ดครบ · เหลือ DoD ทดสอบบนมือถือจริง)
 
 ทำตาม [02 §5](./02-ui-spec.md#5-animation-spec-ค่าจริงที่ต้องใช้) ด้วยค่าที่ระบุไว้ทุกตัว
 
-- [ ] `components/motion/`: `RippleRings`, `CheckDraw`, `CountUp`, `Sparkles`, `PulseRing`, `Shimmer`, `SuccessHero`
-- [ ] Success hero บน L6, T7 (ครบทุกจังหวะ + haptic) → T4 (ล็อก) → T3 (โล่)
-- [ ] Face ID จำลองครบ (สแกน → สำเร็จ → ไป T4) + โหมดล้มเหลว
-- [ ] Stepper, Timeline, Funds Secured shimmer
-- [ ] การ์ดคำขอเรืองแสง, badge กระดิ่ง, ซ่อนยอดเงิน
-- [ ] Page transitions (`template.tsx`), micro-interactions, bottom sheet ลากปิดได้
-- [ ] `prefers-reduced-motion` ปิดลูปทั้งหมด
+- [x] `components/motion/`: `MotionMode` (full / reduced / static + `useEnter`, `useHaptic`, `useLastSeen`), `CountUp`, `SuccessHero`, `DrawnCheck`, `LockGlyph` · วงแหวน/ประกาย/ripple/glow อยู่ใน `ScreenBackground hero` · ลูปเป็น CSS keyframes (`animate-twinkle`, `-ripple`, `-breathe`, `-pulse-ring`, `-scan-*`, `-dots`)
+- [x] Success hero บน L6, T7 (ครบทุกจังหวะ + haptic) → T4 (ล็อก) → T3 (โล่)
+- [x] Face ID จำลองครบ (สแกน → สำเร็จ → ไป T4) + โหมดล้มเหลว (เขย่า + toast — ยังทดสอบกับ API ที่ล้มเหลวจริงไม่ได้ จนถึง Phase 7)
+- [x] Stepper, Timeline, Funds Secured shimmer (เล่นเมื่อสถานะเปลี่ยนตั้งแต่ครั้งก่อนที่เห็น)
+- [x] การ์ดคำขอเรืองแสง, badge กระดิ่ง, ซ่อนยอดเงิน
+- [x] Page transitions (prop `enter` ของ `AppShell` — ไม่ใช้ `template.tsx` เพราะ Activity ไม่ remount: ดู [02 §5.7](./02-ui-spec.md#57-การเปลี่ยนหน้า-page-transitions)), micro-interactions, bottom sheet ลากปิดได้
+- [x] `prefers-reduced-motion` ปิดลูปทั้งหมด
+- [x] `/dev/overlay` แสดงเฟรมสุดท้าย (`?motion=1` เพื่อดูอนิเมชัน) — เทียบ pixel กับก่อน Phase 3 ทั้ง 14 หน้า: เหมือนเดิม
 - [ ] ทดสอบบนมือถือจริง: ลื่น 60fps (ดู Performance ใน DevTools ไม่มี long task ระหว่างอนิเมชัน)
 
 **DoD:** อัดวิดีโอหน้าจอ L6/T7/T4/T3 บนมือถือจริง ดูแล้ว "รู้สึกเหมือนแอปธนาคาร" · reduced motion ทำงาน
