@@ -1,0 +1,106 @@
+"use client";
+
+import { Check, Download } from "lucide-react";
+import Image from "next/image";
+import { AppShell } from "@/components/layout/AppShell";
+import { ScreenBackground } from "@/components/layout/ScreenBackground";
+import { StickyFooter } from "@/components/layout/StickyFooter";
+import { AppHeader } from "@/components/ui/AppHeader";
+import { Button } from "@/components/ui/Button";
+import { HeroCircle } from "@/components/ui/HeroCircle";
+import { StepperRow } from "@/components/ui/Stepper3";
+import { brand } from "@/config/brand";
+import { formatDateTime } from "@/lib/format/date";
+import { formatBaht } from "@/lib/format/money";
+import type { AccountDTO, DealDTO } from "@/types/api";
+import { ReceiptCard, type ReceiptField, type ReceiptLine } from "./ReceiptCard";
+
+type CompleteViewProps = {
+  deal: DealDTO;
+  account: Pick<AccountDTO, "accountType" | "accountNoMasked">;
+  onClose?: () => void;
+  onShare?: () => void;
+  onDone?: () => void;
+  onSaveProof?: () => void;
+};
+
+/** L6 ได้รับเงินครบแล้ว (ผู้ให้เช่า) · T7 ปล่อยเงินเรียบร้อยแล้ว (ผู้เช่า) */
+export function CompleteView({ deal, account, onClose, onShare, onDone, onSaveProof }: CompleteViewProps) {
+  const tenantSide = deal.myRole === "TENANT";
+  const { amounts, property, landlord, tenant } = deal;
+
+  const lines: ReceiptLine[] = deal.tranches.map((t) => ({
+    key: t.key,
+    title: t.key === "BOOKING_FEE" ? "ค่าจอง" : "มัดจำหลัก",
+    detail: t.releasedAt ? formatDateTime(t.releasedAt) : "—",
+    amount: formatBaht(t.amountSatang),
+  }));
+
+  const fields: ReceiptField[] = tenantSide
+    ? [
+        { label: "ถึง", value: `${landlord.displayName} · ${landlord.accountNoMasked}` },
+        { label: "เลขอ้างอิง", value: deal.refNo },
+      ]
+    : [
+        { label: "จาก", value: `${tenant?.shortName ?? "-"} (ผู้เช่า)` },
+        { label: "ห้อง", value: `${property.projectName} · ${property.unitNo}` },
+        { label: "เลขอ้างอิง", value: deal.refNo },
+        { label: "ค่าธรรมเนียม", value: `${formatBaht(amounts.feeSatang, 2)} บาท` },
+      ];
+
+  return (
+    <AppShell
+      background={<ScreenBackground screen={tenantSide ? "T7" : "L6"} />}
+      header={<AppHeader left="close" right="share" onLeft={onClose} onRight={onShare} />}
+      footer={
+        <StickyFooter>
+          <Button onClick={onDone}>เสร็จสิ้น</Button>
+          <Button variant="secondary" onClick={onSaveProof} iconLeft={<Download size={18} strokeWidth={1.65} />}>
+            {tenantSide ? "ดาวน์โหลดหลักฐาน" : "บันทึกหลักฐาน"}
+          </Button>
+        </StickyFooter>
+      }
+      className="flex flex-col items-center gap-3 px-5 pt-1 pb-2"
+    >
+      <div className="pt-2 pb-1.5">
+        <HeroCircle size={92}>
+          <Check size={44} strokeWidth={3} />
+        </HeroCircle>
+      </div>
+      <h2 className="text-title">{tenantSide ? "ปล่อยเงินเรียบร้อยแล้ว" : "ได้รับเงินครบแล้ว"}</h2>
+      <p className="text-amount-hero text-neon tabular-nums">
+        {formatBaht(tenantSide ? amounts.mainDepositSatang : amounts.releasedSatang, 2)}
+      </p>
+      <p className="text-meta text-gray">
+        {tenantSide
+          ? `ดีลเสร็จสมบูรณ์ · ปล่อยครบ ${formatBaht(amounts.totalSatang)}`
+          : `เข้าบัญชี${account.accountType} ${account.accountNoMasked}`}
+      </p>
+
+      <ReceiptCard
+        header={
+          tenantSide ? (
+            <>
+              <StepperRow statuses={["done", "done", "done"]} tone="light" />
+              <hr className="border-divider-light" />
+            </>
+          ) : (
+            <div className="flex h-[21px] items-center justify-between">
+              <Image
+                src={brand.logo.src}
+                alt={brand.name}
+                width={70}
+                height={21}
+                className="h-[21px] w-[70px]"
+                loading="eager"
+              />
+              <span className="text-micro text-ink-2">หลักฐานดีล</span>
+            </div>
+          )
+        }
+        lines={lines}
+        fields={fields}
+      />
+    </AppShell>
+  );
+}

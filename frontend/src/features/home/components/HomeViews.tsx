@@ -3,6 +3,7 @@ import { ScreenBackground } from "@/components/layout/ScreenBackground";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { HomeHeader } from "@/components/ui/HomeHeader";
 import type { HomeDTO } from "@/types/api";
+import { ActiveDealCard } from "./ActiveDealCard";
 import { BalanceCard } from "./BalanceCard";
 import { PromoBanner } from "./PromoBanner";
 import { RequestCard } from "./RequestCard";
@@ -31,6 +32,9 @@ export function LandlordHomeView({ home, onMenu }: HomeViewProps) {
       indicatorClassName="bg-nav"
       className="flex flex-col gap-3 px-5 pt-1 pb-2"
     >
+      {home.activeDeals.map((d) => (
+        <ActiveDealCard key={d.dealId} deal={d} />
+      ))}
       <BalanceCard account={home.me.account} />
       <ServiceGrid kSureHref="/deals/new" />
       <PromoBanner href="/deals/new" />
@@ -57,6 +61,9 @@ export function TenantHomeView({ home, onMenu }: HomeViewProps) {
       className="flex flex-col gap-3 px-5 pt-1 pb-2"
     >
       {invite && <RequestCard invite={invite} />}
+      {home.activeDeals.map((d) => (
+        <ActiveDealCard key={d.dealId} deal={d} />
+      ))}
       <BalanceCard account={home.me.account} />
       <ServiceGrid kSureHref={invite ? `/invites/${invite.shareCode}` : "/scan"} compact />
       <TipBanner />

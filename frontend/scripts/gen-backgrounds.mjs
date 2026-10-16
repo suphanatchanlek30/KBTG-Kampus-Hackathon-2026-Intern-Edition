@@ -14,7 +14,9 @@ const parseColor = (s) => {
 };
 
 const screens = {};
-for (const file of readdirSync(specDir).filter((f) => f.endsWith(".json")).sort()) {
+for (const file of readdirSync(specDir)
+  .filter((f) => f.endsWith(".json"))
+  .sort()) {
   const root = JSON.parse(readFileSync(specDir + file, "utf8"));
   const bg = root.children[0];
   const shapes = [];

@@ -4,6 +4,7 @@
 import { dealExpiry } from "@/features/deals/rules";
 import type {
   AccountDTO,
+  PayeeDTO,
   CreateDealInput,
   DealDTO,
   DealState,
@@ -209,7 +210,12 @@ export function makePendingInvite(deal: DealDTO): PendingInviteDTO {
 }
 
 export function makeHome(role: Role, deal: DealDTO | null): HomeDTO {
-  const active = deal && ["FUNDS_LOCKED", "BOOKING_FEE_RELEASED"].includes(deal.state);
+  // ดีลที่ยังไม่จบ — ผู้ให้เช่าเห็นตั้งแต่สร้างคำขอ (รอผู้เช่า) · ผู้เช่าเห็นหลังกันเงินแล้ว
+  const activeStates =
+    role === "LANDLORD"
+      ? ["WAITING_ACCEPT", "FUNDS_LOCKED", "BOOKING_FEE_RELEASED"]
+      : ["FUNDS_LOCKED", "BOOKING_FEE_RELEASED"];
+  const active = deal && activeStates.includes(deal.state);
   return {
     me: makeMe(role, deal),
     pendingInvites:
@@ -228,3 +234,15 @@ export function makeHome(role: Role, deal: DealDTO | null): HomeDTO {
         : [],
   };
 }
+
+/** T8 — ผู้รับโอนคือผู้ให้เช่าของดีลที่ยังไม่จบ ("ค่าส่วนกลางล่วงหน้า" = มุกที่มิจฉาชีพใช้บ่อย) */
+export const DEMO_TRANSFER: { payee: PayeeDTO; amountSatang: number; memo: string } = {
+  payee: {
+    accountId: DEMO_USERS.LANDLORD.account.id,
+    displayName: DEMO_USERS.LANDLORD.user.displayName,
+    bankName: DEMO_USERS.LANDLORD.account.bankName,
+    accountNoMasked: DEMO_USERS.LANDLORD.account.accountNoMasked,
+  },
+  amountSatang: 300_000,
+  memo: "ค่าส่วนกลางล่วงหน้า",
+};
