@@ -10,6 +10,8 @@ import { LockedView } from "./LockedView";
 export function LockedScreen() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  // key ใหม่ทุกครั้งที่ push/replace เข้ามา → เล่นอนิเมชันใหม่ (Activity เก็บหน้านี้ไว้ — ดู CompleteScreen)
+  const { bfcacheId } = router;
   const { data: deal } = useDeal(id);
   const { data: me } = useMe();
 
@@ -17,6 +19,7 @@ export function LockedScreen() {
 
   return (
     <LockedView
+      key={bfcacheId}
       deal={deal}
       account={me.account}
       onClose={() => router.replace("/home")}

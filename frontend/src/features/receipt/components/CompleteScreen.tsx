@@ -11,6 +11,9 @@ import { CompleteView } from "./CompleteView";
 export function CompleteScreen() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  // Cache Components เก็บหน้านี้ไว้ใน <Activity> — key ใหม่ทุกครั้งที่ push/replace เข้ามา เพื่อเล่นอนิเมชัน success ใหม่
+  // (back/forward ยังคงหน้าเดิม ไม่เล่นซ้ำ)
+  const { bfcacheId } = router;
   const { data: deal } = useDeal(id);
   const { data: me } = useMe();
 
@@ -24,6 +27,7 @@ export function CompleteScreen() {
 
   return (
     <CompleteView
+      key={bfcacheId}
       deal={deal}
       account={me.account}
       onClose={() => router.replace("/home")}

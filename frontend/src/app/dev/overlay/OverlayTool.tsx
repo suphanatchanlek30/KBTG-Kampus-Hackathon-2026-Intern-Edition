@@ -3,6 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PhoneFrame } from "@/components/layout/PhoneFrame";
+import { StaticMotion } from "@/components/motion/MotionMode";
 import { cn } from "@/lib/cn";
 import { SCREEN_IDS, SCREENS, isScreenId } from "./screens";
 
@@ -46,7 +47,14 @@ export function OverlayTool() {
     <>
       <PhoneFrame forceFrame>
         {Screen ? (
-          <Screen />
+          // เทียบกับ mockup ที่เฟรมสุดท้ายของอนิเมชัน — ?motion=1 เพื่อดูอนิเมชันจริง
+          params.get("motion") === "1" ? (
+            <Screen />
+          ) : (
+            <StaticMotion>
+              <Screen />
+            </StaticMotion>
+          )
         ) : (
           <div className="flex flex-1 items-center justify-center px-8 text-center text-body text-muted">
             ยังไม่มีหน้าจอ {screen} — เพิ่มใน src/app/dev/overlay/screens.tsx (Phase 2)
