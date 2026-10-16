@@ -9,7 +9,7 @@ export function TipBanner() {
         <Lock size={18} strokeWidth={1.5} />
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
-        <p className="text-row-title leading-[23.2px]">
+        <p className="pt-[3px] text-row-title">
           ยังไม่เห็นห้อง <span className="text-highlight">อย่าเพิ่งโอนมัดจำ</span>
         </p>
         <p className="text-caption text-muted">กันเงินไว้กับ {brand.name} ก่อน ปล่อยเมื่อเข้าอยู่จริง</p>

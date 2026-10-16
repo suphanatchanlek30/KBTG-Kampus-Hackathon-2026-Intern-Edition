@@ -23,7 +23,7 @@ export function TrancheRow({ index, title, description, amount, highlight = fals
         {index}
       </span>
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className="text-body-strong leading-[23.2px]">{title}</span>
+        <span className="pt-[3px] text-body-strong">{title}</span>
         <span className="text-caption text-muted">{description}</span>
       </div>
       <span className={cn("text-amount-row tabular-nums", highlight ? "text-neon" : "text-white")}>{amount}</span>

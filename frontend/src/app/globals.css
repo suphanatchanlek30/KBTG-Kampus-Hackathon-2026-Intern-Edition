@@ -46,6 +46,8 @@
   --color-sage: #6f9183;
   --color-mint-text: #e9fff0;
   --color-dim: #4a4f57;
+  --color-ink-green: #0b1f18;
+  --color-mint-pale: #eafdf0;
 
   /* ---- ฟอนต์ (§1.2) — ตัวแปรมาจาก next/font ใน layout.tsx ---- */
   --font-sans: var(--font-poppins), var(--font-noto-thai), sans-serif;

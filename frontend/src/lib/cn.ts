@@ -63,6 +63,8 @@ const COLORS = [
   "sage",
   "mint-text",
   "dim",
+  "ink-green",
+  "mint-pale",
 ];
 
 const twMerge = extendTailwindMerge({

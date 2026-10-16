@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { Sparkle } from "@/components/ui/Sparkle";
 import { SCREEN_BACKGROUNDS, type BackgroundId, type BackgroundShape } from "./backgrounds.generated";
 
 const rgba = (hex: string, alpha: number) => {
@@ -24,7 +25,7 @@ function shapeStyle(s: BackgroundShape): CSSProperties {
     case "ring":
       return { ...box, borderRadius: "50%", border: `${s.stroke ?? 1}px solid ${rgba(s.hex, s.alpha)}` };
     case "dot":
-      return { ...box, borderRadius: "50%", background: rgba(s.hex, s.alpha) };
+      return box;
   }
 }
 
@@ -35,9 +36,14 @@ function shapeStyle(s: BackgroundShape): CSSProperties {
 export function ScreenBackground({ screen }: { screen: BackgroundId }) {
   return (
     <div aria-hidden className="absolute inset-x-0 -top-[50px] h-[852px] framed:top-0">
-      {SCREEN_BACKGROUNDS[screen].map((s, i) => (
-        <div key={i} className="absolute" style={shapeStyle(s)} />
-      ))}
+      {SCREEN_BACKGROUNDS[screen].map((s, i) =>
+        // "dot" ใน Figma คือประกาย ✦ 4 แฉก
+        s.kind === "dot" ? (
+          <Sparkle key={i} size={s.w} color={rgba(s.hex, s.alpha)} className="absolute" style={shapeStyle(s)} />
+        ) : (
+          <div key={i} className="absolute" style={shapeStyle(s)} />
+        ),
+      )}
     </div>
   );
 }

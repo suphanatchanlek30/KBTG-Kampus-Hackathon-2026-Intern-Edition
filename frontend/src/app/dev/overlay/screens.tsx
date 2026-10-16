@@ -4,6 +4,8 @@ import { DealStatusView } from "@/features/deals/components/DealStatusView";
 import { ShareInviteView } from "@/features/deals/components/ShareInviteView";
 import { ReviewDealView } from "@/features/deals/components/ReviewDealView";
 import { DEFAULT_DRAFT } from "@/features/deals/store";
+import { InviteReviewView } from "@/features/invites/components/InviteReviewView";
+import { LockView } from "@/features/lock/components/LockView";
 import { LandlordHomeView, TenantHomeView } from "@/features/home/components/HomeViews";
 import { DEMO_PROPERTY, DEMO_USERS, makeDeal, makeHome } from "@/mocks/fixtures";
 
@@ -33,6 +35,15 @@ export const SCREENS: Partial<Record<ScreenId, ComponentType>> = {
   L4: () => <ShareInviteView deal={invited("LANDLORD")} inviteUrl="https://ksure.demo/invites/KS-8F4Q21" />,
   L5: () => <DealStatusView deal={makeDeal("FUNDS_LOCKED", "LANDLORD")} />,
   T1: () => <TenantHomeView home={makeHome("TENANT", invited("TENANT"))} />,
+  T2: () => <InviteReviewView deal={invited("TENANT")} />,
+  T3: () => (
+    <LockView
+      amountSatang={650_000}
+      accountType={DEMO_USERS.TENANT.account.accountType}
+      accountNoMasked={DEMO_USERS.TENANT.account.accountNoMasked}
+      phase="scanning"
+    />
+  ),
 };
 
 export const isScreenId = (v: string | null): v is ScreenId => SCREEN_IDS.includes(v as ScreenId);

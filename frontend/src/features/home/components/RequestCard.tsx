@@ -28,7 +28,7 @@ export function RequestCard({ invite }: { invite: PendingInviteDTO }) {
           <Building2 size={18} strokeWidth={1.5} />
         </div>
         <div className="flex min-w-0 flex-1 flex-col">
-          <p className="truncate text-body leading-[23.2px] font-semibold">มัดจำห้อง {invite.projectName}</p>
+          <p className="truncate pt-1 text-body font-semibold">มัดจำห้อง {invite.projectName}</p>
           <p className="truncate text-caption text-muted">
             ห้อง {invite.unitNo} · ดูห้อง {formatDayMonthTimeCompact(invite.viewingAt)}
           </p>
