@@ -55,3 +55,19 @@ func (q *Queries) GetPrimaryAccountForUpdate(ctx context.Context, userID uuid.UU
 	)
 	return i, err
 }
+
+const setAccountBalance = `-- name: SetAccountBalance :exec
+UPDATE demo_accounts SET balance_satang = $2, held_satang = $3, updated_at = now() WHERE id = $1
+`
+
+type SetAccountBalanceParams struct {
+	ID            uuid.UUID
+	BalanceSatang int64
+	HeldSatang    int64
+}
+
+// ใช้กับ demo reset เท่านั้น — action จริงปรับยอดผ่าน ledger (Phase 6)
+func (q *Queries) SetAccountBalance(ctx context.Context, arg SetAccountBalanceParams) error {
+	_, err := q.db.Exec(ctx, setAccountBalance, arg.ID, arg.BalanceSatang, arg.HeldSatang)
+	return err
+}

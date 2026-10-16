@@ -21,6 +21,12 @@ type Config struct {
 	// รัน goose up ตอน start (docker compose up แล้วได้ตารางพร้อม seed ทันที)
 	MigrateOnStart bool
 	LogLevel       string
+	// อายุ cookie ks_session (JWT)
+	SessionTTL time.Duration
+	// ส่ง cookie เฉพาะ HTTPS — เปิดเมื่อเดโมผ่าน https (tunnel / --experimental-https)
+	CookieSecure bool
+	// DEMO_FROZEN_NOW: ให้นาฬิกาของระบบเริ่มที่เวลานี้แล้วเดินต่อ (nil = เวลาจริง)
+	DemoFrozenNow *time.Time
 }
 
 const minJWTSecretLen = 32
@@ -37,6 +43,17 @@ func Load() (Config, error) {
 		DemoToolsEnabled: boolEnv("DEMO_TOOLS_ENABLED", false, &errs),
 		MigrateOnStart:   boolEnv("MIGRATE_ON_START", true, &errs),
 		LogLevel:         stringEnv("LOG_LEVEL", "info"),
+		SessionTTL:       durationEnv("SESSION_TTL", 12*time.Hour, &errs),
+		CookieSecure:     boolEnv("COOKIE_SECURE", false, &errs),
+	}
+
+	if v := os.Getenv("DEMO_FROZEN_NOW"); v != "" {
+		t, err := time.Parse(time.RFC3339, v)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("DEMO_FROZEN_NOW %q: not RFC 3339 (e.g. 2026-10-14T10:31:00+07:00)", v))
+		} else {
+			cfg.DemoFrozenNow = &t
+		}
 	}
 
 	tz := stringEnv("APP_TZ", "Asia/Bangkok")

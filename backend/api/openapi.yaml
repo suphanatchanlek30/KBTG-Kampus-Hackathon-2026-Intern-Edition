@@ -7,12 +7,15 @@ info:
     เงินเป็น integer สตางค์ · เวลาเป็น ISO-8601 มี offset · ทุก response ส่ง header X-Request-ID กลับ
 servers:
   - url: http://localhost:8080/api/v1
+security:
+  - session: []
 paths:
   /healthz:
     get:
       summary: process ยังทำงาน (ไม่แตะ DB)
       operationId: healthz
       tags: [health]
+      security: []
       responses:
         "200":
           description: OK
@@ -25,6 +28,7 @@ paths:
       summary: ต่อฐานข้อมูลได้
       operationId: readyz
       tags: [health]
+      security: []
       responses:
         "200":
           description: พร้อมรับ request
@@ -37,12 +41,249 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /auth/demo-login:
+    post:
+      summary: ล็อกอินด้วยบัญชีเดโม (ไม่มีรหัสผ่าน) → cookie ks_session
+      operationId: demoLogin
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username]
+              properties:
+                username: { type: string, enum: [landlord, tenant] }
+      responses:
+        "200":
+          description: สำเร็จ — Set-Cookie ks_session (HttpOnly, SameSite=Lax)
+          headers:
+            Set-Cookie: { schema: { type: string } }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user]
+                properties:
+                  user: { $ref: "#/components/schemas/User" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+  /auth/logout:
+    post:
+      summary: ลบ cookie ks_session
+      operationId: logout
+      tags: [auth]
+      security: []
+      responses:
+        "204": { description: ลบแล้ว }
+  /me:
+    get:
+      summary: ผู้ใช้ + บัญชีหลัก + จำนวนแจ้งเตือนที่ยังไม่อ่าน
+      operationId: getMe
+      tags: [user]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+        "401": { $ref: "#/components/responses/Error" }
+  /home:
+    get:
+      summary: ข้อมูลหน้าหลัก L1 / T1 ในครั้งเดียว
+      operationId: getHome
+      tags: [user]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Home" }
+        "401": { $ref: "#/components/responses/Error" }
+  /properties:
+    get:
+      summary: ห้องของผู้ให้เช่า (LANDLORD เท่านั้น)
+      operationId: listProperties
+      tags: [user]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/Property" } }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+  /notifications:
+    get:
+      summary: แจ้งเตือนล่าสุด 50 รายการ
+      operationId: listNotifications
+      tags: [notifications]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, unreadCount]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/Notification" } }
+                  unreadCount: { type: integer }
+        "401": { $ref: "#/components/responses/Error" }
+  /notifications/read:
+    post:
+      summary: ทำเครื่องหมายว่าอ่านแล้ว (ระบุ ids หรือ all = true)
+      operationId: markNotificationsRead
+      tags: [notifications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ids: { type: array, items: { type: string, format: uuid } }
+                all: { type: boolean }
+      responses:
+        "200":
+          description: จำนวนที่ยังไม่อ่านหลังอัปเดต
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [unreadCount]
+                properties:
+                  unreadCount: { type: integer }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+  /demo/reset:
+    post:
+      summary: รีเซ็ตข้อมูลเดโมตาม scenario (มีเมื่อ DEMO_TOOLS_ENABLED=true)
+      operationId: demoReset
+      tags: [demo]
+      parameters:
+        - name: scenario
+          in: query
+          schema:
+            type: string
+            enum: [fresh, waiting_accept, funds_locked, booking_released, released]
+            default: fresh
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [scenario, dealId]
+                properties:
+                  scenario: { type: string }
+                  dealId: { type: [string, "null"], format: uuid }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
 components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: ks_session
+  responses:
+    Error:
+      description: error (ดู code)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
   headers:
     XRequestID:
       description: รหัสอ้างอิง request — ส่งมาเองได้ ถ้าไม่ส่ง server สร้างให้
       schema: { type: string }
   schemas:
+    User:
+      type: object
+      required: [id, role, displayName, shortName]
+      properties:
+        id: { type: string, format: uuid }
+        role: { type: string, enum: [LANDLORD, TENANT] }
+        displayName: { type: string, example: สมชาย ใจดี }
+        shortName: { type: string, example: สมชาย ใ. }
+    Account:
+      type: object
+      required: [id, bankName, accountType, accountNoMasked, balanceSatang, heldSatang, availableSatang]
+      properties:
+        id: { type: string, format: uuid }
+        bankName: { type: string }
+        accountType: { type: string }
+        accountNoMasked: { type: string, example: xxx-x-x4821 }
+        balanceSatang: { type: integer, format: int64 }
+        heldSatang: { type: integer, format: int64 }
+        availableSatang: { type: integer, format: int64, description: balance − held }
+    Me:
+      type: object
+      required: [user, account, unreadNotifications]
+      properties:
+        user: { $ref: "#/components/schemas/User" }
+        account: { $ref: "#/components/schemas/Account" }
+        unreadNotifications: { type: integer }
+    Home:
+      type: object
+      required: [me, pendingInvites, activeDeals]
+      properties:
+        me: { $ref: "#/components/schemas/Me" }
+        pendingInvites:
+          type: array
+          items:
+            type: object
+            required: [dealId, fromShortName, sentAt, projectName, unitNo, viewingAt, totalSatang, shareCode]
+            properties:
+              dealId: { type: string, format: uuid }
+              fromShortName: { type: string }
+              sentAt: { type: string, format: date-time }
+              projectName: { type: string }
+              unitNo: { type: string }
+              viewingAt: { type: string, format: date-time }
+              totalSatang: { type: integer, format: int64 }
+              shareCode: { type: string, example: KS-8F4Q21 }
+        activeDeals:
+          type: array
+          items:
+            type: object
+            required: [dealId, state, projectName, unitNo, totalSatang]
+            properties:
+              dealId: { type: string, format: uuid }
+              state: { type: string, enum: [WAITING_ACCEPT, FUNDS_LOCKED, BOOKING_FEE_RELEASED] }
+              projectName: { type: string }
+              unitNo: { type: string }
+              totalSatang: { type: integer, format: int64 }
+    Property:
+      type: object
+      required: [id, propertyType, projectName, unitNo, detailLabel, nearbyLabel]
+      properties:
+        id: { type: string, format: uuid }
+        propertyType: { type: string }
+        projectName: { type: string }
+        unitNo: { type: string }
+        detailLabel: { type: string }
+        nearbyLabel: { type: string }
+    Notification:
+      type: object
+      required: [id, type, dealId, title, body, readAt, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        type:
+          type: string
+          enum: [DEAL_INVITE, FUNDS_LOCKED, BOOKING_FEE_RELEASED, MAIN_DEPOSIT_RELEASED, DEAL_REJECTED,
+                 CANCEL_REQUESTED, DEAL_REFUNDED, DEAL_EXPIRED]
+        dealId: { type: [string, "null"], format: uuid }
+        title: { type: string }
+        body: { type: string }
+        readAt: { type: [string, "null"], format: date-time }
+        createdAt: { type: string, format: date-time }
     HealthStatus:
       type: object
       required: [status]

@@ -12,13 +12,21 @@ import (
 
 	"github.com/suphanatchanlek30/ksure/backend/internal/domain"
 	"github.com/suphanatchanlek30/ksure/backend/internal/handler"
+	"github.com/suphanatchanlek30/ksure/backend/internal/platform/session"
 	"github.com/suphanatchanlek30/ksure/backend/internal/server/middleware"
+	"github.com/suphanatchanlek30/ksure/backend/internal/service"
 )
 
 // Deps คือของที่ handler ต้องใช้ — main.go เป็นคนประกอบ
 type Deps struct {
-	Log *slog.Logger
-	DB  handler.Pinger
+	Log           *slog.Logger
+	DB            handler.Pinger
+	Sessions      *session.Manager
+	CookieSecure  bool
+	Users         *service.UserService
+	Notifications *service.NotificationService
+	// nil = ปิด /demo/* (DEMO_TOOLS_ENABLED=false)
+	Demo *service.DemoService
 }
 
 func New(deps Deps) *fiber.App {

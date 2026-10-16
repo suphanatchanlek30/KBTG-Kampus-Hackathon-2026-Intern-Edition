@@ -82,7 +82,7 @@
 
 ## 🚀 Getting started
 
-> ตอนนี้ frontend ใช้ mock data (`NEXT_PUBLIC_USE_MOCK=true`) — backend มีแค่ health check + DB จนกว่าจะถึง Phase 5–7
+> ตอนนี้ frontend ใช้ mock data (`NEXT_PUBLIC_USE_MOCK=true`) — backend มี login เดโม, `/me`, `/home`, แจ้งเตือน และ `/demo/reset` แล้ว ส่วนดีล (สร้าง/กันเงิน/ปล่อยเงิน) มาใน Phase 6 และต่อกับหน้าจอใน Phase 7
 
 ### สิ่งที่ต้องติดตั้ง
 - Node.js LTS ล่าสุด + npm
@@ -99,6 +99,11 @@ cp frontend/.env.local.example frontend/.env.local
 # 2) Database + API (Docker) — api รัน migration + seed เองตอน start
 make up                       # postgres :5432 · api :8080 · adminer :8081
 curl localhost:8080/api/v1/readyz   # {"status":"ready"}
+
+# ลองล็อกอินเดโม + ดูข้อมูล (cookie เก็บไว้นอก repo — ข้างในเป็น JWT ห้าม commit)
+curl -c /tmp/ksure.jar -H 'content-type: application/json' -d '{"username":"tenant"}' localhost:8080/api/v1/auth/demo-login
+curl -b /tmp/ksure.jar -X POST 'localhost:8080/api/v1/demo/reset?scenario=funds_locked'
+curl -b /tmp/ksure.jar localhost:8080/api/v1/home
 
 # 3) Frontend
 cd frontend && npm install && npm run dev   # http://localhost:3000
@@ -126,7 +131,7 @@ cd frontend && npm install && npm run dev   # http://localhost:3000
 | `make migrate` / `make migrate-down` | goose up / down ทีละ version |
 | `make seed` | ล้างดีลทั้งหมด แล้วใส่ข้อมูลเดโมตั้งต้นใหม่ |
 | `make db-reset` | ล้าง schema ทั้งหมด + migrate + seed ใหม่ |
-| `make test` | go test ทั้ง backend (frontend: `cd frontend && npm test`) |
+| `make test` | go test ทั้ง backend รวม integration กับ Postgres (DB `ksure_test` แยก) · frontend: `cd frontend && npm test` |
 | `make sqlc` | generate Go code จาก `backend/internal/repository/queries` |
 | `make dev` | รัน api บนเครื่องแบบ hot reload (air) — ปิด container api ก่อน (`docker compose stop api`) |
 | `make tools` | ติดตั้ง goose / sqlc / air |
@@ -144,7 +149,7 @@ Adminer: http://localhost:8081 · server `db` · user `ksure` · password `ksure
 | 2 | **หน้าจอทั้ง 14 หน้าแบบ static ด้วย mock data — เทียบ mockup ให้เป๊ะ** | ✅ ([ภาพเทียบ](docs/design/compare/)) |
 | 3 | อนิเมชัน (success rings, Face ID, stepper, bottom sheet …) | 🟡 เหลือทดสอบบนมือถือจริง |
 | 4 | Backend foundation (Fiber, Postgres, migration, seed) | ✅ |
-| 5 | Auth เดโม + Home API | ⬜ |
+| 5 | Auth เดโม + Home API | ✅ |
 | 6 | Deal core: state machine, ledger, idempotency + tests | ⬜ |
 | 7 | เชื่อม Frontend ↔ API + polling real-time | ⬜ |
 | 8 | Flow ทางเลือก (ปฏิเสธ, ยกเลิก, หมดอายุ, T8 โอนนอกดีล) + หน้าจอ D* | ⬜ |

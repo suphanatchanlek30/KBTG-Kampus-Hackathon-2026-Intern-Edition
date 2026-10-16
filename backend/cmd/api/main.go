@@ -15,8 +15,12 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/suphanatchanlek30/ksure/backend/internal/config"
+	"github.com/suphanatchanlek30/ksure/backend/internal/platform/clock"
 	"github.com/suphanatchanlek30/ksure/backend/internal/platform/database"
+	"github.com/suphanatchanlek30/ksure/backend/internal/platform/session"
+	"github.com/suphanatchanlek30/ksure/backend/internal/repository"
 	"github.com/suphanatchanlek30/ksure/backend/internal/server"
+	"github.com/suphanatchanlek30/ksure/backend/internal/service"
 	"github.com/suphanatchanlek30/ksure/backend/migrations"
 )
 
@@ -52,7 +56,25 @@ func run() error {
 		}
 	}
 
-	app := server.New(server.Deps{Log: log, DB: pool})
+	var clk clock.Clock = clock.System{}
+	if cfg.DemoFrozenNow != nil {
+		clk = clock.NewShifted(*cfg.DemoFrozenNow)
+		log.Info("demo clock shifted", "start", cfg.DemoFrozenNow.Format(time.RFC3339))
+	}
+
+	repo := repository.New(pool)
+	deps := server.Deps{
+		Log:           log,
+		DB:            pool,
+		Sessions:      session.NewManager(cfg.JWTSecret, cfg.SessionTTL, clk),
+		CookieSecure:  cfg.CookieSecure,
+		Users:         service.NewUserService(repo, clk, cfg.Location),
+		Notifications: service.NewNotificationService(repo, clk, cfg.Location),
+	}
+	if cfg.DemoToolsEnabled {
+		deps.Demo = service.NewDemoService(repo, clk, cfg.Location, cfg.InviteTTL)
+	}
+	app := server.New(deps)
 
 	errCh := make(chan error, 1)
 	go func() {
