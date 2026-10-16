@@ -1,6 +1,9 @@
 import type { ComponentType } from "react";
+import { CreateDealView } from "@/features/deals/components/CreateDealView";
+import { ReviewDealView } from "@/features/deals/components/ReviewDealView";
+import { DEFAULT_DRAFT } from "@/features/deals/store";
 import { LandlordHomeView, TenantHomeView } from "@/features/home/components/HomeViews";
-import { makeDeal, makeHome } from "@/mocks/fixtures";
+import { DEMO_PROPERTY, DEMO_USERS, makeDeal, makeHome } from "@/mocks/fixtures";
 
 export const SCREEN_IDS = ["L1", "L2", "L3", "L4", "L5", "L6", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8"] as const;
 
@@ -14,6 +17,17 @@ const invited = (role: "LANDLORD" | "TENANT") => makeDeal("WAITING_ACCEPT", role
  */
 export const SCREENS: Partial<Record<ScreenId, ComponentType>> = {
   L1: () => <LandlordHomeView home={makeHome("LANDLORD", invited("LANDLORD"))} />,
+  L2: () => <CreateDealView draft={DEFAULT_DRAFT} property={DEMO_PROPERTY} />,
+  L3: () => (
+    <ReviewDealView
+      draft={DEFAULT_DRAFT}
+      property={DEMO_PROPERTY}
+      landlord={{
+        displayName: DEMO_USERS.LANDLORD.user.displayName,
+        accountNoMasked: DEMO_USERS.LANDLORD.account.accountNoMasked,
+      }}
+    />
+  ),
   T1: () => <TenantHomeView home={makeHome("TENANT", invited("TENANT"))} />,
 };
 

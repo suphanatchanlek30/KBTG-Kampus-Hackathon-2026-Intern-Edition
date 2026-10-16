@@ -89,3 +89,17 @@ export function formatDayMonthTimeCompact(input: DateInput): string {
   const p = bangkokParts(input);
   return `${p.day} ${p.month} ${p.time}`;
 }
+
+/**
+ * ISO (+07:00) → ค่าของ `<input type="datetime-local">` เช่น `2026-10-18T14:00`
+ * ตีความเป็นเวลากรุงเทพฯ เสมอ ไม่ขึ้นกับ timezone ของเครื่อง
+ */
+export function toBangkokInputValue(input: DateInput): string {
+  const d = new Date(new Date(input).getTime() + BANGKOK_OFFSET_MS);
+  return d.toISOString().slice(0, 16);
+}
+
+/** ค่าจาก `<input type="datetime-local">` (เวลากรุงเทพฯ) → ISO `2026-10-18T14:00:00+07:00` */
+export function fromBangkokInputValue(value: string): string {
+  return `${value.slice(0, 16)}:00+07:00`;
+}

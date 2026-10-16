@@ -23,7 +23,7 @@ export const useInvite = (code: string) =>
  * mutation ของดีล — หลังสำเร็จ invalidate ทุก query
  * (route ที่เปิดไว้ยังค้างอยู่ใน <Activity> ของ Cache Components จึงต้องรีเฟรชข้อมูลทุกหน้า)
  */
-function useDealMutation<TVars>(fn: (vars: TVars) => Promise<unknown>) {
+function useDealMutation<TVars, TData>(fn: (vars: TVars) => Promise<TData>) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: fn,

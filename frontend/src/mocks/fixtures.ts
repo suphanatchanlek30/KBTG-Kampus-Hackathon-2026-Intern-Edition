@@ -1,6 +1,7 @@
 // ข้อมูลเดโมที่ค่าตรงกับ mockup ทุกตัว (docs/01-user-flow.md §2)
 // ใช้ทั้ง mock API (Phase 2) และหน้า /dev/overlay ที่ต้อง render หลาย state พร้อมกัน
 
+import { dealExpiry } from "@/features/deals/rules";
 import type {
   AccountDTO,
   CreateDealInput,
@@ -177,14 +178,6 @@ export function makeDeal(state: DealState, role: Role, input?: Partial<CreateDea
     timeline,
     createdAt: DEMO_TIMES.dealCreated,
   };
-}
-
-/** หมดอายุ = วันเข้าอยู่ + 2 วัน 23:59 (+07) ตาม docs/05-api.md #8 */
-export function dealExpiry(moveInDate: string): string {
-  const d = new Date(`${moveInDate}T00:00:00+07:00`);
-  d.setUTCDate(d.getUTCDate() + 2);
-  const bkk = new Date(d.getTime() + 7 * 3600_000).toISOString().slice(0, 10);
-  return `${bkk}T23:59:00+07:00`;
 }
 
 /** ยอดบัญชีของ role ตาม state ของดีล (คำนวณแบบเดียวกับ ledger ใน docs/04-database.md §2) */
