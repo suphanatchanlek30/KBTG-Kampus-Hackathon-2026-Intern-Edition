@@ -33,7 +33,11 @@ export function AppShell({ children, header, footer, background, indicatorClassN
         {header}
       </div>
       <main
-        className={cn("relative z-0 min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain", className)}
+        className={cn(
+          // [&>*]:shrink-0 — เนื้อหาสูงเกินจอต้องเลื่อนดู ไม่ใช่บีบการ์ดให้เตี้ยลง (flex column จะ shrink ลูกโดยปริยาย)
+          "relative z-0 min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain [&>*]:shrink-0",
+          className,
+        )}
       >
         {children}
       </main>

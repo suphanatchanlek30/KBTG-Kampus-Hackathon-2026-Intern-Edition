@@ -27,7 +27,9 @@ export function PhoneFrame({ children, forceFrame, aside, className }: PhoneFram
       <div
         className={cn(
           "relative mx-auto flex h-dvh w-full max-w-[430px] transform-gpu flex-col overflow-hidden bg-bg",
-          "framed:mx-0 framed:h-[852px] framed:w-[393px] framed:max-w-none framed:shrink-0 framed:rounded-frame framed:shadow-phone",
+          "framed:mx-0 framed:w-[393px] framed:max-w-none framed:shrink-0 framed:rounded-frame framed:shadow-phone",
+          // desktop ที่จอเตี้ยกว่า 852+ขอบ: ย่อความสูงกรอบให้พอดีหน้าต่าง (เนื้อหาเลื่อนได้) · overlay สูง 852 เป๊ะ
+          forceFrame ? "framed:h-[852px]" : "framed:h-[min(852px,calc(100dvh-4rem))]",
           className,
         )}
       >

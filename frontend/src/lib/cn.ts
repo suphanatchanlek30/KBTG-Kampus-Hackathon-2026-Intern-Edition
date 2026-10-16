@@ -60,6 +60,11 @@ const COLORS = [
   "warn-edge",
   "warn-text",
   "mint-mid",
+  "sage",
+  "mint-text",
+  "dim",
+  "ink-green",
+  "mint-pale",
 ];
 
 const twMerge = extendTailwindMerge({
@@ -68,7 +73,19 @@ const twMerge = extendTailwindMerge({
       text: FONT_SIZES,
       color: COLORS,
       radius: ["card", "card-xl", "icon-btn", "tile", "frame"],
-      shadow: ["cta", "hero", "mint", "phone", "scan", "accent-neon", "accent-white"],
+      shadow: [
+        "cta",
+        "hero",
+        "hero-sm",
+        "mint",
+        "phone",
+        "scan",
+        "ring-neon",
+        "dot-neon",
+        "tile-active",
+        "accent-neon",
+        "accent-white",
+      ],
     },
   },
 });

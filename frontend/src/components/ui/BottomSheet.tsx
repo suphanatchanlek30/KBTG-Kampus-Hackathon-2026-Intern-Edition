@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion, type PanInfo } from "motion/react";
-import { useEffect, useId, type ReactNode } from "react";
+import { useEffect, useId, useSyncExternalStore, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 type BottomSheetProps = {
@@ -26,6 +26,12 @@ const CLOSE_VELOCITY = 500;
 export function BottomSheet({ open, onClose, tone = "dark", title, children, className }: BottomSheetProps) {
   const reduce = useReducedMotion();
   const titleId = useId();
+  // render เฉพาะฝั่ง client — ค่า reduced motion ฝั่ง server ไม่รู้ จะทำให้ hydration ไม่ตรงถ้า sheet เปิดตั้งแต่โหลดหน้า
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -40,7 +46,7 @@ export function BottomSheet({ open, onClose, tone = "dark", title, children, cla
 
   return (
     <AnimatePresence>
-      {open && (
+      {open && mounted && (
         <div className="fixed inset-0 z-50 flex flex-col justify-end">
           <motion.div
             aria-hidden
@@ -81,7 +87,7 @@ export function BottomSheet({ open, onClose, tone = "dark", title, children, cla
                 {title}
               </h2>
             )}
-            <div className="min-h-0 overflow-y-auto">{children}</div>
+            <div className="min-h-0 w-full overflow-y-auto">{children}</div>
           </motion.div>
         </div>
       )}

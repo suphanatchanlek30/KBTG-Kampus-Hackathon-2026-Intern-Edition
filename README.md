@@ -132,7 +132,7 @@ cd frontend && npm install && npm run dev   # http://localhost:3000
 |---|---|---|
 | 0 | เอกสารออกแบบ + ดึงค่าจาก Figma + หา asset | ✅ |
 | 1 | Frontend foundation (tokens, ฟอนต์, layout, component พื้นฐาน) | 🟡 เหลือทดสอบบนมือถือจริง |
-| 2 | **หน้าจอทั้ง 14 หน้าแบบ static ด้วย mock data — เทียบ mockup ให้เป๊ะ** | ⬜ |
+| 2 | **หน้าจอทั้ง 14 หน้าแบบ static ด้วย mock data — เทียบ mockup ให้เป๊ะ** | ✅ ([ภาพเทียบ](docs/design/compare/)) |
 | 3 | อนิเมชัน (success rings, Face ID, stepper, bottom sheet …) | ⬜ |
 | 4 | Backend foundation (Fiber, Postgres, migration, seed) | ⬜ |
 | 5 | Auth เดโม + Home API | ⬜ |

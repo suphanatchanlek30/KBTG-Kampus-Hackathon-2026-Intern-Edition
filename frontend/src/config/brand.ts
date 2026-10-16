@@ -5,8 +5,11 @@ export const brand = {
   name: "K Sure",
   tagline: "มัดจำห้อง แบบไม่ต้องลุ้น",
   taglineHighlight: "แบบไม่ต้องลุ้น",
-  /** ชื่อแอปธนาคารจำลองที่ K Sure อยู่ข้างใน — ห้ามใช้ชื่อ/โลโก้ธนาคารจริง */
-  hostAppName: "Mobile Banking",
+  /**
+   * ชื่อแอปธนาคารที่ K Sure อยู่ข้างใน — ตอนนี้ใช้ตาม mockup ("K PLUS")
+   * ⚠️ สเปกต้นฉบับห้ามใช้ชื่อ KBank / KBTG / K PLUS ในเดโมสาธารณะ — รอทีมตัดสินใจ (docs/06-roadmap.md Phase 0)
+   */
+  hostAppName: "K PLUS",
   disclaimer: "Prototype only · No real funds",
   exportWatermark: "SIMULATED · Prototype",
   logo: { src: "/brand/ksure-logo.png", width: 841, height: 258 },

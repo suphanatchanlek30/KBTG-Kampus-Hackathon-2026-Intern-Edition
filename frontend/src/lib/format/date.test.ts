@@ -4,10 +4,13 @@ import {
   formatDateTime,
   formatDayMonth,
   formatDayMonthTime,
+  formatDayMonthTimeCompact,
   formatExpiry,
   formatTime,
   formatTimeNa,
   formatWeekdayDate,
+  fromBangkokInputValue,
+  toBangkokInputValue,
 } from "./date";
 
 // ค่าตาม docs/02-ui-spec.md §3.2 และข้อมูลเดโมใน docs/01-user-flow.md §2 (เวลา Asia/Bangkok = UTC+7)
@@ -24,6 +27,10 @@ describe("Thai Buddhist-era date formats", () => {
 
   it("วัน เดือนย่อ · เวลา (ไม่มีปี)", () => {
     expect(formatDayMonthTime(VIEWING)).toBe("18 ต.ค. · 14:00");
+  });
+
+  it("วัน เดือนย่อ เวลา (T1 ไม่มี ·)", () => {
+    expect(formatDayMonthTimeCompact(VIEWING)).toBe("18 ต.ค. 14:00");
   });
 
   it("วัน เดือนย่อ ปี", () => {
@@ -69,5 +76,11 @@ describe("Thai Buddhist-era date formats", () => {
 
   it("throws on invalid input", () => {
     expect(() => formatDate("not a date")).toThrow(RangeError);
+  });
+
+  it("round-trips datetime-local values in Bangkok time", () => {
+    expect(toBangkokInputValue(VIEWING)).toBe("2026-10-18T14:00");
+    expect(toBangkokInputValue("2026-10-18T07:00:00Z")).toBe("2026-10-18T14:00");
+    expect(fromBangkokInputValue("2026-10-18T14:00")).toBe("2026-10-18T14:00:00+07:00");
   });
 });
