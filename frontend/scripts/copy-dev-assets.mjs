@@ -1,0 +1,13 @@
+// copy รูป mockup (docs/design/screens) → public/dev/screens ให้หน้า /dev/overlay ใช้
+// ไม่ commit ซ้ำใน frontend เพราะต้นฉบับอยู่ใน docs แล้ว
+import { cpSync, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
+const src = fileURLToPath(new URL("../../docs/design/screens", import.meta.url));
+const dest = fileURLToPath(new URL("../public/dev/screens", import.meta.url));
+
+if (existsSync(src)) {
+  cpSync(src, dest, { recursive: true });
+} else {
+  console.warn(`[copy-dev-assets] ไม่พบ ${src} — /dev/overlay จะไม่มีรูป mockup`);
+}
