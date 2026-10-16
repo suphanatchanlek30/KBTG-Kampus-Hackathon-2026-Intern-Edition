@@ -109,7 +109,8 @@ npx next --version && npm ls tailwindcss motion
 - [x] การ์ดคำขอเรืองแสง, badge กระดิ่ง, ซ่อนยอดเงิน
 - [x] Page transitions (prop `enter` ของ `AppShell` — ไม่ใช้ `template.tsx` เพราะ Activity ไม่ remount: ดู [02 §5.7](./02-ui-spec.md#57-การเปลี่ยนหน้า-page-transitions)), micro-interactions, bottom sheet ลากปิดได้
 - [x] `prefers-reduced-motion` ปิดลูปทั้งหมด
-- [x] `/dev/overlay` แสดงเฟรมสุดท้าย (`?motion=1` เพื่อดูอนิเมชัน) — เทียบ pixel กับก่อน Phase 3 ทั้ง 14 หน้า: เหมือนเดิม
+- [x] `/dev/overlay` แสดงเฟรมสุดท้าย (`?motion=1` เพื่อดูอนิเมชัน) — เทียบ pixel (ไม่ใช้ fuzz) กับก่อน Phase 3: 9 หน้าเหมือนทุก pixel · L1/T1 ต่าง < 1px · T3 ไอคอนไม่จางจาก pulse · T5/T6 ขอบวงติ๊ก ~18px
+- [x] ลายพื้นหลัง (วงแหวน, ripple, glow) วางกึ่งกลางจอ — มือถือ 360/430px ยังตรงกลาง hero
 - [ ] ทดสอบบนมือถือจริง: ลื่น 60fps (ดู Performance ใน DevTools ไม่มี long task ระหว่างอนิเมชัน)
 
 **DoD:** อัดวิดีโอหน้าจอ L6/T7/T4/T3 บนมือถือจริง ดูแล้ว "รู้สึกเหมือนแอปธนาคาร" · reduced motion ทำงาน

@@ -50,6 +50,7 @@ type ScreenBackgroundProps = {
 /**
  * ลายพื้นหลังของหน้าจอ (แสงเขียว, วงแหวน, จุด) ตามค่า Figma ของแต่ละหน้า
  * พิกัดอ้างอิงเฟรม 393×852 ที่มี status bar 50px — บนมือถือจริงไม่มี status bar จึงเลื่อนขึ้น 50px
+ * กล่องกว้าง 393 วางกึ่งกลางจอ: จอ 360/430 วงแหวน ripple glow ยังอยู่ตรงกลาง hero (ส่วนที่ล้นถูก AppShell ตัด)
  */
 export function ScreenBackground({ screen, hero }: ScreenBackgroundProps) {
   const mode = useMotionMode();
@@ -61,7 +62,7 @@ export function ScreenBackground({ screen, hero }: ScreenBackgroundProps) {
   const inner = rings[0];
 
   return (
-    <div aria-hidden className="absolute inset-x-0 -top-[50px] h-[852px] framed:top-0">
+    <div aria-hidden className="absolute -top-[50px] left-[calc(50%-196.5px)] h-[852px] w-[393px] framed:top-0">
       {shapes.map((s, i) => {
         const style = shapeStyle(s);
         // "dot" ใน Figma คือประกาย ✦ 4 แฉก
