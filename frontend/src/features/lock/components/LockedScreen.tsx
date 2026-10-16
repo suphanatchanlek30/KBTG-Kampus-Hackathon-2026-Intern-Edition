@@ -2,7 +2,6 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { ScreenSkeleton } from "@/components/layout/ScreenSkeleton";
-import { toast } from "@/components/ui/Toast";
 import { useDeal, useMe } from "@/features/deals/hooks";
 import { LockedView } from "./LockedView";
 
@@ -20,7 +19,6 @@ export function LockedScreen() {
       deal={deal}
       account={me.account}
       onClose={() => router.replace("/home")}
-      onShare={() => toast.success("บันทึก/แชร์หลักฐานจะเปิดใช้ใน Phase 8")}
       onViewStatus={() => router.replace(`/deals/${deal.id}`)}
       onHome={() => router.replace("/home")}
     />

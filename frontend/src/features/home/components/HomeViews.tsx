@@ -67,7 +67,7 @@ export function TenantHomeView({ home, onMenu }: HomeViewProps) {
         <ActiveDealCard key={d.dealId} deal={d} />
       ))}
       <BalanceCard account={home.me.account} />
-      <ServiceGrid kSureHref={invite ? `/invites/${invite.shareCode}` : "/scan"} compact />
+      <ServiceGrid kSureHref={invite && `/invites/${invite.shareCode}`} compact />
       <TipBanner />
     </AppShell>
   );

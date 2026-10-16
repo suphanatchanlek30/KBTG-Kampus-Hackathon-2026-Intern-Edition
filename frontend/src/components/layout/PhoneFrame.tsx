@@ -14,7 +14,7 @@ type PhoneFrameProps = {
 
 /**
  * มือถือ: แอปเต็มจอ (100dvh, max 430px) + safe area
- * Desktop / forceFrame: กรอบโทรศัพท์ 393×852 r44 กลางจอ + ป้าย Prototype ข้างกรอบ
+ * Desktop / forceFrame: กรอบโทรศัพท์ 393×852 r44 กลางจอบนพื้นขาว (ให้ตัดกับแอปที่เป็นธีมมืด) + ป้าย Prototype ข้างกรอบ
  *
  * กรอบใช้ transform-gpu เพื่อให้ element `position: fixed` (bottom sheet, toast) อยู่ในกรอบ ไม่ล้นไปทั้งจอ
  */
@@ -22,7 +22,7 @@ export function PhoneFrame({ children, forceFrame, aside, className }: PhoneFram
   return (
     <div
       data-frame={forceFrame ? "force" : undefined}
-      className="min-h-dvh bg-bg md:gap-10 md:p-8 framed:flex framed:items-center framed:justify-center"
+      className="min-h-dvh bg-bg md:gap-10 md:p-8 framed:flex framed:items-center framed:justify-center framed:bg-white"
     >
       <div
         className={cn(
@@ -38,7 +38,8 @@ export function PhoneFrame({ children, forceFrame, aside, className }: PhoneFram
       </div>
       {!forceFrame && (
         <aside className="hidden w-56 flex-col gap-4 md:flex">
-          <DemoBadge />
+          {/* ป้ายสีเหลืองบนพื้นขาวจางเกิน → เข้มขึ้นเฉพาะข้างกรอบ */}
+          <DemoBadge className="border-warn/70 bg-warn/15 text-[#8a5a00]" />
           {aside}
         </aside>
       )}
