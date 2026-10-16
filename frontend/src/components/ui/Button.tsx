@@ -36,7 +36,8 @@ export function Button({
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cn(
-        "relative inline-flex items-center justify-center gap-2 transition-[transform,opacity,box-shadow] duration-[120ms] select-none",
+        // กด: scale 0.12s · disabled → พร้อมกด ("ปลุก" เมื่อติ๊กครบ): opacity + glow 0.3s (§5.8)
+        "relative inline-flex items-center justify-center gap-2 transition-[transform,opacity,box-shadow] duration-[120ms,300ms,300ms] select-none",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neon",
         "enabled:active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40",
         variants[variant],

@@ -52,6 +52,7 @@ export function ConfirmReleaseView({
 
   return (
     <AppShell
+      enter="push"
       background={<ScreenBackground screen={viewing ? "T5" : "T6"} />}
       header={
         <AppHeader title={viewing ? "ยืนยันการดูห้อง" : "ยืนยันการเข้าอยู่"} left="back" right="menu" onLeft={onBack} />
@@ -77,7 +78,7 @@ export function ConfirmReleaseView({
     >
       {!viewing && (
         <div className="w-full">
-          <Stepper3 statuses={["done", "done", "current"]}>
+          <Stepper3 statuses={["done", "done", "current"]} delay={0.1}>
             {bookingReleasedAt && (
               <p className="flex h-9 items-center justify-center gap-1.5 rounded-full bg-neon/12 px-2.5 text-caption font-medium text-neon">
                 <Check size={13} strokeWidth={2} />

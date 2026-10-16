@@ -29,6 +29,7 @@ export function InviteReviewView({ deal, rejecting, onBack, onAccept, onReject }
 
   return (
     <AppShell
+      enter="push"
       background={<ScreenBackground screen="T2" />}
       header={<AppHeader title="ตรวจสอบรายละเอียดดีล" left="back" right="menu" onLeft={onBack} />}
       footer={

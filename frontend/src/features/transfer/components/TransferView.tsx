@@ -37,6 +37,7 @@ export function TransferView({
   return (
     <>
       <AppShell
+        enter="push"
         background={<ScreenBackground screen="T8" />}
         header={<AppHeader title="โอนเงิน" left="back" right="menu" onLeft={onBack} />}
         footer={

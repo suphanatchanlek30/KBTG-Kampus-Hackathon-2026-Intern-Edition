@@ -31,6 +31,7 @@ export function InviteReviewScreen() {
     // D6 — placeholder จนกว่าจะอนุมัติดีไซน์ (docs/01-user-flow.md §7)
     return (
       <AppShell
+        enter="push"
         header={<AppHeader title="คำขอ K Sure" left="back" onLeft={() => router.push("/home")} />}
         className="flex flex-col items-center justify-center gap-2 px-8 text-center"
       >

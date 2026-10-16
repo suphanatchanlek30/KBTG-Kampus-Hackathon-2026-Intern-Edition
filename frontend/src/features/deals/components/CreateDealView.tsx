@@ -45,6 +45,7 @@ export function CreateDealView({ draft, property, onChange, onNext }: CreateDeal
 
   return (
     <AppShell
+      enter="push"
       background={<ScreenBackground screen="L2" />}
       header={
         <>

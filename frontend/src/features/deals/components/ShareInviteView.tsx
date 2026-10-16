@@ -1,10 +1,11 @@
 "use client";
 
-import { Check, ChevronRight, Download, Send, ShieldCheck, Smartphone, ScanLine } from "lucide-react";
+import { ChevronRight, Download, Send, ShieldCheck, Smartphone, ScanLine } from "lucide-react";
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { ScreenBackground } from "@/components/layout/ScreenBackground";
 import { StickyFooter } from "@/components/layout/StickyFooter";
+import { DrawnCheck } from "@/components/motion/DrawnCheck";
 import { AppHeader } from "@/components/ui/AppHeader";
 import { Button } from "@/components/ui/Button";
 import { CodeField } from "@/components/ui/CodeField";
@@ -30,6 +31,7 @@ export function ShareInviteView({ deal, inviteUrl, sending, onClose, onSend, onS
 
   return (
     <AppShell
+      enter="modal"
       background={<ScreenBackground screen="L4" />}
       header={<AppHeader title="ส่งคำขอให้ผู้เช่า" left="close" right="menu" onLeft={onClose} />}
       footer={
@@ -63,7 +65,7 @@ export function ShareInviteView({ deal, inviteUrl, sending, onClose, onSend, onS
         <section className="flex flex-col gap-2.5 rounded-card bg-card p-4">
           <div className="flex items-center justify-between gap-3">
             <span className="flex items-center gap-1.5 text-body font-semibold text-neon">
-              <Check size={15} strokeWidth={2} />
+              <DrawnCheck size={15} strokeWidth={2} delay={0.3} />
               สร้างคำขอแล้ว
             </span>
             <span className="text-micro text-muted">{deal.refNo}</span>
