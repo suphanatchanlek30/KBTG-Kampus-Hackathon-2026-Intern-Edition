@@ -2,7 +2,16 @@
 // เก็บใน sessionStorage ให้รีเฟรชหน้าแล้วยังอยู่ · อ่าน storage เฉพาะตอนถูกเรียก (ไม่ใช่ตอนโหลด module)
 
 import { ApiError } from "@/lib/api/errors";
-import type { CreateDealInput, DealDTO, DealState, HomeDTO, MeDTO, Role, TransferPrecheckDTO } from "@/types/api";
+import type {
+  CreateDealInput,
+  DealDTO,
+  InviteSentDTO,
+  DealState,
+  HomeDTO,
+  MeDTO,
+  Role,
+  TransferPrecheckDTO,
+} from "@/types/api";
 import { DEMO_DEAL_ID, DEMO_SHARE_CODE, DEMO_TIMES, DEMO_USERS, makeDeal, makeHome, makeMe } from "./fixtures";
 
 export type MockScenario = "invited" | "fresh" | "locked" | "booking-released" | "released";
@@ -96,7 +105,7 @@ export const mockApi = {
     return delay(currentDeal()!);
   },
 
-  sendInvite: async (id: string): Promise<{ sentTo: { shortName: string }; sentAt: string }> => {
+  sendInvite: async (id: string): Promise<InviteSentDTO> => {
     const state = load();
     const deal = requireDeal(id);
     save({ ...state, inviteSent: true });

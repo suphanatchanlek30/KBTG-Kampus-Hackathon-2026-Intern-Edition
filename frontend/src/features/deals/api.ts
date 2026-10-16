@@ -2,7 +2,7 @@
 import { env } from "@/config/env";
 import { api } from "@/lib/api/client";
 import { mockApi } from "@/mocks/handlers";
-import type { CreateDealInput, DealDTO, HomeDTO, MeDTO, TransferPrecheckDTO } from "@/types/api";
+import type { CreateDealInput, DealDTO, HomeDTO, InviteSentDTO, MeDTO, TransferPrecheckDTO } from "@/types/api";
 
 const idem = () => ({ headers: { "Idempotency-Key": crypto.randomUUID() } });
 const data = <T>(p: Promise<{ data: T }>) => p.then((r) => r.data);
@@ -20,10 +20,10 @@ export const getInvite = (code: string): Promise<DealDTO> =>
 export const createDeal = (input: CreateDealInput): Promise<DealDTO> =>
   env.useMock ? mockApi.createDeal(input) : data(api.post<DealDTO>("/deals", input, idem()));
 
-export const sendInvite = (id: string) =>
+export const sendInvite = (id: string): Promise<InviteSentDTO> =>
   env.useMock
     ? mockApi.sendInvite(id)
-    : data(api.post<{ sentAt: string }>(`/deals/${id}/invite/send`, { channel: "IN_APP" }, idem()));
+    : data(api.post<InviteSentDTO>(`/deals/${id}/invite/send`, { channel: "IN_APP" }, idem()));
 
 export const rejectDeal = (deal: DealDTO): Promise<DealDTO> =>
   env.useMock

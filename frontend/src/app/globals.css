@@ -43,6 +43,9 @@
   --color-warn-edge: #c98a00;
   --color-warn-text: #ffd978;
   --color-mint-mid: #a8e9b4;
+  --color-sage: #6f9183;
+  --color-mint-text: #e9fff0;
+  --color-dim: #4a4f57;
 
   /* ---- ฟอนต์ (§1.2) — ตัวแปรมาจาก next/font ใน layout.tsx ---- */
   --font-sans: var(--font-poppins), var(--font-noto-thai), sans-serif;

@@ -60,6 +60,9 @@ const COLORS = [
   "warn-edge",
   "warn-text",
   "mint-mid",
+  "sage",
+  "mint-text",
+  "dim",
 ];
 
 const twMerge = extendTailwindMerge({

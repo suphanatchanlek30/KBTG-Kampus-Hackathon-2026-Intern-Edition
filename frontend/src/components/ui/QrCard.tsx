@@ -1,0 +1,29 @@
+import Image from "next/image";
+import { QRCodeSVG } from "qrcode.react";
+import { brand } from "@/config/brand";
+
+// เว้นช่องกลาง QR ให้โลโก้ (excavate) โดยไม่วาดรูปจริง — โลโก้วางทับด้วย HTML
+const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
+/**
+ * QR คำเชิญ (Figma L4: กรอบขาว 184×184 r24 · QR 160 · โลโก้กลาง 44×44 r13 พื้นดำขอบขาว 3)
+ * ใช้ error correction ระดับ H เพื่อให้ยังสแกนได้แม้มีโลโก้บังกลาง
+ */
+export function QrCard({ value }: { value: string }) {
+  return (
+    <div className="relative mx-auto flex size-[184px] items-center justify-center rounded-[24px] bg-white">
+      <QRCodeSVG
+        value={value}
+        size={160}
+        level="H"
+        bgColor="#FFFFFF"
+        fgColor="#0A0A0B"
+        imageSettings={{ src: TRANSPARENT_PIXEL, width: 44, height: 44, excavate: true }}
+        title="QR คำขอ"
+      />
+      <div className="absolute flex size-11 items-center justify-center rounded-[13px] border-[3px] border-white bg-ink">
+        <Image src={brand.mark.src} alt="" width={22} height={21} />
+      </div>
+    </div>
+  );
+}

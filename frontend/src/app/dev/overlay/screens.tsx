@@ -1,5 +1,7 @@
 import type { ComponentType } from "react";
 import { CreateDealView } from "@/features/deals/components/CreateDealView";
+import { DealStatusView } from "@/features/deals/components/DealStatusView";
+import { ShareInviteView } from "@/features/deals/components/ShareInviteView";
 import { ReviewDealView } from "@/features/deals/components/ReviewDealView";
 import { DEFAULT_DRAFT } from "@/features/deals/store";
 import { LandlordHomeView, TenantHomeView } from "@/features/home/components/HomeViews";
@@ -28,6 +30,8 @@ export const SCREENS: Partial<Record<ScreenId, ComponentType>> = {
       }}
     />
   ),
+  L4: () => <ShareInviteView deal={invited("LANDLORD")} inviteUrl="https://ksure.demo/invites/KS-8F4Q21" />,
+  L5: () => <DealStatusView deal={makeDeal("FUNDS_LOCKED", "LANDLORD")} />,
   T1: () => <TenantHomeView home={makeHome("TENANT", invited("TENANT"))} />,
 };
 

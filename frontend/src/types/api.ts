@@ -123,3 +123,6 @@ export type TransferPrecheckDTO = {
 };
 
 export type PayeeDTO = { accountId: string; displayName: string; bankName: string; accountNoMasked: string };
+
+/** POST /deals/{id}/invite/send (#12) */
+export type InviteSentDTO = { sentTo: { shortName: string }; sentAt: string };

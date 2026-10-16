@@ -4,6 +4,7 @@ import { ArrowUpDown, Download, Eye, EyeOff, Landmark, List } from "lucide-react
 import Link from "next/link";
 import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
+import { MintCardDecor } from "@/components/ui/MintCardDecor";
 import { formatBaht } from "@/lib/format/money";
 import type { AccountDTO } from "@/types/api";
 
@@ -19,14 +20,7 @@ export function BalanceCard({ account }: { account: AccountDTO }) {
 
   return (
     <section className="relative overflow-hidden rounded-card-xl bg-grad-mint p-5 text-ink-mint shadow-mint">
-      {/* ลายวงแหวนขาวมุมขวาบน (พิกัดจาก Figma เทียบมุมการ์ด) */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute top-[-90px] left-[203px] size-[220px] rounded-full bg-[radial-gradient(closest-side,rgb(255_255_255/0.5),transparent)]" />
-        <div className="absolute top-[-108px] left-[185px] size-[256px] rounded-full border-[1.2px] border-white/42" />
-        <div className="absolute top-[-148px] left-[145px] size-[336px] rounded-full border border-white/22" />
-        <div className="absolute top-[-190px] left-[103px] size-[420px] rounded-full border border-white/12" />
-        <div className="absolute top-[50px] left-[183px] size-[170px] rounded-full bg-white/12" />
-      </div>
+      <MintCardDecor />
 
       <div className="relative flex h-5 items-center gap-1.5">
         <Landmark size={14} strokeWidth={1.17} />

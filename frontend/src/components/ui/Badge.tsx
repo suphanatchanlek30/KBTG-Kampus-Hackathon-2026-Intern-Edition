@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
 
-type BadgeVariant = "neon" | "neon-soft" | "warn-soft" | "dark" | "new" | "count";
+type BadgeVariant = "neon" | "neon-soft" | "warn-soft" | "muted" | "dark" | "new" | "count";
 
 // Figma: r100 · pad 3/10 · gap 4 · 11/600 (ค่าจาก T2, L2, L3, L5, L1)
 const variants: Record<BadgeVariant, string> = {
@@ -11,6 +11,8 @@ const variants: Record<BadgeVariant, string> = {
   "neon-soft": "bg-neon/12 text-neon",
   /** "กำลังดำเนินการ" */
   "warn-soft": "bg-warn/12 text-warn",
+  /** "รอผู้เช่ายอมรับ" (D1) / ดีลจบแบบไม่สำเร็จ */
+  muted: "bg-white/8 text-gray",
   /** "หลัก" บนการ์ดยอดเงิน */
   dark: "bg-ink px-2.5 py-0.5 text-mint-mid",
   /** chip "ใหม่" */
