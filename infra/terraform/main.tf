@@ -17,6 +17,12 @@ data "aws_iam_policy_document" "ec2_assume_role" {
   }
 }
 
+locals {
+  # nip.io resolves this hostname to the Elastic IP without a DNS record you manage.
+  # A custom hostname takes precedence when api_domain is set.
+  resolved_api_domain = var.api_domain != "" ? var.api_domain : "api.${aws_eip.api.public_ip}.nip.io"
+}
+
 resource "aws_vpc" "main" {
   cidr_block           = "10.42.0.0/16"
   enable_dns_support   = true
@@ -149,9 +155,11 @@ resource "aws_instance" "api" {
   }
 
   user_data = templatefile("${path.module}/templates/user-data.sh.tftpl", {
-    api_domain             = var.api_domain
+    api_domain             = local.resolved_api_domain
     frontend_origin        = var.frontend_origin
     repository_url         = var.repository_url
+    repository_ssh_url     = var.repository_ssh_url
+    repository_ssh_key     = var.repository_ssh_private_key
     git_ref                = var.git_ref
     postgres_password      = random_password.postgres.result
     jwt_secret             = random_password.jwt.result

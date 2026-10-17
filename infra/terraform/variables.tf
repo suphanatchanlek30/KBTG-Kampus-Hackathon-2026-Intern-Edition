@@ -16,12 +16,13 @@ variable "project_name" {
 }
 
 variable "api_domain" {
-  description = "Public API hostname, for example api.example.com. Create its A record after apply."
+  description = "Optional public API hostname, for example api.example.com. Leave empty to use an automatic api.<elastic-ip>.nip.io hostname."
   type        = string
+  default     = ""
 
   validation {
-    condition     = can(regex("^[A-Za-z0-9][A-Za-z0-9.-]*[A-Za-z0-9]$", var.api_domain)) && !strcontains(var.api_domain, "://")
-    error_message = "api_domain must be a hostname without a scheme or path."
+    condition     = var.api_domain == "" || (can(regex("^[A-Za-z0-9][A-Za-z0-9.-]*[A-Za-z0-9]$", var.api_domain)) && !strcontains(var.api_domain, "://"))
+    error_message = "api_domain must be empty or a hostname without a scheme or path."
   }
 }
 
@@ -44,6 +45,24 @@ variable "repository_url" {
     condition     = can(regex("^https://github\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\\.git$", var.repository_url))
     error_message = "repository_url must be a public HTTPS GitHub repository URL ending in .git."
   }
+}
+
+variable "repository_ssh_url" {
+  description = "SSH Git URL used when repository_ssh_private_key is set."
+  type        = string
+  default     = "git@github.com:suphanatchanlek30/KBTG-Kampus-Hackathon-2026-Intern-Edition.git"
+
+  validation {
+    condition     = can(regex("^git@github\\.com:[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\\.git$", var.repository_ssh_url))
+    error_message = "repository_ssh_url must be an SSH GitHub repository URL."
+  }
+}
+
+variable "repository_ssh_private_key" {
+  description = "Optional read-only GitHub deploy key for a private repository. Keep it in an untracked terraform.tfvars file."
+  type        = string
+  default     = null
+  sensitive   = true
 }
 
 variable "git_ref" {
