@@ -60,7 +60,7 @@ export function TenantHomeView({ home, onMenu, onBell }: HomeViewProps) {
           onBell={onBell}
         />
       }
-      footer={<BottomNav active="home" notificationCount={home.me.unreadNotifications} />}
+      footer={<BottomNav active="home" notificationCount={home.me.unreadNotifications} scanHref="/scan" />}
       indicatorClassName="bg-nav"
       className="flex flex-col gap-3 px-5 pt-1 pb-2"
     >

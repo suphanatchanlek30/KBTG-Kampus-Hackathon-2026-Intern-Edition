@@ -24,9 +24,9 @@
 
 | | ไฟล์ | ขนาด |
 |---|---|---|
-| 🟡 | `icon-192.png`, `icon-512.png` | PWA manifest |
-| 🟡 | `icon-maskable-512.png` | Android (มีระยะขอบ safe zone 10%) |
-| 🟡 | `apple-touch-icon.png` | 180×180 |
+| ✅ | `icon-192.png`, `icon-512.png` | PWA manifest — สร้างจาก `ksure-mark.png` ที่ `frontend/public/app-icons/` |
+| ✅ | `icon-maskable-512.png` | Android — สร้างจาก `ksure-mark.png` ที่ `frontend/public/app-icons/` |
+| ✅ | `apple-touch-icon.png` | 180×180 — สร้างจาก `ksure-mark.png` ที่ `frontend/public/app-icons/` |
 | 🟡 | `favicon.ico` หรือ `icon.svg` | browser tab |
 
 > ถ้าให้แค่ `ksure-mark-on-white.svg` มา — ผมสร้างไอคอนทุกขนาดให้ได้

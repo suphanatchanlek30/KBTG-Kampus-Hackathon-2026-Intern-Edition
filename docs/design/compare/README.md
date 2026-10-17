@@ -22,3 +22,12 @@
 cd frontend && npm run dev
 # เปิด http://localhost:3000/dev/overlay?screen=L1 แล้วกด O (ซ่อน/แสดง) · [ ] (opacity) · D (difference)
 ```
+
+## ตรวจอัตโนมัติ
+
+```bash
+cd frontend
+npm run test:visual
+```
+
+คำสั่งนี้เปิด mock server เอง แล้วเปรียบภาพ composite ที่ 393×852 กับ baseline ของ Figma overlay ครบ L1–L6 และ T1–T8. ถ้าตั้งใจเปลี่ยนหน้าจอ ให้ตรวจภาพก่อน แล้วอัปเดต baseline ด้วย `npm run test:visual:update`.

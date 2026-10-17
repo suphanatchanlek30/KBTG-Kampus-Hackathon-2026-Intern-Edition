@@ -23,6 +23,9 @@ export const metadata: Metadata = {
   title: brand.name,
   description: `${brand.tagline} — ${brand.disclaimer}`,
   robots: { index: false, follow: false },
+  icons: {
+    apple: "/app-icons/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {

@@ -218,14 +218,14 @@ go version
 
 ## Phase 9 · เตรียมเดโม
 
-- [ ] D12 สแกน QR ด้วยกล้อง (ต้อง HTTPS: `next dev --experimental-https` หรือ `cloudflared tunnel`)
-- [ ] Playwright E2E: `full-deal.spec.ts` (2 context), `reject.spec.ts`, `expire.spec.ts`, `off-deal-transfer.spec.ts`
-- [ ] Visual regression ที่ 393×852 เทียบ `docs/design/screens/`
-- [ ] PWA manifest + app icons (เปิดจากหน้าโฮมมือถือแบบเต็มจอ)
-- [ ] ป้าย "Prototype only · No real funds" ตามที่ตัดสินใจใน Phase 0
-- [ ] Demo tools panel บน desktop (สลับ role, reset scenario, expire now)
-- [ ] ซ้อมเดโม 3 รอบ (รวมกรณีเน็ตช้า → ดูว่า idempotency + loading ทำงาน)
-- [ ] จดเวอร์ชันจริงของทุก tool ลง README
+- [x] D12 สแกน QR ด้วยกล้อง + กรอกรหัสคำขอเอง (`/scan`) — กล้องบนมือถือยังต้องเปิดผ่าน HTTPS: `next dev -- --experimental-https` หรือ `cloudflared tunnel`
+- [x] Playwright E2E: `full-deal.spec.ts` (2 context), `reject.spec.ts`, `expire.spec.ts`, `off-deal-transfer.spec.ts` — ผ่านกับ API จริง (`npm run test:e2e`)
+- [x] Visual regression ที่ 393×852 เทียบ `docs/design/screens/` ผ่าน Figma overlay 14 หน้าจอ (`npm run test:visual`)
+- [x] PWA manifest + app icons (เปิดจากหน้าโฮมมือถือแบบเต็มจอ)
+- [x] ป้าย "Prototype only · No real funds" ตามที่ตัดสินใจใน Phase 0
+- [x] Demo tools panel บน desktop (สลับ role, reset scenario, expire now)
+- [x] ซ้อมเดโม 3 รอบ (รวมกรณีเน็ตช้า → ดูว่า idempotency + loading ทำงาน) — ผู้ใช้ยืนยันว่าผ่านครบเมื่อ 17 ต.ค. 2569
+- [x] จดเวอร์ชันจริงของทุก tool ลง README
 
 **DoD:** เดโม 3 นาทีจบโดยไม่ติดขัด 3 รอบติด
 

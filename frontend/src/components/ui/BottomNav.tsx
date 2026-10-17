@@ -19,7 +19,7 @@ const SCAN_BUTTON =
 type BottomNavProps = {
   active?: NavTab;
   notificationCount?: number;
-  /** ไม่ส่ง = ปุ่มสแกนกดแล้วไม่ไปไหน (ยังไม่มีหน้าสแกน D12) */
+  /** ส่งเมื่อบริบทนั้นอนุญาตให้สแกนคำขอได้ */
   scanHref?: string;
 };
 
