@@ -224,7 +224,7 @@ go version
 - [x] PWA manifest + app icons (เปิดจากหน้าโฮมมือถือแบบเต็มจอ)
 - [x] ป้าย "Prototype only · No real funds" ตามที่ตัดสินใจใน Phase 0
 - [x] Demo tools panel บน desktop (สลับ role, reset scenario, expire now)
-- [ ] ซ้อมเดโม 3 รอบ (รวมกรณีเน็ตช้า → ดูว่า idempotency + loading ทำงาน)
+- [x] ซ้อมเดโม 3 รอบ (รวมกรณีเน็ตช้า → ดูว่า idempotency + loading ทำงาน) — ผู้ใช้ยืนยันว่าผ่านครบเมื่อ 17 ต.ค. 2569
 - [x] จดเวอร์ชันจริงของทุก tool ลง README
 
 **DoD:** เดโม 3 นาทีจบโดยไม่ติดขัด 3 รอบติด
