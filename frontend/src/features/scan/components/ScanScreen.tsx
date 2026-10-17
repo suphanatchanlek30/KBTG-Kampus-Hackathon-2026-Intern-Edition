@@ -94,7 +94,7 @@ export function ScanScreen() {
               value={manualValue}
               placeholder="เช่น KS-AB12CD"
               onChange={(event) => setManualValue(event.target.value)}
-              className="w-full bg-transparent text-body text-ink outline-none placeholder:text-gray"
+              className="w-full bg-transparent text-body text-white outline-none placeholder:text-gray"
             />
           </FormField>
           <Button className="w-full" disabled={!manualValue.trim()} onClick={() => openInvitation(manualValue)}>
@@ -155,7 +155,7 @@ export function ScanScreen() {
         <div className="mt-5 flex items-start gap-3 rounded-card border border-line bg-card px-4 py-3">
           <ScanLine className="mt-0.5 h-5 w-5 shrink-0 text-neon" aria-hidden="true" />
           <p className="text-sm leading-6 text-muted">
-            รองรับ QR ของ K Sure และรหัสคำขอ เช่น <span className="font-medium text-ink">KS-AB12CD</span>
+            รองรับ QR ของ K Sure และรหัสคำขอ เช่น <span className="font-semibold tracking-wide text-neon">KS-AB12CD</span>
           </p>
         </div>
       </main>
