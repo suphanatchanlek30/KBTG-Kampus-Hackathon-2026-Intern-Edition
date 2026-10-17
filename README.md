@@ -163,18 +163,42 @@ stateDiagram-v2
 <details open>
 <summary><b>เส้นทางผู้ให้เช่า</b></summary>
 
-![Landlord flow](docs/design/flow-landlord.png)
+<table>
+  <tr>
+    <td align="center"><img src="screenshots/L1-landlord-home.png" width="200" alt="L1" /><br /><b>L1</b> หน้าหลัก</td>
+    <td align="center"><img src="screenshots/L2-landlord-create-deal.png" width="200" alt="L2" /><br /><b>L2</b> สร้างดีล</td>
+    <td align="center"><img src="screenshots/L3-landlord-review.png" width="200" alt="L3" /><br /><b>L3</b> ตรวจสอบ</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="screenshots/L4-landlord-share-qr.png" width="200" alt="L4" /><br /><b>L4</b> ส่งคำขอ / แชร์ QR</td>
+    <td align="center"><img src="screenshots/L5-landlord-status.png" width="200" alt="L5" /><br /><b>L5</b> ติดตามสถานะ</td>
+    <td align="center"><img src="screenshots/L6-landlord-complete.png" width="200" alt="L6" /><br /><b>L6</b> ดีลสำเร็จ</td>
+  </tr>
+</table>
 
 </details>
 
 <details open>
 <summary><b>เส้นทางผู้เช่า</b></summary>
 
-![Tenant flow](docs/design/flow-tenant.png)
+<table>
+  <tr>
+    <td align="center"><img src="screenshots/T1-tenant-home.png" width="200" alt="T1" /><br /><b>T1</b> หน้าหลัก</td>
+    <td align="center"><img src="screenshots/T2-tenant-review-deal.png" width="200" alt="T2" /><br /><b>T2</b> ตรวจสอบรายละเอียด</td>
+    <td align="center"><img src="screenshots/T3-tenant-verify-identity.png" width="200" alt="T3" /><br /><b>T3</b> ยืนยันตัวตน (จำลอง)</td>
+    <td align="center"><img src="screenshots/T4-tenant-funds-locked.png" width="200" alt="T4" /><br /><b>T4</b> กันเงิน</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="screenshots/T5-tenant-confirm-viewing.png" width="200" alt="T5" /><br /><b>T5</b> ยืนยันดูห้อง</td>
+    <td align="center"><img src="screenshots/T6-tenant-confirm-move-in.png" width="200" alt="T6" /><br /><b>T6</b> ยืนยันเข้าอยู่</td>
+    <td align="center"><img src="screenshots/T7-tenant-complete.png" width="200" alt="T7" /><br /><b>T7</b> ดีลสำเร็จ</td>
+    <td align="center"><img src="screenshots/T8-tenant-off-deal-warning.png" width="200" alt="T8" /><br /><b>T8</b> เตือนการโอนนอกดีล</td>
+  </tr>
+</table>
 
 </details>
 
-ภาพอ้างอิงจาก Figma ทั้งหมดอยู่ที่ [docs/design](docs/design/README.md)
+ภาพด้านบนแคปจากแอปจริงด้วย `frontend/scripts/capture-screens.mjs` (ข้อมูลจำลอง) · ภาพอ้างอิงจาก Figma อยู่ที่ [docs/design](docs/design/README.md)
 
 ---
 
