@@ -1,0 +1,51 @@
+# Public prototype stack for one EC2 instance. Caddy is the only public service.
+name: ksure
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ksure
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ksure
+      TZ: Asia/Bangkok
+    volumes:
+      - /opt/ksure/data/postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ksure -d ksure"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  api:
+    build:
+      context: ../backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://ksure:${POSTGRES_PASSWORD}@db:5432/ksure?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      APP_BASE_URL: ${APP_BASE_URL:?Set APP_BASE_URL in .env}
+      APP_TZ: Asia/Bangkok
+      COOKIE_SECURE: "true"
+      DEMO_TOOLS_ENABLED: "true"
+      MIGRATE_ON_START: "true"
+      LOG_LEVEL: info
+    depends_on:
+      db:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      API_DOMAIN: ${API_DOMAIN:?Set API_DOMAIN in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - /opt/ksure/data/caddy/data:/data
+      - /opt/ksure/data/caddy/config:/config
+    depends_on:
+      - api

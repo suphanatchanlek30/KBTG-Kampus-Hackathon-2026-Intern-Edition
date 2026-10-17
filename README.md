@@ -118,13 +118,14 @@ assets/     Source design assets
 | [API](docs/05-api.md) | HTTP contract และการจัดการ error |
 | [สถานะงาน](docs/06-roadmap.md) | สิ่งที่เสร็จและงานถัดไป |
 | [Assets](docs/07-assets.md) | ที่มาและวิธีใช้งาน asset |
+| [Deploy บน EC2](infra/README.md) | Terraform, domain, Vercel และการเปิดปิดเครื่อง |
 
 ## ข้อจำกัดของต้นแบบ
 
 - ไม่มีเงินจริง การเชื่อมธนาคารจริง หรือการยืนยันตัวตนจริง
 - Face ID และ PIN เป็น UI simulation เท่านั้น
 - ชื่อและภาพลักษณ์ต้องได้รับอนุมัติก่อนใช้ในงานสาธารณะ
-- การ deploy บน cloud อยู่ในขอบเขตงานระยะถัดไป
+- ชุด deploy บน EC2 เหมาะกับ demo ระยะสั้น ต้องสำรองฐานข้อมูลเอง
 
 ## สิทธิ์การใช้งาน
 

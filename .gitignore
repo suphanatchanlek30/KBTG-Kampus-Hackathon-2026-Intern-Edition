@@ -50,6 +50,12 @@ coverage.html
 pgdata/
 docker-data/
 
+# Terraform state and local deployment settings
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.*
+infra/terraform/terraform.tfvars
+
 # Scratch
 tmp/
 .cache/
