@@ -46,12 +46,12 @@
 
 | ส่วน | เทคโนโลยี |
 |---|---|
-| Frontend | Next.js (App Router, เวอร์ชันล่าสุด) · TypeScript · Tailwind CSS v4 · Axios · TanStack Query · Zustand · motion · lucide-react |
+| Frontend | Next.js (App Router, เวอร์ชันล่าสุด) · TypeScript · Tailwind CSS v4 · Axios · TanStack Query · Zustand · motion · lucide-react · `@yudiel/react-qr-scanner` |
 | Backend | Go · Fiber · pgx · sqlc · goose |
 | Database | PostgreSQL (Docker) |
 | Test | Go test · Vitest · Playwright |
 
-**เวอร์ชันที่ติดตั้งจริง (Frontend · 16 ต.ค. 2569):** Node 24.21 · Next.js 16.4.2 (Turbopack, `cacheComponents`) · React 19.3 · TypeScript 5.9 · Tailwind CSS 4.3 · motion 14.3 · TanStack Query 5.104 · Zustand 5.0 · Axios 1.20 · zod 4.6 · Vitest 5.0
+**เวอร์ชันที่ติดตั้งจริง (Frontend · 17 ต.ค. 2569):** Node 24.21 · Next.js 16.4.2 (Turbopack, `cacheComponents`) · React 19.3 · TypeScript 5.9 · Tailwind CSS 4.3 · motion 14.3 · TanStack Query 5.104 · Zustand 5.0 · Axios 1.20 · zod 4.6 · Vitest 5.0 · Playwright 1.64 · `@yudiel/react-qr-scanner` 2.6
 **เวอร์ชันที่ติดตั้งจริง (Backend · 16 ต.ค. 2569):** Go 1.27 · Fiber v3.6.1 · pgx v5.11 · goose v3.29 · sqlc v1.31.1 · air v1.67.4 · PostgreSQL 18 (`postgres:18-alpine`) · Adminer 6.1.2 · Docker Compose v5.5
 
 ---
@@ -111,6 +111,8 @@ curl -b /tmp/ksure.jar localhost:8080/api/v1/home
 cd frontend && npm install && npm run dev   # http://localhost:3000
 #    หน้า dev: /dev/components (แคตตาล็อก) · /dev/overlay?screen=L1 (วาง mockup ทับ)
 #    ตรวจ: npm run lint · npm run typecheck · npm test · npm run build
+#    visual: npm run test:visual (เปิด mock server และเทียบ 14 หน้าจอกับ Figma overlay ที่ 393×852)
+#    E2E:    npm run test:e2e (ต้องเปิด make up และ frontend โหมด API จริงไว้แล้ว)
 ```
 
 ### เดโม 2 เครื่องด้วย API จริง
@@ -121,6 +123,7 @@ cd frontend && npm install && npm run dev   # http://localhost:3000
 
 ### เปิดบนมือถือ
 - มือถือและคอมอยู่ Wi-Fi เดียวกัน → เปิด `http://<IP คอม>:3000`
+- ผู้เช่าเปิด `/scan` จากปุ่มกลางหน้า Home ได้ และกรอกรหัสคำขอเองได้เมื่อกล้องใช้ไม่ได้
 - ถ้าจะใช้สแกน QR ด้วยกล้อง ต้องเป็น HTTPS → `npm run dev -- --experimental-https` หรือใช้ tunnel (`cloudflared`)
 
 ### บัญชีเดโม

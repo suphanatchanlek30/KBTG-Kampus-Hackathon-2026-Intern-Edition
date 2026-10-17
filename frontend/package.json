@@ -11,12 +11,16 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "PLAYWRIGHT_LIVE_API=true playwright test --project=e2e",
+    "test:visual": "PLAYWRIGHT_START_SERVER=true NEXT_PUBLIC_USE_MOCK=true playwright test --project=visual",
+    "test:visual:update": "PLAYWRIGHT_START_SERVER=true NEXT_PUBLIC_USE_MOCK=true playwright test --project=visual --update-snapshots",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
     "@tanstack/react-query": "^5.104.3",
+    "@yudiel/react-qr-scanner": "^2.6.0",
     "axios": "^1.20.0",
     "clsx": "^2.1.1",
     "html-to-image": "^1.11.13",
@@ -32,6 +36,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/turbopack": "^4",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
