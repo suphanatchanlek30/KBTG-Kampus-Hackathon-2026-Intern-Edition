@@ -1,6 +1,5 @@
 import type { CSSProperties } from "react";
 
-/** ประกาย ✦ 4 แฉก (หน้า success และลายพื้นหลัง) */
 export function Sparkle({
   size,
   color = "currentColor",

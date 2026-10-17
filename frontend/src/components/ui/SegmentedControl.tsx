@@ -13,7 +13,6 @@ type SegmentedControlProps<T extends string> = {
   "aria-label": string;
 };
 
-/** แท็บ 2 ตัวเลือก L4 (Figma: 353×48 r100 card · pad 4 · แท็บที่เลือกพื้นขาว 13/600) — พื้นเลื่อนด้วย layoutId */
 export function SegmentedControl<T extends string>({
   segments,
   value,

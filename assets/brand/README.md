@@ -1,9 +1,5 @@
-# assets/brand
+# Brand Assets
 
-วางโลโก้ K Sure ที่นี่ — ดูรายการที่ [docs/07-assets.md §2](../../docs/07-assets.md#2-แบรนด์--assetsbrand)
+`ksure-logo-300w.png` is the repository's approved K Sure logo for documentation and prototype use.
 
-- [x] `ksure-logo-300w.png` — มีแล้ว (300×92 เล็กไป ใช้ชั่วคราว)
-- [ ] `ksure-logo.svg` 🔴
-- [ ] `ksure-mark.svg` 🔴
-- [ ] `ksure-mark-on-white.svg` 🟡
-- [ ] `ksure-logo-mono.svg` ⚪
+Keep the original aspect ratio, use sufficient contrast, and do not recolor or distort the mark.

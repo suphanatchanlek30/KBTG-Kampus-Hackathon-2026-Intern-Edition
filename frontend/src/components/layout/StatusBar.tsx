@@ -1,4 +1,3 @@
-// Status bar ปลอม 9:41 — แสดงเฉพาะในกรอบโทรศัพท์ (Figma: 393×50 · pad 8/28/0/36)
 export function StatusBar() {
   return (
     <div aria-hidden className="hidden h-[50px] shrink-0 items-center justify-between pt-2 pr-7 pl-9 framed:flex">

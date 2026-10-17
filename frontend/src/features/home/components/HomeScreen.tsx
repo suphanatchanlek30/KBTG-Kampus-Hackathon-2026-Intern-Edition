@@ -1,17 +1,17 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { env } from "@/config/env";
 import { useHome } from "@/features/deals/hooks";
 import { DemoMenuSheet } from "@/features/demo/DemoTools";
 import { LandlordHomeView, TenantHomeView } from "./HomeViews";
 
-/** /home — L1 หรือ T1 ตาม role ของผู้ใช้ · ปุ่มเมนูเปิด sheet สลับ role (เฉพาะโหมด mock) */
 export function HomeScreen() {
   const { data: home } = useHome();
   const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
 
   if (!home) {
     return (
@@ -23,14 +23,15 @@ export function HomeScreen() {
     );
   }
 
-  const onMenu = env.useMock ? () => setMenuOpen(true) : undefined;
+  const onMenu = () => setMenuOpen(true);
+  const onBell = () => router.push("/notifications");
 
   return (
     <>
       {home.me.user.role === "LANDLORD" ? (
-        <LandlordHomeView home={home} onMenu={onMenu} />
+        <LandlordHomeView home={home} onMenu={onMenu} onBell={onBell} />
       ) : (
-        <TenantHomeView home={home} onMenu={onMenu} />
+        <TenantHomeView home={home} onMenu={onMenu} onBell={onBell} />
       )}
       <DemoMenuSheet open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>

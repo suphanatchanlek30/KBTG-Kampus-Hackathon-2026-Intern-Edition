@@ -10,7 +10,6 @@ type AppHeaderProps = {
   title?: ReactNode;
   left?: "back" | "close" | "none";
   right?: "menu" | "share" | "none";
-  /** ค่าเริ่มต้นของปุ่มซ้าย = router.back() */
   onLeft?: () => void;
   onRight?: () => void;
   className?: string;
@@ -26,7 +25,6 @@ const RIGHT = {
   share: { icon: <Share2 size={17} strokeWidth={1.42} />, label: "แชร์" },
 } as const;
 
-/** Header หน้าย่อย L2–L6, T2–T8 (Figma: สูง 52 · pad 0/20 · ปุ่ม 38×38 · ชื่อ 16/600 กลาง) */
 export function AppHeader({ title, left = "back", right = "none", onLeft, onRight, className }: AppHeaderProps) {
   const router = useRouter();
   const spacer = <span aria-hidden className="size-[38px] shrink-0" />;

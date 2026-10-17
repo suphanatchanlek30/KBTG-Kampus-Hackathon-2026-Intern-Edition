@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Download, Send, ShieldCheck, Smartphone, ScanLine } from "lucide-react";
+import { BadgeCheck, ChevronRight, Download, Search, Send, ShieldCheck, Smartphone, ScanLine } from "lucide-react";
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { ScreenBackground } from "@/components/layout/ScreenBackground";
@@ -21,13 +21,41 @@ type ShareInviteViewProps = {
   inviteUrl: string;
   sending?: boolean;
   onClose?: () => void;
-  onSend?: () => void;
+  onSend?: (phone?: string) => void;
   onSaveQr?: () => void;
+  onLookup?: (phone: string) => Promise<string>;
 };
 
-/** L4 — ส่งคำขอให้ผู้เช่า (QR / รหัสดีล) · แท็บเบอร์มือถือ = D10 (ยังไม่ได้ออกแบบ) */
-export function ShareInviteView({ deal, inviteUrl, sending, onClose, onSend, onSaveQr }: ShareInviteViewProps) {
+export function ShareInviteView({
+  deal,
+  inviteUrl,
+  sending,
+  onClose,
+  onSend,
+  onSaveQr,
+  onLookup,
+}: ShareInviteViewProps) {
   const [tab, setTab] = useState<"qr" | "phone">("qr");
+  const [phone, setPhone] = useState("");
+  const [found, setFound] = useState<{ phone: string; shortName: string } | null>(null);
+  const [lookupError, setLookupError] = useState<string | null>(null);
+  const [looking, setLooking] = useState(false);
+  const byPhone = tab === "phone";
+  const phoneReady = found !== null && found.phone === phone;
+
+  const lookup = async () => {
+    if (!onLookup) return;
+    setLooking(true);
+    setLookupError(null);
+    try {
+      setFound({ phone, shortName: await onLookup(phone) });
+    } catch (err) {
+      setFound(null);
+      setLookupError(err instanceof Error ? err.message : "ไม่พบผู้เช่าที่ใช้เบอร์นี้");
+    } finally {
+      setLooking(false);
+    }
+  };
 
   return (
     <AppShell
@@ -38,15 +66,18 @@ export function ShareInviteView({ deal, inviteUrl, sending, onClose, onSend, onS
         <StickyFooter>
           <Button
             loading={sending}
-            onClick={onSend}
+            disabled={byPhone && !phoneReady}
+            onClick={() => onSend?.(byPhone ? phone : undefined)}
             iconLeft={<Send size={18} strokeWidth={1.65} />}
             iconRight={<ChevronRight size={17} strokeWidth={1.77} />}
           >
-            ส่งเข้าแอปผู้เช่า
+            {byPhone && found ? `ส่งให้ ${found.shortName}` : "ส่งเข้าแอปผู้เช่า"}
           </Button>
-          <Button variant="secondary" onClick={onSaveQr} iconLeft={<Download size={18} strokeWidth={1.65} />}>
-            บันทึก QR
-          </Button>
+          {!byPhone && (
+            <Button variant="secondary" onClick={onSaveQr} iconLeft={<Download size={18} strokeWidth={1.65} />}>
+              บันทึก QR
+            </Button>
+          )}
         </StickyFooter>
       }
       className="flex flex-col gap-3 px-5 pt-1 pb-2"
@@ -62,7 +93,7 @@ export function ShareInviteView({ deal, inviteUrl, sending, onClose, onSend, onS
       />
 
       {tab === "qr" ? (
-        <section className="flex flex-col gap-2.5 rounded-card bg-card p-4">
+        <section data-export="qr" className="flex flex-col gap-2.5 rounded-card bg-card p-4">
           <div className="flex items-center justify-between gap-3">
             <span className="flex items-center gap-1.5 text-body font-semibold text-neon">
               <DrawnCheck size={15} strokeWidth={2} delay={0.3} />
@@ -78,10 +109,47 @@ export function ShareInviteView({ deal, inviteUrl, sending, onClose, onSend, onS
           )}
         </section>
       ) : (
-        <section className="flex flex-col gap-2 rounded-card bg-card p-4">
-          {/* D10 — รออนุมัติดีไซน์ (docs/01-user-flow.md §7) */}
+        <section className="flex flex-col gap-3 rounded-card bg-card p-4">
           <p className="text-card-title">ส่งด้วยเบอร์มือถือผู้เช่า</p>
-          <p className="text-body text-gray">หน้าจอนี้ (D10) ยังรอออกแบบ — ระหว่างนี้กด “ส่งเข้าแอปผู้เช่า” ได้เลย</p>
+          <form
+            className="flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void lookup();
+            }}
+          >
+            <input
+              type="tel"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="08x-xxx-xxxx"
+              aria-label="เบอร์มือถือผู้เช่า"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value.replace(/[^\d-]/g, "").slice(0, 12))}
+              className="h-12 min-w-0 flex-1 rounded-tile border border-line bg-card2 px-4 text-body text-white tabular-nums outline-none placeholder:text-muted focus:border-neon/55"
+            />
+            <Button
+              type="submit"
+              variant="secondary"
+              className="w-auto px-4"
+              loading={looking}
+              disabled={phone.replace(/\D/g, "").length !== 10}
+              iconLeft={<Search size={16} strokeWidth={1.6} />}
+            >
+              ค้นหา
+            </Button>
+          </form>
+          {found && found.phone === phone && (
+            <div className="flex items-center justify-between rounded-tile bg-card2 px-4 py-3">
+              <span className="text-body-strong">{found.shortName}</span>
+              <span className="flex items-center gap-1 text-caption text-neon">
+                <BadgeCheck size={14} strokeWidth={1.6} />
+                ชื่อตรงบัญชี
+              </span>
+            </div>
+          )}
+          {lookupError && <p className="text-caption text-warn">{lookupError}</p>}
+          <p className="text-caption text-muted">เดโม: ผู้เช่าใช้เบอร์ 089-000-1432</p>
         </section>
       )}
 

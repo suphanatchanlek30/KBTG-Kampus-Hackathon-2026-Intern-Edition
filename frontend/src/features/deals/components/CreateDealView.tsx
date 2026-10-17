@@ -28,7 +28,6 @@ type CreateDealViewProps = {
 
 const parseBaht = (text: string) => Number(text.replace(/[^\d]/g, "") || 0);
 
-/** L2 — สร้างดีล ขั้นที่ 1 รายละเอียดดีล */
 export function CreateDealView({ draft, property, onChange, onNext }: CreateDealViewProps) {
   const ids = { amount: useId(), viewing: useId(), moveIn: useId(), booking: useId() };
   const [editingFee, setEditingFee] = useState(false);
@@ -101,7 +100,6 @@ export function CreateDealView({ draft, property, onChange, onNext }: CreateDeal
         <div className="grid grid-cols-2 gap-2.5">
           <FormField label="นัดดูห้อง" htmlFor={ids.viewing} icon={<Calendar size={16} strokeWidth={1.5} />}>
             <span className="pointer-events-none truncate text-input">{formatDayMonthTime(draft.viewingAt)}</span>
-            {/* native picker โปร่งใสทับข้อความ — แตะแล้วเปิดตัวเลือกวันเวลาของเครื่อง */}
             <input
               id={ids.viewing}
               type="datetime-local"

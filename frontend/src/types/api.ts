@@ -1,4 +1,3 @@
-// DTO ตรงกับ docs/05-api.md §3 — เงินเป็นสตางค์ (integer) · เวลาเป็น ISO-8601 มี offset
 
 export type Role = "LANDLORD" | "TENANT";
 
@@ -64,7 +63,6 @@ export type DealDTO = {
   };
   tranches: { key: TrancheKey; amountSatang: number; status: TrancheStatus; releasedAt: string | null }[];
   viewingAt: string;
-  /** วันล้วน `2026-11-01` */
   moveInDate: string;
   expiresAt: string;
   invite: { expiresAt: string; qrUrl?: string; sentAt?: string | null } | null;
@@ -124,5 +122,40 @@ export type TransferPrecheckDTO = {
 
 export type PayeeDTO = { accountId: string; displayName: string; bankName: string; accountNoMasked: string };
 
-/** POST /deals/{id}/invite/send (#12) */
+/** Request body for POST /deals/{id}/invite/send. */
 export type InviteSentDTO = { sentTo: { shortName: string }; sentAt: string };
+
+/** Request body for POST /transfers. */
+export type TransferResultDTO = {
+  id: string;
+  status: "COMPLETED_SIMULATED" | "CANCELLED_BY_USER";
+  warningShown: boolean;
+};
+
+/** Request body for POST /auth/demo-login. */
+export type LoginDTO = { user: MeDTO["user"] };
+
+export type DemoScenario = "fresh" | "waiting_accept" | "funds_locked" | "booking_released" | "released";
+
+/** Response body for GET /notifications. */
+export type NotificationType =
+  | "DEAL_INVITE"
+  | "FUNDS_LOCKED"
+  | "BOOKING_FEE_RELEASED"
+  | "MAIN_DEPOSIT_RELEASED"
+  | "DEAL_REJECTED"
+  | "CANCEL_REQUESTED"
+  | "DEAL_REFUNDED"
+  | "DEAL_EXPIRED";
+
+export type NotificationDTO = {
+  id: string;
+  type: NotificationType;
+  dealId: string | null;
+  title: string;
+  body: string;
+  readAt: string | null;
+  createdAt: string;
+};
+
+export type NotificationsDTO = { items: NotificationDTO[]; unreadCount: number };

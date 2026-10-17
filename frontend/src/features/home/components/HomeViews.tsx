@@ -10,13 +10,11 @@ import { RequestCard } from "./RequestCard";
 import { ServiceGrid } from "./ServiceGrid";
 import { TipBanner } from "./TipBanner";
 
-// Phase 2 ใช้คำทักทายตาม mockup — ภายหลังค่อยคำนวณตามเวลา (ต้องทำฝั่ง client กัน hydration mismatch)
 const GREETING = "สวัสดีตอนเช้า";
 
-type HomeViewProps = { home: HomeDTO; onMenu?: () => void };
+type HomeViewProps = { home: HomeDTO; onMenu?: () => void; onBell?: () => void };
 
-/** L1 — หน้าหลักผู้ให้เช่า (Figma: เนื้อหา pad 4/20/8/20 · gap 12) */
-export function LandlordHomeView({ home, onMenu }: HomeViewProps) {
+export function LandlordHomeView({ home, onMenu, onBell }: HomeViewProps) {
   return (
     <AppShell
       enter="fade"
@@ -27,6 +25,7 @@ export function LandlordHomeView({ home, onMenu }: HomeViewProps) {
           name={`คุณ${home.me.user.displayName}`}
           notificationCount={home.me.unreadNotifications}
           onMenu={onMenu}
+          onBell={onBell}
         />
       }
       footer={<BottomNav active="home" />}
@@ -43,8 +42,7 @@ export function LandlordHomeView({ home, onMenu }: HomeViewProps) {
   );
 }
 
-/** T1 — หน้าหลักผู้เช่า: การ์ดคำขอใหม่อยู่บนสุด */
-export function TenantHomeView({ home, onMenu }: HomeViewProps) {
+export function TenantHomeView({ home, onMenu, onBell }: HomeViewProps) {
   const invite = home.pendingInvites[0];
   return (
     <AppShell
@@ -56,9 +54,10 @@ export function TenantHomeView({ home, onMenu }: HomeViewProps) {
           name={`คุณ${home.me.user.displayName}`}
           notificationCount={home.me.unreadNotifications}
           onMenu={onMenu}
+          onBell={onBell}
         />
       }
-      footer={<BottomNav active="home" notificationCount={home.me.unreadNotifications} />}
+      footer={<BottomNav active="home" notificationCount={home.me.unreadNotifications} scanHref="/scan" />}
       indicatorClassName="bg-nav"
       className="flex flex-col gap-3 px-5 pt-1 pb-2"
     >

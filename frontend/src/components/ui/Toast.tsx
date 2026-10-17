@@ -22,13 +22,11 @@ function show(kind: ToastKind, message: string) {
   setTimeout(() => useToastStore.getState().dismiss(id), DURATION_MS);
 }
 
-/** เรียกได้จากทุกที่ เช่น `toast.success("คัดลอกแล้ว")` */
 export const toast = {
   success: (message: string) => show("success", message),
   error: (message: string) => show("error", message),
 };
 
-/** วางครั้งเดียวใน PhoneFrame — toast เลื่อนลงจากบน อยู่ 2.5 วินาที แล้วจางออก (§5.8) */
 export function Toaster() {
   const items = useToastStore((s) => s.items);
   return (

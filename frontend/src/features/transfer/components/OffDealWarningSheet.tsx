@@ -15,10 +15,8 @@ type OffDealWarningSheetProps = {
   onProceed?: () => void;
 };
 
-/** T8 — เตือนเมื่อโอนเงินหาคู่ดีลที่ยังไม่จบ (Figma: sheet ขาว r32 · pad 10/20/36/20 · gap 10) */
 export function OffDealWarningSheet({ open, message, onCancelTransfer, onProceed }: OffDealWarningSheetProps) {
   const full = useMotionMode() === "full";
-  // ไอคอนเตือนเขย่าหลัง sheet ขึ้น 0.25s + สั่น (§5.8)
   useHaptic(open ? [30, 60, 30] : null, 250);
   return (
     <BottomSheet
@@ -40,7 +38,6 @@ export function OffDealWarningSheet({ open, message, onCancelTransfer, onProceed
           </span>
         </div>
         <h2 className="text-sheet-title">หยุดก่อน! นี่อาจเป็นการขอเงินนอกดีล</h2>
-        {/* Figma วางบรรทัดนี้ในกล่องสูง 13px (ข้อความล้นกล่อง) — ทำตามเพื่อให้ระยะตรง */}
         <p className="h-[13px] -translate-y-[3px] text-meta leading-[19px] text-ink-2">{message}</p>
         <div className="w-full rounded-tile bg-sheet-list p-3.5 text-left">
           <RulesList

@@ -5,13 +5,10 @@ type ReleaseRowProps = {
   label: ReactNode;
   title: ReactNode;
   amount: ReactNode;
-  /** ก้อนที่จะปล่อยตอนนี้ = แถบ/ยอดเขียว (T5) */
   highlight?: boolean;
-  /** ยอดใหญ่ 22px (T6) */
   large?: boolean;
 };
 
-/** แถวก้อนเงิน T5/T6 (Figma: แถบซ้าย 4×34 r2 · gap 10 · label 12 muted · ชื่อ 14/600) */
 export function ReleaseRow({ label, title, amount, highlight = false, large = false }: ReleaseRowProps) {
   return (
     <div className="flex items-center gap-2.5">

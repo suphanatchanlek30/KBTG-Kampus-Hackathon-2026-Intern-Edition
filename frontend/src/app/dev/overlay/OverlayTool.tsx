@@ -7,10 +7,6 @@ import { StaticMotion } from "@/components/motion/MotionMode";
 import { cn } from "@/lib/cn";
 import { SCREEN_IDS, SCREENS, isScreenId } from "./screens";
 
-/**
- * วาง mockup (docs/design/screens → public/dev/screens, รูป 2x) ทับหน้าจริงในกรอบ 393×852
- * ?screen=L1&opacity=0.5&controls=0 · คีย์ลัด: O = ซ่อน/แสดง mockup · [ ] = ลด/เพิ่ม opacity · D = โหมด difference
- */
 export function OverlayTool() {
   const router = useRouter();
   const pathname = usePathname();
@@ -47,7 +43,6 @@ export function OverlayTool() {
     <>
       <PhoneFrame forceFrame>
         {Screen ? (
-          // เทียบกับ mockup ที่เฟรมสุดท้ายของอนิเมชัน — ?motion=1 เพื่อดูอนิเมชันจริง
           params.get("motion") === "1" ? (
             <Screen />
           ) : (
@@ -61,7 +56,7 @@ export function OverlayTool() {
           </div>
         )}
         {visible && (
-          // eslint-disable-next-line @next/next/no-img-element -- รูปอ้างอิงต้องแสดงขนาดจริง ไม่ผ่าน optimizer
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={`/dev/screens/${screen}.png`}
             alt=""

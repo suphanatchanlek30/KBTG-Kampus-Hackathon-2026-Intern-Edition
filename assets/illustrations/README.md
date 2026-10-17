@@ -1,6 +1,5 @@
-# assets/illustrations
+# Illustrations
 
-ภาพประกอบ SVG — ดู [docs/07-assets.md §4](../../docs/07-assets.md#4-illustration--assetsillustrations)
+Store editable product illustrations here with their source and license information.
 
-- [ ] `shield-house-baht.svg` 🟡 (แบนเนอร์ L1)
-- [ ] `sparkle.svg` ⚪
+Export optimized runtime versions to `frontend/public/` only when the product needs them.

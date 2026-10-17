@@ -1,10 +1,21 @@
-// export ฟังก์ชันเดียวกันทั้งโหมด mock และ API จริง — สลับด้วย NEXT_PUBLIC_USE_MOCK (docs/03-architecture.md §3.3)
 import { env } from "@/config/env";
 import { api } from "@/lib/api/client";
+import { idemHeaders } from "@/lib/api/idempotency";
+import { DEMO_PROPERTY, DEMO_TRANSFER } from "@/mocks/fixtures";
 import { mockApi } from "@/mocks/handlers";
-import type { CreateDealInput, DealDTO, HomeDTO, InviteSentDTO, MeDTO, TransferPrecheckDTO } from "@/types/api";
+import type {
+  CreateDealInput,
+  DealDTO,
+  HomeDTO,
+  InviteSentDTO,
+  MeDTO,
+  NotificationsDTO,
+  PayeeDTO,
+  PropertyDTO,
+  TransferPrecheckDTO,
+  TransferResultDTO,
+} from "@/types/api";
 
-const idem = () => ({ headers: { "Idempotency-Key": crypto.randomUUID() } });
 const data = <T>(p: Promise<{ data: T }>) => p.then((r) => r.data);
 
 export const getMe = (): Promise<MeDTO> => (env.useMock ? mockApi.getMe() : data(api.get<MeDTO>("/me")));
@@ -17,53 +28,108 @@ export const getDeal = (id: string): Promise<DealDTO> =>
 export const getInvite = (code: string): Promise<DealDTO> =>
   env.useMock ? mockApi.getInvite(code) : data(api.get<DealDTO>(`/invites/${encodeURIComponent(code)}`));
 
-export const createDeal = (input: CreateDealInput): Promise<DealDTO> =>
-  env.useMock ? mockApi.createDeal(input) : data(api.post<DealDTO>("/deals", input, idem()));
+export const getProperties = (): Promise<PropertyDTO[]> =>
+  env.useMock
+    ? Promise.resolve([DEMO_PROPERTY])
+    : api.get<{ items: PropertyDTO[] }>("/properties").then((r) => r.data.items);
 
-export const sendInvite = (id: string): Promise<InviteSentDTO> =>
+export const createDeal = (input: CreateDealInput, key: string): Promise<DealDTO> =>
+  env.useMock ? mockApi.createDeal(input) : data(api.post<DealDTO>("/deals", input, idemHeaders(key)));
+
+export type SendInviteInput = { id: string; phone?: string };
+
+export const sendInvite = ({ id, phone }: SendInviteInput, key: string): Promise<InviteSentDTO> =>
   env.useMock
     ? mockApi.sendInvite(id)
-    : data(api.post<InviteSentDTO>(`/deals/${id}/invite/send`, { channel: "IN_APP" }, idem()));
+    : data(
+        api.post<InviteSentDTO>(
+          `/deals/${id}/invite/send`,
+          phone ? { channel: "PHONE", phone } : { channel: "IN_APP" },
+          idemHeaders(key),
+        ),
+      );
 
-export const rejectDeal = (deal: DealDTO): Promise<DealDTO> =>
+export const lookupTenant = (phone: string): Promise<{ shortName: string }> =>
+  env.useMock
+    ? mockApi.lookupTenant(phone)
+    : data(api.get<{ shortName: string }>("/users/lookup", { params: { phone } }));
+
+export const rejectDeal = (deal: DealDTO, key: string): Promise<DealDTO> =>
   env.useMock
     ? mockApi.rejectDeal(deal.id)
-    : data(api.post<DealDTO>(`/deals/${deal.id}/reject`, { version: deal.version }, idem()));
+    : data(api.post<DealDTO>(`/deals/${deal.id}/reject`, { version: deal.version }, idemHeaders(key)));
 
-export const lockDeal = (deal: DealDTO, method: "FACE_ID" | "PIN" = "FACE_ID"): Promise<DealDTO> =>
+export const lockDeal = (deal: DealDTO, key: string, method: "FACE_ID" | "PIN" = "FACE_ID"): Promise<DealDTO> =>
   env.useMock
     ? mockApi.lockDeal(deal.id)
     : data(
         api.post<DealDTO>(
           `/deals/${deal.id}/lock`,
           { version: deal.version, inviteCode: deal.shareCode, method },
-          idem(),
+          idemHeaders(key),
         ),
       );
 
-export const confirmViewing = (deal: DealDTO): Promise<DealDTO> =>
+export const confirmViewing = (deal: DealDTO, key: string): Promise<DealDTO> =>
   env.useMock
     ? mockApi.confirmViewing(deal.id)
     : data(
         api.post<DealDTO>(
           `/deals/${deal.id}/confirm-viewing`,
           { version: deal.version, checklist: ["VIEWED_ROOM", "ROOM_MATCHES", "LANDLORD_MATCHES"] },
-          idem(),
+          idemHeaders(key),
         ),
       );
 
-export const confirmMoveIn = (deal: DealDTO): Promise<DealDTO> =>
+export const confirmMoveIn = (deal: DealDTO, key: string): Promise<DealDTO> =>
   env.useMock
     ? mockApi.confirmMoveIn(deal.id)
     : data(
         api.post<DealDTO>(
           `/deals/${deal.id}/confirm-move-in`,
           { version: deal.version, checklist: ["GOT_KEYS", "ROOM_USABLE", "CONTRACT_SIGNED"] },
-          idem(),
+          idemHeaders(key),
         ),
       );
+
+export const cancelDeal = (deal: DealDTO, key: string): Promise<DealDTO> =>
+  env.useMock
+    ? mockApi.cancelDeal(deal.id)
+    : data(api.post<DealDTO>(`/deals/${deal.id}/cancel`, { version: deal.version }, idemHeaders(key)));
+
+export const reportIssue = (deal: DealDTO, key: string): Promise<DealDTO> =>
+  env.useMock
+    ? mockApi.reportIssue(deal.id)
+    : data(api.post<DealDTO>(`/deals/${deal.id}/report-issue`, { version: deal.version }, idemHeaders(key)));
+
+export const expireNow = (id: string): Promise<DealDTO> =>
+  env.useMock ? mockApi.expireNow(id) : data(api.post<DealDTO>(`/demo/deals/${id}/expire-now`));
+
+
+export const getNotifications = (): Promise<NotificationsDTO> =>
+  env.useMock ? mockApi.getNotifications() : data(api.get<NotificationsDTO>("/notifications"));
+
+export const markAllNotificationsRead = (): Promise<{ unreadCount: number }> =>
+  env.useMock ? mockApi.markAllRead() : data(api.post<{ unreadCount: number }>("/notifications/read", { all: true }));
+
+
+export const getPayees = (): Promise<PayeeDTO[]> =>
+  env.useMock
+    ? Promise.resolve([DEMO_TRANSFER.payee])
+    : api.get<{ items: PayeeDTO[] }>("/transfers/payees").then((r) => r.data.items);
 
 export const precheckTransfer = (toAccountId: string, amountSatang: number): Promise<TransferPrecheckDTO> =>
   env.useMock
     ? mockApi.precheckTransfer(toAccountId)
     : data(api.post<TransferPrecheckDTO>("/transfers/precheck", { toAccountId, amountSatang }));
+
+export type TransferInput = { toAccountId: string; amountSatang: number; memo: string; action: "CONFIRM" | "CANCEL" };
+
+export const createTransfer = (input: TransferInput, key: string): Promise<TransferResultDTO> =>
+  env.useMock
+    ? Promise.resolve({
+        id: "mock-transfer",
+        status: input.action === "CONFIRM" ? "COMPLETED_SIMULATED" : "CANCELLED_BY_USER",
+        warningShown: true,
+      })
+    : data(api.post<TransferResultDTO>("/transfers", input, idemHeaders(key)));

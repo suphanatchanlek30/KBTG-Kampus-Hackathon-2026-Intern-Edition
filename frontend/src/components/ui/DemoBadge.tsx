@@ -2,7 +2,6 @@ import { brand } from "@/config/brand";
 import { env } from "@/config/env";
 import { cn } from "@/lib/cn";
 
-/** ป้าย "Prototype only · No real funds" — ต้องแสดงบนหน้าล็อกอินและหน้าดีลตามกติกางาน */
 export function DemoBadge({ className }: { className?: string }) {
   if (!env.showDemoBadge) return null;
   return (

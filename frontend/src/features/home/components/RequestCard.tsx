@@ -9,12 +9,10 @@ import { formatDayMonthTimeCompact, formatTime } from "@/lib/format/date";
 import { formatBaht } from "@/lib/format/money";
 import type { PendingInviteDTO } from "@/types/api";
 
-/** การ์ดคำขอใหม่บน T1 (Figma: r20 · card · ขอบ neon 1.5 · pad 16 · gap 10) */
 export function RequestCard({ invite }: { invite: PendingInviteDTO }) {
   const full = useMotionMode() === "full";
   return (
     <section className="relative flex flex-col gap-2.5 rounded-card bg-card p-4 shadow-ring-neon">
-      {/* ขอบเรืองแสง 2.4s ไป-กลับ (§5.6) — ชั้นแยกเปลี่ยนแค่ opacity */}
       {full && (
         <span
           aria-hidden

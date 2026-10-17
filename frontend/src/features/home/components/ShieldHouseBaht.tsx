@@ -1,7 +1,3 @@
-/**
- * ภาพประกอบแบนเนอร์ L1: วงกลมขาว + โล่ดำ + บ้านเขียว + เหรียญ ฿
- * วาดจากพิกัด vector ใน Figma (กรอบ 92×104) — ยังไม่มีไฟล์ SVG ต้นฉบับ (docs/07-assets.md §4)
- */
 export function ShieldHouseBaht({ className }: { className?: string }) {
   return (
     <svg aria-hidden width="92" height="104" viewBox="0 0 92 104" fill="none" className={className}>

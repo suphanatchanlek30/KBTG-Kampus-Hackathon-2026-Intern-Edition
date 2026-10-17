@@ -4,7 +4,7 @@ import { CreateDealView } from "@/features/deals/components/CreateDealView";
 import { DealStatusView } from "@/features/deals/components/DealStatusView";
 import { ShareInviteView } from "@/features/deals/components/ShareInviteView";
 import { ReviewDealView } from "@/features/deals/components/ReviewDealView";
-import { DEFAULT_DRAFT } from "@/features/deals/store";
+import { MOCKUP_DRAFT } from "@/features/deals/store";
 import { InviteReviewView } from "@/features/invites/components/InviteReviewView";
 import { LockedView } from "@/features/lock/components/LockedView";
 import { LockView } from "@/features/lock/components/LockView";
@@ -20,16 +20,12 @@ export type ScreenId = (typeof SCREEN_IDS)[number];
 const invited = (role: "LANDLORD" | "TENANT") => makeDeal("WAITING_ACCEPT", role);
 const tenantLocked = makeDeal("FUNDS_LOCKED", "TENANT");
 
-/**
- * หน้าจอจริงที่วางใต้ mockup — render ชั้นแสดงผลด้วย fixture ตรงๆ (ไม่ผ่าน mock DB)
- * จึงแสดงได้ทุก state/role พร้อมกัน (docs/01-user-flow.md §2)
- */
 export const SCREENS: Partial<Record<ScreenId, ComponentType>> = {
   L1: () => <LandlordHomeView home={makeHome("LANDLORD", null)} />,
-  L2: () => <CreateDealView draft={DEFAULT_DRAFT} property={DEMO_PROPERTY} />,
+  L2: () => <CreateDealView draft={MOCKUP_DRAFT} property={DEMO_PROPERTY} />,
   L3: () => (
     <ReviewDealView
-      draft={DEFAULT_DRAFT}
+      draft={MOCKUP_DRAFT}
       property={DEMO_PROPERTY}
       landlord={{
         displayName: DEMO_USERS.LANDLORD.user.displayName,

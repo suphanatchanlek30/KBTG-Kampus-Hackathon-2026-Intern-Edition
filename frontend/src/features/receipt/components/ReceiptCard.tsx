@@ -15,15 +15,10 @@ type ReceiptCardProps = {
   fields: ReceiptField[];
 };
 
-// §5.1: การ์ดเข้าที่ 0.85s (spring) · แถวในการ์ด fade-up stagger 0.06s ตั้งแต่ 0.95s
 const CARD_AT = 0.85;
 const ROWS_AT = 0.95;
 const ROW_STAGGER = 0.06;
 
-/**
- * การ์ดหลักฐานสีขาว L6/T7 (Figma: r20 pad 16 gap 10 · แถวรายการ 36 · เส้นแบ่ง #E6E8EB · key/value 12.5)
- * header = โลโก้ + "หลักฐานดีล" (L6) หรือ stepper (T7)
- */
 export function ReceiptCard({ header, lines, fields }: ReceiptCardProps) {
   const enter = useEnter();
   const full = useMotionMode() === "full";
@@ -31,6 +26,7 @@ export function ReceiptCard({ header, lines, fields }: ReceiptCardProps) {
 
   return (
     <motion.section
+      data-export="proof"
       className="flex w-full flex-col gap-2.5 rounded-card bg-white p-4 text-ink"
       {...enter(CARD_AT, { y: 40, spring: SPRING_CARD })}
     >

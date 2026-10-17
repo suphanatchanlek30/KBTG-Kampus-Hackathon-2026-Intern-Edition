@@ -1,0 +1,6 @@
+# Copy this file to terraform.tfvars and replace both URLs before terraform apply.
+api_domain      = "api.example.com"
+frontend_origin = "https://your-project.vercel.app"
+
+# Pin a branch or release tag for the first deployment.
+git_ref = "develop"

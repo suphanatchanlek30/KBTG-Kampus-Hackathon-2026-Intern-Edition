@@ -4,7 +4,6 @@ import { brand } from "@/config/brand";
 import { QueryProvider } from "@/providers/QueryProvider";
 import "./globals.css";
 
-// Poppins ไม่ใช่ variable font ต้องระบุ weight · ตัวเลข/อังกฤษใช้ Poppins ส่วนไทย fallback ไป Noto Sans Thai
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
@@ -23,6 +22,11 @@ export const metadata: Metadata = {
   title: brand.name,
   description: `${brand.tagline} — ${brand.disclaimer}`,
   robots: { index: false, follow: false },
+  icons: {
+    icon: [{ url: "/app-icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+    shortcut: "/app-icons/icon-192.png",
+    apple: "/app-icons/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {

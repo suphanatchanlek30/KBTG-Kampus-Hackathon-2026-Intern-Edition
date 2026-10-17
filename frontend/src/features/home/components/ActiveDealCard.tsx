@@ -5,10 +5,6 @@ import { stateBadge } from "@/features/deals/state";
 import { formatBaht } from "@/lib/format/money";
 import type { HomeDTO } from "@/types/api";
 
-/**
- * D9 — การ์ดดีลที่กำลังดำเนินการบนหน้าหลัก (สไตล์การ์ดคำขอ T1)
- * ⚠️ รออนุมัติดีไซน์ (docs/01-user-flow.md §7) — ทำไว้เพื่อให้กดผ่าน flow ได้
- */
 export function ActiveDealCard({ deal }: { deal: HomeDTO["activeDeals"][number] }) {
   const badge = stateBadge(deal.state);
   return (

@@ -6,15 +6,12 @@ import { useMotionMode } from "./MotionMode";
 type DrawnCheckProps = {
   size: number;
   strokeWidth: number;
-  /** false = แสดงเสร็จแล้ว ไม่วาด */
   draw?: boolean;
-  /** วินาที */
   duration?: number;
   delay?: number;
   className?: string;
 };
 
-/** เครื่องหมายถูก (lucide Check) ที่วาดเส้นด้วย pathLength — stepper, เช็กลิสต์, "สร้างคำขอแล้ว" */
 export function DrawnCheck({ size, strokeWidth, draw = true, duration = 0.3, delay = 0, className }: DrawnCheckProps) {
   const mode = useMotionMode();
   const animate = draw && mode === "full";

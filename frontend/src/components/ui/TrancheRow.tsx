@@ -6,11 +6,9 @@ type TrancheRowProps = {
   title: ReactNode;
   description: ReactNode;
   amount: ReactNode;
-  /** ก้อนแรก (ค่าจอง) = วงกลม/ยอดสีเขียว · ก้อนสอง = ขาว */
   highlight?: boolean;
 };
 
-/** แถวก้อนเงิน L2/T2 (Figma: วงกลม 24 r12 · gap 10 · ชื่อ 14/600 · คำอธิบาย 12 · ยอด 16/600) */
 export function TrancheRow({ index, title, description, amount, highlight = false }: TrancheRowProps) {
   return (
     <div className="flex items-center gap-2.5">

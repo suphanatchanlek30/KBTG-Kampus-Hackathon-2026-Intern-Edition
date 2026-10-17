@@ -1,7 +1,8 @@
 import axios, { isAxiosError } from "axios";
 import { ApiError } from "./errors";
 
-// เรียกผ่าน Next rewrites (/api/* → backend) → same-origin, cookie ใช้ได้ (docs/03-architecture.md §3.2)
+type ErrorBody = { error?: { code?: string; message?: string; requestId?: string } };
+
 export const api = axios.create({
   baseURL: "/api/v1",
   withCredentials: true,
@@ -16,11 +17,14 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err: unknown) => {
-    if (isAxiosError<{ error?: { code?: string; message?: string } }>(err)) {
-      if (!err.response) return Promise.reject(new ApiError("NETWORK", 0));
-      const { status, data } = err.response;
-      return Promise.reject(new ApiError(data?.error?.code ?? "UNKNOWN", status));
+    if (!isAxiosError<ErrorBody>(err)) return Promise.reject(err);
+    if (!err.response) return Promise.reject(new ApiError("NETWORK", 0));
+
+    const { status, data } = err.response;
+    const e = data?.error;
+    if (status === 401 && !err.config?.url?.startsWith("/auth/") && window.location.pathname !== "/login") {
+      window.location.replace("/login");
     }
-    return Promise.reject(err);
+    return Promise.reject(new ApiError(e?.code ?? "UNKNOWN", status, e?.message, e?.requestId));
   },
 );

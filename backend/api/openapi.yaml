@@ -1,0 +1,780 @@
+openapi: 3.1.0
+info:
+  title: K Sure API (Prototype)
+  version: 0.1.0
+  description: |
+    Money uses integer satang. Times use offset ISO 8601. Every response returns X-Request-ID.
+servers:
+  - url: http://localhost:8080/api/v1
+security:
+  - session: []
+paths:
+  /healthz:
+    get:
+      summary: Confirm the process is running without checking the database
+      operationId: healthz
+      tags: [health]
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HealthStatus" }
+              example: { status: ok }
+  /readyz:
+    get:
+      summary: Confirm the database is reachable
+      operationId: readyz
+      tags: [health]
+      security: []
+      responses:
+        "200":
+          description: Ready to receive requests
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HealthStatus" }
+              example: { status: ready }
+        "503":
+          description: Database unavailable (code = NOT_READY)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+  /auth/demo-login:
+    post:
+      summary: Sign in with a demo account and set the ks_session cookie
+      operationId: demoLogin
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username]
+              properties:
+                username: { type: string, enum: [landlord, tenant] }
+      responses:
+        "200":
+          description: Session created; sets an HttpOnly, SameSite=Lax cookie
+          headers:
+            Set-Cookie: { schema: { type: string } }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user]
+                properties:
+                  user: { $ref: "#/components/schemas/User" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+  /auth/logout:
+    post:
+      summary: Delete the ks_session cookie
+      operationId: logout
+      tags: [auth]
+      security: []
+      responses:
+        "204": { description: Session deleted }
+  /me:
+    get:
+      summary: Get the current user, primary account, and unread count
+      operationId: getMe
+      tags: [user]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+        "401": { $ref: "#/components/responses/Error" }
+  /home:
+    get:
+      summary: Get home-screen data
+      operationId: getHome
+      tags: [user]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Home" }
+        "401": { $ref: "#/components/responses/Error" }
+  /properties:
+    get:
+      summary: List properties owned by the landlord
+      operationId: listProperties
+      tags: [user]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/Property" } }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+  /notifications:
+    get:
+      summary: List the latest 50 notifications
+      operationId: listNotifications
+      tags: [notifications]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, unreadCount]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/Notification" } }
+                  unreadCount: { type: integer }
+        "401": { $ref: "#/components/responses/Error" }
+  /notifications/read:
+    post:
+      summary: Mark specified notifications, or all notifications, as read
+      operationId: markNotificationsRead
+      tags: [notifications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ids: { type: array, items: { type: string, format: uuid } }
+                all: { type: boolean }
+      responses:
+        "200":
+          description: Unread count after the update
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [unreadCount]
+                properties:
+                  unreadCount: { type: integer }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+  /deals:
+    get:
+      summary: List the current user's deals
+      operationId: listDeals
+      tags: [deals]
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [active, closed] } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: "#/components/schemas/DealSummary" } }
+        "401": { $ref: "#/components/responses/Error" }
+    post:
+      summary: Create a deal in WAITING_ACCEPT and issue a QR invite
+      operationId: createDeal
+      tags: [deals]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [propertyId, totalSatang, bookingFeeSatang, viewingAt, moveInDate]
+              properties:
+                propertyId: { type: string, format: uuid }
+                totalSatang: { type: integer, format: int64, minimum: 1, maximum: 100000000 }
+                bookingFeeSatang: { type: integer, format: int64, description: "0 < booking < total" }
+                viewingAt: { type: string, format: date-time, description: Must be in the future. }
+                moveInDate: { type: string, format: date, description: Cannot precede the viewing date in Bangkok time. }
+      responses:
+        "201": { $ref: "#/components/responses/Deal" }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+  /deals/{id}:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    get:
+      summary: Get a deal, timeline, and tranches for a party or eligible invitee
+      operationId: getDeal
+      tags: [deals]
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+  /deals/{id}/invite:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: Issue a new QR invite and revoke the previous one
+      operationId: reissueInvite
+      tags: [deals]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "409": { $ref: "#/components/responses/Error" }
+        "410": { $ref: "#/components/responses/Error" }
+  /deals/{id}/invite/send:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: Send an invite in-app or to a phone number
+      operationId: sendInvite
+      tags: [deals]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                channel: { type: string, enum: [IN_APP, PHONE], default: IN_APP }
+                phone: { type: string, example: "0890001432" }
+      responses:
+        "200":
+          description: Invite sent
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sentTo, sentAt]
+                properties:
+                  sentTo: { type: object, required: [shortName], properties: { shortName: { type: string } } }
+                  sentAt: { type: string, format: date-time }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+  /deals/{id}/reject:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: Reject a WAITING_ACCEPT deal
+      operationId: rejectDeal
+      tags: [deal actions]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody: { $ref: "#/components/requestBodies/Version" }
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "409": { $ref: "#/components/responses/Error" }
+  /deals/{id}/lock:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: Accept a deal and lock funds
+      operationId: lockDeal
+      tags: [deal actions]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version, inviteCode, method]
+              properties:
+                version: { type: integer }
+                inviteCode: { type: string, description: Deal share code or QR token. }
+                method: { type: string, enum: [FACE_ID, PIN], description: Recorded metadata only; no PIN is stored. }
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "410": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /deals/{id}/confirm-viewing:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: Confirm viewing and release the booking fee
+      operationId: confirmViewing
+      tags: [deal actions]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version, checklist]
+              properties:
+                version: { type: integer }
+                checklist:
+                  type: array
+                  description: All three confirmations are required.
+                  items: { type: string, enum: [VIEWED_ROOM, ROOM_MATCHES, LANDLORD_MATCHES] }
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+  /deals/{id}/confirm-move-in:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: Confirm move-in and release the main deposit
+      operationId: confirmMoveIn
+      tags: [deal actions]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version, checklist]
+              properties:
+                version: { type: integer }
+                checklist:
+                  type: array
+                  items: { type: string, enum: [GOT_KEYS, ROOM_USABLE, CONTRACT_SIGNED] }
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+  /invites/{code}:
+    get:
+      summary: Preview an invite by share code or token; limited to 30 requests per minute
+      operationId: previewInvite
+      tags: [deals]
+      parameters:
+        - { name: code, in: path, required: true, schema: { type: string }, example: KS-8F4Q21 }
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "404": { $ref: "#/components/responses/Error" }
+        "410": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /users/lookup:
+    get:
+      summary: Look up a tenant by phone number and return the short name
+      operationId: lookupUser
+      tags: [deals]
+      parameters:
+        - { name: phone, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, required: [shortName], properties: { shortName: { type: string } } }
+        "404": { $ref: "#/components/responses/Error" }
+  /transfers/payees:
+    get:
+      summary: List available transfer payees from other demo accounts
+      operationId: listPayees
+      tags: [transfers]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [accountId, displayName, bankName, accountNoMasked]
+                      properties:
+                        accountId: { type: string, format: uuid }
+                        displayName: { type: string }
+                        bankName: { type: string }
+                        accountNoMasked: { type: string }
+  /transfers/precheck:
+    post:
+      summary: Check whether a transfer targets a counterparty in an active deal
+      operationId: precheckTransfer
+      tags: [transfers]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [toAccountId]
+              properties:
+                toAccountId: { type: string, format: uuid }
+                amountSatang: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: A null warning permits the transfer.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [warning]
+                properties:
+                  warning:
+                    oneOf:
+                      - type: object
+                        required: [code, dealId, unitNo, message]
+                        properties:
+                          code: { type: string, enum: [OFF_DEAL_PAYMENT] }
+                          dealId: { type: string, format: uuid }
+                          unitNo: { type: string }
+                          message: { type: string }
+                      - type: "null"
+  /transfers:
+    post:
+      summary: Simulate a transfer or record a cancellation after a warning
+      operationId: createTransfer
+      tags: [transfers]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [toAccountId, amountSatang, action]
+              properties:
+                toAccountId: { type: string, format: uuid }
+                amountSatang: { type: integer, format: int64, minimum: 1 }
+                memo: { type: string, maxLength: 100 }
+                action: { type: string, enum: [CONFIRM, CANCEL] }
+      responses:
+        "201":
+          description: Recorded; the server calculates warningShown.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, status, warningShown]
+                properties:
+                  id: { type: string, format: uuid }
+                  status: { type: string, enum: [COMPLETED_SIMULATED, CANCELLED_BY_USER] }
+                  warningShown: { type: boolean }
+        "400": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+  /deals/{id}/cancel:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: Request cancellation or approve it and refund unreleased funds
+      operationId: cancelDeal
+      tags: [deal actions]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody: { $ref: "#/components/requestBodies/Version" }
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "410": { $ref: "#/components/responses/Error" }
+  /deals/{id}/report-issue:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: Report a property mismatch while funds remain locked
+      operationId: reportIssue
+      tags: [deal actions]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody: { $ref: "#/components/requestBodies/Version" }
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+  /deals/{id}/calendar.ics:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    get:
+      summary: Download a calendar file for viewing and move-in dates
+      operationId: dealCalendar
+      tags: [deals]
+      responses:
+        "200":
+          description: text/calendar (RFC 5545)
+          content:
+            text/calendar:
+              schema: { type: string }
+        "403": { $ref: "#/components/responses/Error" }
+  /demo/deals/{id}/expire-now:
+    parameters: [{ $ref: "#/components/parameters/DealID" }]
+    post:
+      summary: Expire an active deal immediately and refund held funds
+      operationId: demoExpireNow
+      tags: [demo]
+      responses:
+        "200": { $ref: "#/components/responses/Deal" }
+        "409": { $ref: "#/components/responses/Error" }
+  /demo/reset:
+    post:
+      summary: Reset demo data for a scenario when demo tools are enabled
+      operationId: demoReset
+      tags: [demo]
+      parameters:
+        - name: scenario
+          in: query
+          schema:
+            type: string
+            enum: [fresh, waiting_accept, funds_locked, booking_released, released]
+            default: fresh
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [scenario, dealId]
+                properties:
+                  scenario: { type: string }
+                  dealId: { type: [string, "null"], format: uuid }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: ks_session
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: One UUID per action. Reuse returns the original response and Idempotent-Replayed true.
+      schema: { type: string, maxLength: 255 }
+    DealID:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  requestBodies:
+    Version:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [version]
+            properties:
+              version: { type: integer }
+  responses:
+    Deal:
+      description: DealDTO
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Deal" }
+    Error:
+      description: Error code
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+  headers:
+    XRequestID:
+      description: Request reference supplied by the client or generated by the server.
+      schema: { type: string }
+  schemas:
+    User:
+      type: object
+      required: [id, role, displayName, shortName]
+      properties:
+        id: { type: string, format: uuid }
+        role: { type: string, enum: [LANDLORD, TENANT] }
+        displayName: { type: string, example: สมชาย ใจดี }
+        shortName: { type: string, example: สมชาย ใ. }
+    Account:
+      type: object
+      required: [id, bankName, accountType, accountNoMasked, balanceSatang, heldSatang, availableSatang]
+      properties:
+        id: { type: string, format: uuid }
+        bankName: { type: string }
+        accountType: { type: string }
+        accountNoMasked: { type: string, example: xxx-x-x4821 }
+        balanceSatang: { type: integer, format: int64 }
+        heldSatang: { type: integer, format: int64 }
+        availableSatang: { type: integer, format: int64, description: balance − held }
+    Me:
+      type: object
+      required: [user, account, unreadNotifications]
+      properties:
+        user: { $ref: "#/components/schemas/User" }
+        account: { $ref: "#/components/schemas/Account" }
+        unreadNotifications: { type: integer }
+    Home:
+      type: object
+      required: [me, pendingInvites, activeDeals]
+      properties:
+        me: { $ref: "#/components/schemas/Me" }
+        pendingInvites:
+          type: array
+          items:
+            type: object
+            required: [dealId, fromShortName, sentAt, projectName, unitNo, viewingAt, totalSatang, shareCode]
+            properties:
+              dealId: { type: string, format: uuid }
+              fromShortName: { type: string }
+              sentAt: { type: string, format: date-time }
+              projectName: { type: string }
+              unitNo: { type: string }
+              viewingAt: { type: string, format: date-time }
+              totalSatang: { type: integer, format: int64 }
+              shareCode: { type: string, example: KS-8F4Q21 }
+        activeDeals:
+          type: array
+          items:
+            type: object
+            required: [dealId, state, projectName, unitNo, totalSatang]
+            properties:
+              dealId: { type: string, format: uuid }
+              state: { type: string, enum: [WAITING_ACCEPT, FUNDS_LOCKED, BOOKING_FEE_RELEASED] }
+              projectName: { type: string }
+              unitNo: { type: string }
+              totalSatang: { type: integer, format: int64 }
+    Property:
+      type: object
+      required: [id, propertyType, projectName, unitNo, detailLabel, nearbyLabel]
+      properties:
+        id: { type: string, format: uuid }
+        propertyType: { type: string }
+        projectName: { type: string }
+        unitNo: { type: string }
+        detailLabel: { type: string }
+        nearbyLabel: { type: string }
+    Notification:
+      type: object
+      required: [id, type, dealId, title, body, readAt, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        type:
+          type: string
+          enum: [DEAL_INVITE, FUNDS_LOCKED, BOOKING_FEE_RELEASED, MAIN_DEPOSIT_RELEASED, DEAL_REJECTED,
+                 CANCEL_REQUESTED, DEAL_REFUNDED, DEAL_EXPIRED]
+        dealId: { type: [string, "null"], format: uuid }
+        title: { type: string }
+        body: { type: string }
+        readAt: { type: [string, "null"], format: date-time }
+        createdAt: { type: string, format: date-time }
+    Party:
+      type: object
+      required: [displayName, shortName, accountNoMasked]
+      properties:
+        displayName: { type: string }
+        shortName: { type: string }
+        bankName: { type: string }
+        accountNoMasked: { type: string }
+        nameVerified: { type: boolean }
+    DealState:
+      type: string
+      enum: [WAITING_ACCEPT, REJECTED, FUNDS_LOCKED, BOOKING_FEE_RELEASED, RELEASED, EXPIRED, REFUNDED]
+    Deal:
+      type: object
+      description: Deal response payload
+      required: [id, refNo, shareCode, state, version, dealType, property, landlord, tenant, amounts, tranches,
+                 viewingAt, moveInDate, expiresAt, invite, cancel, hasOpenIssue, myRole, nextActor, allowedActions,
+                 timeline, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        refNo: { type: string, example: KS-691014-0458 }
+        shareCode: { type: string, example: KS-8F4Q21 }
+        state: { $ref: "#/components/schemas/DealState" }
+        version: { type: integer }
+        dealType: { type: string, enum: [RENTAL_DEPOSIT] }
+        property: { $ref: "#/components/schemas/Property" }
+        landlord: { $ref: "#/components/schemas/Party" }
+        tenant:
+          oneOf: [{ $ref: "#/components/schemas/Party" }, { type: "null" }]
+        amounts:
+          type: object
+          required: [totalSatang, bookingFeeSatang, mainDepositSatang, feeSatang, releasedSatang, heldSatang, refundedSatang]
+          properties:
+            totalSatang: { type: integer, format: int64 }
+            bookingFeeSatang: { type: integer, format: int64 }
+            mainDepositSatang: { type: integer, format: int64 }
+            feeSatang: { type: integer, format: int64 }
+            releasedSatang: { type: integer, format: int64 }
+            heldSatang: { type: integer, format: int64 }
+            refundedSatang: { type: integer, format: int64 }
+        tranches:
+          type: array
+          items:
+            type: object
+            required: [key, amountSatang, status, releasedAt]
+            properties:
+              key: { type: string, enum: [BOOKING_FEE, MAIN_DEPOSIT] }
+              amountSatang: { type: integer, format: int64 }
+              status: { type: string, enum: [PENDING, HELD, RELEASED, REFUNDED] }
+              releasedAt: { type: [string, "null"], format: date-time }
+        viewingAt: { type: string, format: date-time }
+        moveInDate: { type: string, format: date }
+        expiresAt: { type: string, format: date-time }
+        invite:
+          oneOf:
+            - type: object
+              required: [expiresAt, sentAt]
+              properties:
+                expiresAt: { type: string, format: date-time }
+                qrUrl: { type: string, description: Included only when an invite is created or reissued. }
+                sentAt: { type: [string, "null"], format: date-time }
+            - type: "null"
+        cancel:
+          type: object
+          required: [landlordRequestedAt, tenantRequestedAt]
+          properties:
+            landlordRequestedAt: { type: [string, "null"], format: date-time }
+            tenantRequestedAt: { type: [string, "null"], format: date-time }
+        hasOpenIssue: { type: boolean }
+        myRole: { type: string, enum: [LANDLORD, TENANT] }
+        nextActor: { type: [string, "null"], enum: [TENANT, null] }
+        allowedActions:
+          type: array
+          items: { type: string, enum: [REJECT, LOCK, CONFIRM_VIEWING, CONFIRM_MOVE_IN, CANCEL, REPORT_ISSUE] }
+        timeline:
+          type: array
+          items:
+            type: object
+            required: [type, at, amountSatang]
+            properties:
+              type: { type: string }
+              at: { type: string, format: date-time }
+              amountSatang: { type: [integer, "null"], format: int64 }
+        createdAt: { type: string, format: date-time }
+        account:
+          type: object
+          description: Included only in the lock-funds response.
+          properties:
+            availableSatang: { type: integer, format: int64 }
+            heldSatang: { type: integer, format: int64 }
+    DealSummary:
+      type: object
+      required: [id, refNo, state, projectName, unitNo, totalSatang, myRole, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        refNo: { type: string }
+        state: { $ref: "#/components/schemas/DealState" }
+        projectName: { type: string }
+        unitNo: { type: string }
+        totalSatang: { type: integer, format: int64 }
+        myRole: { type: string, enum: [LANDLORD, TENANT] }
+        createdAt: { type: string, format: date-time }
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [ok, ready] }
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code:
+              type: string
+              enum: [VALIDATION_FAILED, IDEMPOTENCY_KEY_REQUIRED, UNAUTHENTICATED, FORBIDDEN_ROLE, NOT_DEAL_PARTY,
+                     NOT_FOUND, DEAL_STATE_CONFLICT, VERSION_MISMATCH, IDEMPOTENCY_CONFLICT, INVITE_EXPIRED,
+                     INSUFFICIENT_BALANCE, RATE_LIMITED, INTERNAL, NOT_READY]
+            message: { type: string, description: Thai message safe to display to the user. }
+            requestId: { type: string }
+            details:
+              type: array
+              items:
+                type: object
+                required: [field, message]
+                properties:
+                  field: { type: string }
+                  message: { type: string }

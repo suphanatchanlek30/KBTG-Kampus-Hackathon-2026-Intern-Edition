@@ -33,7 +33,6 @@ type ConfirmReleaseViewProps = {
   onNotReady?: () => void;
 };
 
-/** T5 ยืนยันดูห้อง (ปล่อยค่าจอง) · T6 ยืนยันเข้าอยู่ (ปล่อยมัดจำหลัก) — ปุ่มหลักกดได้เมื่อติ๊กครบ */
 export function ConfirmReleaseView({
   kind,
   deal,

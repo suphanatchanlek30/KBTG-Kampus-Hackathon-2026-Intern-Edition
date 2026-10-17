@@ -1,0 +1,42 @@
+# Local development stack.
+name: ksure
+
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: ksure
+      POSTGRES_PASSWORD: ksure_dev_only
+      POSTGRES_DB: ksure
+      TZ: Asia/Bangkok
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ksure -d ksure"]
+      interval: 3s
+      retries: 10
+
+  api:
+    build: ./backend
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgres://ksure:ksure_dev_only@db:5432/ksure?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-me-0123456789abcdef}
+      DEMO_TOOLS_ENABLED: ${DEMO_TOOLS_ENABLED:-true}
+    ports: ["8080:8080"]
+    depends_on:
+      db: { condition: service_healthy }
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:6.1.2
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    ports: ["8081:8080"]
+    depends_on: [db]
+    profiles: ["tools"]
+
+volumes:
+  pgdata:

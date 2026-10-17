@@ -1,5 +1,3 @@
-// ⚠️ ไฟล์นี้สร้างอัตโนมัติด้วย scripts/gen-backgrounds.mjs — ห้ามแก้มือ
-// พิกัดเทียบมุมซ้ายบนของเฟรม 393×852 (รวม status bar 50px)
 
 export type BackgroundShape = {
   kind: "glow" | "sweep" | "ring" | "dot";

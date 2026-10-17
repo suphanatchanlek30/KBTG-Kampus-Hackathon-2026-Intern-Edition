@@ -1,13 +1,13 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion, type PanInfo } from "motion/react";
-import { useEffect, useId, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/cn";
 
 type BottomSheetProps = {
   open: boolean;
   onClose: () => void;
-  /** light = T8 (พื้นขาว) · dark = D4/D5/D11 */
   tone?: "light" | "dark";
   title?: ReactNode;
   children: ReactNode;
@@ -18,20 +18,16 @@ const SPRING = { type: "spring", stiffness: 380, damping: 34 } as const;
 const CLOSE_OFFSET = 120;
 const CLOSE_VELOCITY = 500;
 
-/**
- * Bottom sheet (docs/02-ui-spec.md §5.8): backdrop ดำ 60% + blur 2px · sheet เด้งขึ้นด้วย spring
- * ลากลงเกิน 120px หรือเร็วกว่า 500px/s = ปิด · กด Esc หรือแตะ backdrop = ปิด
- * ใช้ position: fixed — บน desktop จะอยู่ในกรอบโทรศัพท์เพราะ PhoneFrame เป็น containing block
- */
 export function BottomSheet({ open, onClose, tone = "dark", title, children, className }: BottomSheetProps) {
   const reduce = useReducedMotion();
   const titleId = useId();
-  // render เฉพาะฝั่ง client — ค่า reduced motion ฝั่ง server ไม่รู้ จะทำให้ hydration ไม่ตรงถ้า sheet เปิดตั้งแต่โหลดหน้า
-  const mounted = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
+  const marker = useRef<HTMLSpanElement>(null);
+  const [host, setHost] = useState<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    const frame = marker.current?.closest("[data-phone-scope]");
+    setHost(frame?.querySelector<HTMLElement>(":scope > [data-phone-overlay]") ?? document.body);
+    return () => setHost(null);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -44,9 +40,9 @@ export function BottomSheet({ open, onClose, tone = "dark", title, children, cla
     if (info.offset.y > CLOSE_OFFSET || info.velocity.y > CLOSE_VELOCITY) onClose();
   };
 
-  return (
+  const sheet = (
     <AnimatePresence>
-      {open && mounted && (
+      {open && (
         <div className="fixed inset-0 z-50 flex flex-col justify-end">
           <motion.div
             aria-hidden
@@ -92,5 +88,12 @@ export function BottomSheet({ open, onClose, tone = "dark", title, children, cla
         </div>
       )}
     </AnimatePresence>
+  );
+
+  return (
+    <>
+      <span ref={marker} hidden />
+      {host && createPortal(sheet, host)}
+    </>
   );
 }

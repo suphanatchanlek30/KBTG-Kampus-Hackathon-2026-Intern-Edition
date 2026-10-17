@@ -11,7 +11,6 @@ type TrancheCardProps = {
   highlight?: boolean;
 };
 
-/** การ์ดก้อนเงินแถบซ้าย L3 (Figma: r20 · pad 14/16 · gap 4 · inset 3px neon/ขาว) */
 export function TrancheCard({
   index,
   title,

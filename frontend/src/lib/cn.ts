@@ -1,8 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { extendTailwindMerge } from "tailwind-merge";
 
-// ต้องบอก tailwind-merge ให้รู้จัก token ใน globals.css
-// ไม่งั้น cn("text-title", "text-neon") จะคิดว่าเป็นกลุ่มเดียวกันแล้วตัดทิ้งไปหนึ่งตัว
 const FONT_SIZES = [
   "amount-hero",
   "amount-balance",

@@ -20,7 +20,6 @@ type LockViewProps = {
   accountType: string;
   accountNoMasked: string;
   phase: ScanPhase;
-  /** กำลังเรียก API กันเงิน — spinner โผล่ถ้าเกิน 600ms */
   pending?: boolean;
   onClose?: () => void;
   onUsePin?: () => void;
@@ -33,10 +32,6 @@ const STATUS: Record<ScanPhase, string> = {
   error: "ยืนยันไม่สำเร็จ ลองอีกครั้ง",
 };
 
-/**
- * T3 — ยืนยันการกันเงินด้วย Face ID จำลอง
- * ไม่เปิดกล้อง ไม่ใช้ WebAuthn ไม่เก็บข้อมูลใบหน้า — เป็นอนิเมชันล้วน (docs/02-ui-spec.md §5.2)
- */
 export function LockView({
   amountSatang,
   accountType,
@@ -107,7 +102,6 @@ export function LockView({
             phase === "success" && "border-neon text-neon",
             phase === "error" && "border-danger text-danger",
           )}
-          // ล้มเหลว: เขย่า x 0, −8, 8, −6, 6, 0 ใน 0.4s
           animate={full && phase === "error" ? { x: [0, -8, 8, -6, 6, 0] } : { x: 0 }}
           transition={{ duration: 0.4 }}
         >
@@ -117,7 +111,6 @@ export function LockView({
               className="absolute inset-x-3 top-0 h-0.5 rounded-full bg-neon/60 motion-safe:animate-scan-line"
             />
           )}
-          {/* หน้า ↔ ✓ crossfade + scale 0.6 → 1 spring */}
           <motion.span
             className="absolute"
             initial={false}
@@ -151,7 +144,6 @@ export function LockView({
         {scanning ? (
           <span>
             กำลังสแกนใบหน้า
-            {/* จุด … ขึ้นทีละจุด 0.4s */}
             <span className="inline-block motion-safe:animate-dots">…</span>
           </span>
         ) : (
@@ -167,7 +159,6 @@ export function LockView({
   );
 }
 
-/** ScanFace (lucide) ที่แยกมุมกรอบออกมา "หายใจ" scale 1 → 0.9 → 1 ระหว่างสแกน */
 function ScanFaceGlyph({ breathing }: { breathing: boolean }) {
   return (
     <svg

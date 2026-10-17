@@ -5,7 +5,6 @@ import { useMotionMode } from "@/components/motion/MotionMode";
 
 const SPRING = { type: "spring", stiffness: 300, damping: 30 } as const;
 
-/** แถบแบ่งสัดส่วน ค่าจอง (neon) / มัดจำหลัก (ขาว) — L2 (Figma: สูง 8 r4 · gap 4) · แก้ยอดแล้วขยับด้วย spring (§5.8) */
 export function SplitBar({ first, total }: { first: number; total: number }) {
   const pct = total > 0 ? Math.min(100, Math.max(0, (first / total) * 100)) : 0;
   const transition = useMotionMode() === "full" ? SPRING : { duration: 0 };

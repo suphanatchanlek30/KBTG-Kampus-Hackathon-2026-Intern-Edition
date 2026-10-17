@@ -7,13 +7,8 @@ import { useMotionMode, type MotionMode } from "@/components/motion/MotionMode";
 import { EASE_OUT_EXPO, REDUCED_FADE } from "@/components/motion/tokens";
 import { brand } from "@/config/brand";
 
-// เว้นช่องกลาง QR ให้โลโก้ (excavate) โดยไม่วาดรูปจริง — โลโก้วางทับด้วย HTML
 const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
-/**
- * QR คำเชิญ (Figma L4: กรอบขาว 184×184 r24 · QR 160 · โลโก้กลาง 44×44 r13 พื้นดำขอบขาว 3)
- * ใช้ error correction ระดับ H เพื่อให้ยังสแกนได้แม้มีโลโก้บังกลาง
- */
 export function QrCard({ value }: { value: string }) {
   return (
     <motion.div
@@ -36,7 +31,6 @@ export function QrCard({ value }: { value: string }) {
   );
 }
 
-/** QR เข้า: scale 0.92 → 1 + opacity 0.35s (§5.8) */
 function qrEnter(mode: MotionMode) {
   if (mode === "static") return {};
   if (mode === "reduced") return { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: REDUCED_FADE };

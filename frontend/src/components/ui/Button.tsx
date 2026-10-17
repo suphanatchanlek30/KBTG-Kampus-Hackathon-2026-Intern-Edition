@@ -11,7 +11,6 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   loading?: boolean;
 };
 
-// Figma: ปุ่มหลัก 353×54 r100 · ปุ่มรอง 353×48 r100 ขอบ #3A3E45 · gap ไอคอน 8
 const variants: Record<ButtonVariant, string> = {
   primary: "h-[54px] w-full rounded-full bg-neon text-button text-ink shadow-cta disabled:shadow-none",
   secondary: "h-12 w-full rounded-full border border-stroke text-section text-white",
@@ -36,7 +35,6 @@ export function Button({
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cn(
-        // กด: scale 0.12s · disabled → พร้อมกด ("ปลุก" เมื่อติ๊กครบ): opacity + glow 0.3s (§5.8)
         "relative inline-flex items-center justify-center gap-2 transition-[transform,opacity,box-shadow] duration-[120ms,300ms,300ms] select-none",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neon",
         "enabled:active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40",
@@ -46,7 +44,6 @@ export function Button({
       )}
       {...props}
     >
-      {/* ความกว้างคงที่ตอนโหลด: ซ่อนเนื้อหาด้วย invisible แล้ววาง spinner ทับตรงกลาง */}
       <span className={cn("inline-flex items-center gap-2", loading && "invisible")}>
         {iconLeft}
         {children}

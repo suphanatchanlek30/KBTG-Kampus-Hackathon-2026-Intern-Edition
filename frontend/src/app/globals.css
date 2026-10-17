@@ -1,9 +1,5 @@
 @import "tailwindcss";
 
-/*
- * framed: = แสดงแบบ "กรอบโทรศัพท์" (desktop ≥ 768px หรือบังคับด้วย data-frame="force" เช่นหน้า /dev/overlay)
- * มือถือจริงไม่ใช้กรอบ ไม่แสดง status bar 9:41 / home indicator ปลอม (docs/02-ui-spec.md §2)
- */
 @custom-variant framed {
   @media (width >= 48rem) {
     @slot;
@@ -13,12 +9,7 @@
   }
 }
 
-/*
- * Design tokens — ค่าจริงจาก Figma "K Sure UI v3-final" (docs/02-ui-spec.md §1)
- * ห้ามใช้ hex สีใน component ให้ใช้ class จาก token ในไฟล์นี้เท่านั้น
- */
 @theme inline {
-  /* ---- สี (§1.1) ---- */
   --color-bg: #0a0a0b;
   --color-card: #16181c;
   --color-card2: #1f2227;
@@ -49,26 +40,22 @@
   --color-ink-green: #0b1f18;
   --color-mint-pale: #eafdf0;
 
-  /* ---- ฟอนต์ (§1.2) — ตัวแปรมาจาก next/font ใน layout.tsx ---- */
   --font-sans: var(--font-poppins), var(--font-noto-thai), sans-serif;
 
-  /* ---- Radius (§1.3) ---- */
+  /* Radius */
   --radius-card: 20px;
   --radius-card-xl: 28px;
   --radius-icon-btn: 19px;
   --radius-tile: 14px;
   --radius-frame: 44px;
 
-  /* ---- เงา (§1.1) ---- */
   --shadow-cta: 0 10px 26px rgb(93 245 145 / 0.22);
   --shadow-hero: 0 0 50px rgb(93 245 145 / 0.35), 0 0 0 12px rgb(93 245 145 / 0.1);
   --shadow-hero-sm: 0 0 36px rgb(93 245 145 / 0.3), 0 0 0 10px rgb(93 245 145 / 0.1);
   --shadow-mint: 0 16px 36px rgb(103 221 144 / 0.1);
   --shadow-phone: 0 30px 60px rgb(0 0 0 / 0.22), 0 0 0 1px rgb(0 0 0 / 0.08);
   --shadow-scan: 0 8px 22px rgb(93 245 145 / 0.3);
-  /* glow breathing ของวงกลม hero (§5.1) — ชั้นแยก เปลี่ยนแค่ opacity ไม่ repaint เงาทุกเฟรม */
   --shadow-hero-glow: 0 0 48px 8px rgb(93 245 145 / 0.4);
-  /* การ์ดคำขอใหม่ T1 เรืองแสง (§5.6) — ใช้กับ animate-breathe เหมือน hero */
   --shadow-request-glow: 0 0 24px 2px rgb(93 245 145 / 0.3);
   --shadow-ring-neon: 0 0 0 1.5px #5df591;
   --shadow-dot-neon: 0 0 10px #5df591;
@@ -76,7 +63,6 @@
   --shadow-accent-neon: inset 3px 0 0 #5df591;
   --shadow-accent-white: inset 3px 0 0 #ffffff;
 
-  /* ---- Typography (§1.2) — ขนาด / line-height / letter-spacing / น้ำหนัก ---- */
   --text-amount-hero: 40px;
   --text-amount-hero--line-height: 48px;
   --text-amount-hero--letter-spacing: -1px;
@@ -172,17 +158,14 @@
   --text-count--line-height: 14.5px;
   --text-count--font-weight: 700;
 
-  /* ---- Animation ---- */
+  /* Animation */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out-std: cubic-bezier(0.65, 0, 0.35, 1);
   --animate-shimmer: shimmer 1.4s linear infinite;
-  /* ลูปของหน้า success (§5.1) — ใช้กับ motion-safe: เสมอ · delay/duration ตั้งผ่าน CSS var ต่อ element */
   --animate-twinkle: twinkle var(--twinkle-duration, 2.2s) ease-in-out var(--twinkle-delay, 0s) infinite;
   --animate-ripple: ripple var(--ripple-duration, 2.7s) ease-out var(--ripple-delay, 1.2s) infinite;
   --animate-breathe: breathe 2.4s ease-in-out var(--breathe-delay, 1.2s) infinite alternate;
-  /* ขั้นปัจจุบันของ stepper / timeline (§5.3) */
   --animate-pulse-ring: pulse-ring 1.6s ease-out infinite;
-  /* Face ID จำลอง T3 (§5.2) — เริ่มที่ 0.4s หลังการ์ด/กรอบเข้าที่ */
   --animate-scan-line: scan-line 1s ease-in-out 0.4s infinite;
   --animate-scan-corners: scan-corners 1.2s ease-in-out 0.4s infinite;
   --animate-dots: dots 1.6s steps(4, jump-none) infinite;
@@ -204,7 +187,6 @@
       opacity: 0.3;
     }
   }
-  /* วิ่ง 89% ของรอบ (2.4s) แล้วพัก 11% (0.3s = repeatDelay) */
   @keyframes ripple {
     0% {
       transform: scale(1);
@@ -226,7 +208,6 @@
       opacity: 0;
     }
   }
-  /* เส้นสแกนในกรอบ 96px วิ่งบน → ล่าง */
   @keyframes scan-line {
     from {
       transform: translateY(14px);
@@ -244,7 +225,6 @@
       transform: scale(0.9);
     }
   }
-  /* … ขึ้นทีละจุด: 0 → 1 → 2 → 3 จุด ช่วงละ 0.4s (steps 4) */
   @keyframes dots {
     from {
       clip-path: inset(0 100% 0 0);
@@ -263,7 +243,13 @@
   }
 }
 
-/* ---- Gradient / glow (§1.1) — ใช้เป็น class ได้ เช่น bg-grad-mint ---- */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @utility bg-grad-mint {
   background-image: linear-gradient(135deg, #def2b4 0%, #a8e9b4 45%, #67dd90 100%);
 }
@@ -283,7 +269,6 @@
   background-image: linear-gradient(90deg, #1f2227 0%, #2a2e35 50%, #1f2227 100%);
   background-size: 200% 100%;
 }
-/* แถบไฮไลต์ครึ่งล่างใต้ข้อความ เช่น "แบบไม่ต้องลุ้น" */
 @utility text-highlight {
   background-image: linear-gradient(transparent 58%, rgb(93 245 145 / 0.55) 58%);
   padding-inline: 2px;

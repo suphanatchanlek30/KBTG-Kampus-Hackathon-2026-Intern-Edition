@@ -1,5 +1,5 @@
-# assets/fonts
+# Fonts
 
-ปกติ **ไม่ต้องใส่อะไร** — Poppins + Noto Sans Thai โหลดผ่าน `next/font/google`
+Record font source, license, and permitted usage before adding files to this directory.
 
-วางไฟล์ `.woff2` ที่นี่เฉพาะเมื่อ Figma ใช้ฟอนต์อื่นที่ไม่มีใน Google Fonts — ดู [docs/07-assets.md §6](../../docs/07-assets.md#6-ฟอนต์--assetsfonts)
+The frontend must use only fonts that can be distributed with this repository or loaded under their license terms.
