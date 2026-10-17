@@ -23,6 +23,8 @@ export const metadata: Metadata = {
   description: `${brand.tagline} — ${brand.disclaimer}`,
   robots: { index: false, follow: false },
   icons: {
+    icon: [{ url: "/app-icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+    shortcut: "/app-icons/icon-192.png",
     apple: "/app-icons/apple-touch-icon.png",
   },
 };
