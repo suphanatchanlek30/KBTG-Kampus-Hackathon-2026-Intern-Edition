@@ -1,4 +1,3 @@
-// สร้างไฟล์ปฏิทิน .ics ฝั่ง client (Phase 8 จะใช้ GET /deals/{id}/calendar.ics จาก server แทน)
 
 type CalendarEvent = {
   uid: string;
@@ -6,7 +5,6 @@ type CalendarEvent = {
   /** ISO-8601 */
   start: string;
   durationMinutes?: number;
-  /** ทั้งวัน (วันเข้าอยู่) — start เป็น `YYYY-MM-DD` */
   allDay?: boolean;
   description?: string;
 };

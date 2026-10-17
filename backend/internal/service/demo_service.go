@@ -17,7 +17,6 @@ import (
 	"github.com/suphanatchanlek30/ksure/backend/internal/repository/db"
 )
 
-// Scenario ของ POST /demo/reset — แต่ละขั้นต่อยอดจากขั้นก่อน (docs/04-database.md §5)
 type Scenario string
 
 const (
@@ -28,7 +27,6 @@ const (
 	ScenarioReleased        Scenario = "released"
 )
 
-// stage = จำนวนขั้นของดีลที่เกิดแล้ว (0 = ยังไม่มีดีล)
 var scenarioStage = map[Scenario]int{
 	ScenarioFresh:           0,
 	ScenarioWaitingAccept:   1,
@@ -37,7 +35,6 @@ var scenarioStage = map[Scenario]int{
 	ScenarioReleased:        4,
 }
 
-// ข้อมูลเดโมตั้งต้น — ตรงกับ migrations/0002_seed_demo.sql
 var (
 	demoLandlordID        = uuid.MustParse("00000000-0000-0000-0000-00000000a001")
 	demoTenantID          = uuid.MustParse("00000000-0000-0000-0000-00000000b001")
@@ -49,33 +46,27 @@ const (
 	demoLandlordBalance = 4_285_000 // 42,850.00
 	demoTenantBalance   = 2_850_000 // 28,500.00
 
-	// ดีลตัวอย่างค่าตรง mockup (ref/share code ใส่ตรงๆ ตาม §4 แม้ KS-8F4Q21 มีเลข 1)
 	demoRefNo       = "KS-691014-0458"
 	demoShareCode   = "KS-8F4Q21"
 	demoTotal       = 650_000 // 6,500
 	demoBookingFee  = 100_000 // 1,000
 	demoMainDeposit = demoTotal - demoBookingFee
 
-	// ชื่อบริการในข้อความแจ้งเตือน — ฝั่ง frontend อยู่ใน config/brand.ts
 	brandName = "K Sure"
 )
 
-// DemoTimes คือเวลาของดีลตัวอย่าง คำนวณจาก "ตอนนี้" — ห้ามใช้วันที่ของ mockup
-// ไม่งั้น expiry worker จะเปลี่ยนดีลเป็นหมดอายุทันทีหลัง reset
 type DemoTimes struct {
-	Created          time.Time // วันนี้ 10:24 (ถ้ายังไม่ถึง ใช้ now − 10 นาที)
-	InviteSent       time.Time // + 2 นาที
-	Accepted         time.Time // + 7 นาที (ผู้เช่ากันเงิน)
+	Created          time.Time // 10:24 today, or ten minutes before now.
+	InviteSent       time.Time // Two minutes after creation.
+	Accepted         time.Time // Seven minutes after creation.
 	InviteExpires    time.Time // Created + INVITE_TTL
-	ViewingConfirmed time.Time // now − 2 นาที
-	MoveInConfirmed  time.Time // now − 1 นาที
-	ViewingAt        time.Time // วันอาทิตย์ถัดไป 14:00
-	MoveInDate       time.Time // วันที่ 1 ของเดือนถัดไป (เลื่อนอีกเดือนถ้าก่อนวันดูห้อง) — เที่ยงคืนเวลาไทย
-	ExpiresAt        time.Time // วันเข้าอยู่ + 2 วัน 23:59:59
+	ViewingConfirmed time.Time // Two minutes before now.
+	MoveInConfirmed  time.Time // One minute before now.
+	ViewingAt        time.Time // Next Sunday at 14:00.
+	MoveInDate       time.Time // First day of the next valid month at Bangkok midnight.
+	ExpiresAt        time.Time // Two days after move-in at 23:59:59.
 }
 
-// ComputeDemoTimes ทุกเหตุการณ์ที่ "เกิดแล้ว" อยู่ในอดีตเสมอ และเรียงลำดับถูก
-// ส่วนวันนัดดูห้อง/เข้าอยู่อยู่ในอนาคต เพื่อให้ดีลยัง active (แม้ scenario จะบอกว่าดูห้องแล้ว)
 func ComputeDemoTimes(now time.Time, loc *time.Location, inviteTTL time.Duration) DemoTimes {
 	local := now.In(loc)
 	y, m, d := local.Date()
@@ -122,7 +113,6 @@ func NewDemoService(repo *repository.Repository, c clock.Clock, loc *time.Locati
 	return &DemoService{repo: repo, clock: c, loc: loc, inviteTTL: inviteTTL}
 }
 
-// Reset ล้างข้อมูลเดโม คืนยอดตั้งต้น แล้วสร้างดีลตัวอย่างตาม scenario — ทั้งหมดใน transaction เดียว
 func (s *DemoService) Reset(ctx context.Context, sc Scenario) (dto.DemoResetDTO, error) {
 	stage, ok := scenarioStage[sc]
 	if !ok {
@@ -147,7 +137,6 @@ func (s *DemoService) Reset(ctx context.Context, sc Scenario) (dto.DemoResetDTO,
 			id := dealID.String()
 			out.DealID = &id
 
-			// ยอดตาม ledger ที่สร้าง (docs/04-database.md §2 ledger_event_type)
 			if stage >= 2 {
 				tenantHeld += demoTotal
 			}
@@ -179,7 +168,6 @@ func (s *DemoService) Reset(ctx context.Context, sc Scenario) (dto.DemoResetDTO,
 	return out, nil
 }
 
-// buildDeal เขียนดีลตัวอย่างพร้อมคำเชิญ ไทม์ไลน์ ledger และแจ้งเตือน ให้ตรงกับที่ action จริง (Phase 6) จะเขียน
 func (s *DemoService) buildDeal(ctx context.Context, q *db.Queries, stage int) (uuid.UUID, error) {
 	props, err := q.ListPropertiesByLandlord(ctx, demoLandlordID)
 	if err != nil {
@@ -208,7 +196,6 @@ func (s *DemoService) buildDeal(ctx context.Context, q *db.Queries, stage int) (
 		return uuid.Nil, fmt.Errorf("insert deal: %w", err)
 	}
 
-	// คำเชิญ QR (token จริงทิ้งไป — เดโมเปิดดีลด้วย share code)
 	_, hash := token.NewInvite()
 	if err := q.InsertDealInvite(ctx, db.InsertDealInviteParams{
 		DealID: dealID, TokenHash: hash, Channel: db.InviteChannelQR, ExpiresAt: t.InviteExpires, CreatedAt: t.Created,
@@ -222,13 +209,10 @@ func (s *DemoService) buildDeal(ctx context.Context, q *db.Queries, stage int) (
 	tenantAcc := uuid.NullUUID{UUID: demoTenantAccountID, Valid: true}
 	landlordAcc := uuid.NullUUID{UUID: demoLandlordAccountID, Valid: true}
 
-	// 1) สร้างคำขอ + ส่งเข้าแอปผู้เช่า
 	w.event(db.DealEventTypeDEALCREATED, landlord, "", db.DealStateWAITINGACCEPT, 0, t.Created)
 	w.event(db.DealEventTypeINVITESENT, landlord, db.DealStateWAITINGACCEPT, db.DealStateWAITINGACCEPT, 0, t.InviteSent)
-	// อ่านแล้วเมื่อผู้เช่ากันเงิน (stage ≥ 2)
 	w.notify(demoTenantID, db.NotificationTypeDEALINVITE, "คำขอ "+brandName+" ใหม่", "จากคุณสมชาย ใ.", t.InviteSent, stage >= 2, t.Accepted)
 
-	// 2) ผู้เช่ายอมรับ + กันเงิน
 	if stage >= 2 {
 		w.event(db.DealEventTypeDEALACCEPTED, tenant, db.DealStateWAITINGACCEPT, db.DealStateWAITINGACCEPT, 0, t.Accepted)
 		w.event(db.DealEventTypeFUNDSLOCKED, tenant, db.DealStateWAITINGACCEPT, db.DealStateFUNDSLOCKED, demoTotal, t.Accepted)
@@ -237,7 +221,6 @@ func (s *DemoService) buildDeal(ctx context.Context, q *db.Queries, stage int) (
 			"ณัฐธิดา ศ. กันเงิน 6,500 สำหรับห้อง "+prop.UnitNo, t.Accepted, stage >= 3, t.ViewingConfirmed)
 	}
 
-	// 3) ยืนยันดูห้อง → ปล่อยค่าจอง
 	if stage >= 3 {
 		w.event(db.DealEventTypeVIEWINGCONFIRMED, tenant, db.DealStateFUNDSLOCKED, db.DealStateVIEWINGCONFIRMED, 0, t.ViewingConfirmed)
 		w.event(db.DealEventTypeBOOKINGFEERELEASED, tenant, db.DealStateVIEWINGCONFIRMED, db.DealStateBOOKINGFEERELEASED, demoBookingFee, t.ViewingConfirmed)
@@ -246,7 +229,6 @@ func (s *DemoService) buildDeal(ctx context.Context, q *db.Queries, stage int) (
 			"ณัฐธิดา ศ. ยืนยันดูห้อง "+prop.UnitNo+" แล้ว", t.ViewingConfirmed, stage >= 4, t.MoveInConfirmed)
 	}
 
-	// 4) ยืนยันเข้าอยู่ → ปล่อยมัดจำหลัก
 	if stage >= 4 {
 		w.event(db.DealEventTypeMOVEINCONFIRMED, tenant, db.DealStateBOOKINGFEERELEASED, db.DealStateMOVEINCONFIRMED, 0, t.MoveInConfirmed)
 		w.event(db.DealEventTypeMAINDEPOSITRELEASED, tenant, db.DealStateMOVEINCONFIRMED, db.DealStateRELEASED, demoMainDeposit, t.MoveInConfirmed)
@@ -261,7 +243,6 @@ func (s *DemoService) buildDeal(ctx context.Context, q *db.Queries, stage int) (
 	return dealID, nil
 }
 
-// seedWriter เก็บ error แรกไว้ ให้โค้ด scenario อ่านเป็นลำดับเหตุการณ์ได้โดยไม่ต้องเช็ก err ทุกบรรทัด
 type seedWriter struct {
 	ctx    context.Context
 	q      *db.Queries

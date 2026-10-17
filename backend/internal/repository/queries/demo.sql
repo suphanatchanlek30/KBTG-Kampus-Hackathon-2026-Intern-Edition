@@ -1,5 +1,4 @@
 -- name: TruncateDemoData :exec
--- ล้างทุกอย่างที่เกิดระหว่างเดโม (users/accounts/properties คงไว้) — TRUNCATE ไม่เรียก trigger append-only ของ ledger
 TRUNCATE ledger_events, deal_events, deal_invites, notifications, transfers, idempotency_keys, deals, ref_counters
   RESTART IDENTITY CASCADE;
 

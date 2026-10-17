@@ -1,5 +1,3 @@
-// รหัส error ตาม docs/05-api.md §1 → ข้อความไทยที่แสดงใน toast
-// ใช้ข้อความจาก server เป็นหลัก (เป็นภาษาไทยอยู่แล้ว) — ตารางนี้สำรองไว้เมื่อ server ไม่ส่งมา / mock / เน็ตหลุด
 
 const MESSAGES: Record<string, string> = {
   UNAUTHENTICATED: "กรุณาเข้าสู่ระบบอีกครั้ง",
@@ -24,14 +22,12 @@ export class ApiError extends Error {
     public readonly code: string,
     public readonly status: number,
     message?: string,
-    /** แสดงคู่กับ error 500 ให้ผู้ใช้แจ้งทีมได้ */
     public readonly requestId?: string,
   ) {
     super(message || MESSAGES[code] || FALLBACK);
     this.name = "ApiError";
   }
 
-  /** เน็ตหลุด / timeout — ลองใหม่ด้วย Idempotency-Key เดิมได้อย่างปลอดภัย */
   get isNetwork() {
     return this.code === "NETWORK";
   }

@@ -1,5 +1,5 @@
-# assets/icons
+# Icons
 
-ไอคอนทั่วไปใช้ `lucide-react` (ไม่ต้องหา) — วาง SVG ที่นี่เฉพาะไอคอนที่ทำเองและ lucide ไม่มี (stroke 2px, viewBox 0 0 24 24)
+Store reusable icon source files here. Prefer the existing icon system before adding a new asset.
 
-ดู [docs/07-assets.md §7](../../docs/07-assets.md#7-ไอคอน--assetsicons)
+Every added icon must have a clear license and work at the sizes used by the product.

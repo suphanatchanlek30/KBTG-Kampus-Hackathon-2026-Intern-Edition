@@ -14,7 +14,6 @@ import Link from "next/link";
 import { brand } from "@/config/brand";
 import { cn } from "@/lib/cn";
 
-/** กรอบสแกน + สี่เหลี่ยมกลาง (lucide ไม่มีไอคอนนี้) */
 const ScanSquare = forwardRef<SVGSVGElement, LucideProps>(function ScanSquare(
   { size = 24, strokeWidth = 2, ...props },
   ref,
@@ -38,10 +37,8 @@ const ScanSquare = forwardRef<SVGSVGElement, LucideProps>(function ScanSquare(
   );
 }) as LucideIcon;
 
-/** ไม่มี href = บริการที่ยังไม่ได้ทำ — แสดงเป็นปุ่มที่กดแล้วไม่ไปไหน */
 type Service = { label: string; icon?: LucideIcon; href?: string; active?: boolean };
 
-/** ช่องบริการ L1/T1 (Figma: การ์ด r20 pad16 · ช่อง 52×52 r18 · ป้าย 11.5/400 · gap 7) */
 export function ServiceGrid({ kSureHref, compact = false }: { kSureHref?: string; compact?: boolean }) {
   const services: Service[] = [
     { label: "โอนเงิน", icon: ArrowUpDown, href: "/transfer" },
@@ -54,7 +51,6 @@ export function ServiceGrid({ kSureHref, compact = false }: { kSureHref?: string
     { label: "ทั้งหมด", icon: LayoutGrid },
   ];
 
-  // T1 แสดงแถวเดียว ไม่มีหัวข้อ
   const visible = compact ? services.slice(0, 4) : services;
 
   return (

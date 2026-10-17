@@ -1,5 +1,3 @@
-# คำสั่งลัดของ repo — ต้องมี Docker, Go และ goose/sqlc/air (make tools)
-# DB ใน docker compose เปิดพอร์ต 5432 ไว้ให้คำสั่งบนเครื่องใช้ได้
 
 DB_URL      ?= postgres://ksure:ksure_dev_only@localhost:5432/ksure?sslmode=disable
 TEST_DB_URL ?= postgres://ksure:ksure_dev_only@localhost:5432/ksure_test?sslmode=disable
@@ -8,51 +6,51 @@ GOOSE  := $(GOBIN)/goose -dir backend/migrations postgres "$(DB_URL)"
 
 .PHONY: help up down logs ps migrate migrate-down seed db-reset test sqlc dev tools
 
-help: ## แสดงคำสั่งทั้งหมด
+help: ## List available commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-13s %s\n", $$1, $$2}'
 
-up: ## เปิด db + api + adminer (build ใหม่ถ้าโค้ดเปลี่ยน) — api รัน migration เองตอน start
+up: ## Start database, API, and Adminer; the API runs migrations on startup
 	docker compose --profile tools up -d --build --wait db api
 	docker compose --profile tools up -d adminer
 	@echo "api     http://localhost:8080/api/v1/readyz"
 	@echo "adminer http://localhost:8081  (server: db · user: ksure · pass: ksure_dev_only · db: ksure)"
 
-down: ## ปิดทุก container (ข้อมูลใน volume ยังอยู่)
+down: ## Stop containers and keep the database volume
 	docker compose --profile tools down
 
-logs: ## ดู log ของ api
+logs: ## Follow API logs
 	docker compose logs -f api
 
-ps: ## สถานะ container
+ps: ## Show container status
 	docker compose --profile tools ps
 
 migrate: ## goose up
 	$(GOOSE) up
 
-migrate-down: ## goose down ทีละ 1 version
+migrate-down: ## Roll back one migration
 	$(GOOSE) down
 
-seed: ## ใส่ข้อมูลเดโมตั้งต้นใหม่ (ล้างดีลทั้งหมด แล้ว seed users/accounts/properties)
+seed: ## Reset demo deals and seed users, accounts, and properties
 	$(GOOSE) down-to 1
 	$(GOOSE) up
 
-db-reset: ## ล้าง schema ทั้งหมดแล้ว migrate + seed ใหม่
+db-reset: ## Reset the schema, then migrate and seed
 	$(GOOSE) reset
 	$(GOOSE) up
 
-test: ## go test ทั้ง backend รวม integration (ใช้ DB ksure_test แยกจากข้อมูลเดโม — ต้อง make up ก่อน)
+test: ## Run backend tests against the separate ksure_test database; requires make up
 	@docker compose exec -T db psql -U ksure -d ksure -tAc "SELECT 1 FROM pg_database WHERE datname = 'ksure_test'" | grep -q 1 \
 		|| docker compose exec -T db createdb -U ksure ksure_test
 	cd backend && TEST_DATABASE_URL="$(TEST_DB_URL)" go test -count=1 ./...
 
-sqlc: ## generate โค้ดจาก backend/internal/repository/queries
+sqlc: ## Generate repository code from SQL queries
 	cd backend && $(GOBIN)/sqlc generate
 
-dev: ## รัน api บนเครื่องแบบ hot reload (air) — ต้องมี db ทำงาน และหยุด container api ก่อน (docker compose stop api)
+dev: ## Run the API with hot reload; start db and stop the API container first
 	cd backend && DATABASE_URL="$(DB_URL)" JWT_SECRET=dev-only-secret-change-me-0123456789abcdef \
 		DEMO_TOOLS_ENABLED=true $(GOBIN)/air
 
-tools: ## ติดตั้ง goose / sqlc / air
+tools: ## Install goose, sqlc, and air
 	go install github.com/pressly/goose/v3/cmd/goose@v3.29.0
 	go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1
 	go install github.com/air-verse/air@v1.67.4

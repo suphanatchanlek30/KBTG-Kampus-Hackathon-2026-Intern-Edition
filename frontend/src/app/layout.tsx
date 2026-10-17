@@ -4,7 +4,6 @@ import { brand } from "@/config/brand";
 import { QueryProvider } from "@/providers/QueryProvider";
 import "./globals.css";
 
-// Poppins ไม่ใช่ variable font ต้องระบุ weight · ตัวเลข/อังกฤษใช้ Poppins ส่วนไทย fallback ไป Noto Sans Thai
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],

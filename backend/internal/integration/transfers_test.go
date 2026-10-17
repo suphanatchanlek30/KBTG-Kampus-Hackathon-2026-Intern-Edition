@@ -8,7 +8,6 @@ import (
 
 const landlordAccount = "00000000-0000-0000-0000-0000000aa001"
 
-// T8: ผู้เช่าโอนหาผู้ให้เช่าที่ยังมีดีลค้าง → เตือน · ไม่มีดีลค้าง → ไม่เตือน
 func TestTransferPrecheckWarnsOffDealPayment(t *testing.T) {
 	landlord, tenant := login(t, "landlord"), login(t, "tenant")
 
@@ -36,7 +35,7 @@ func TestTransferPrecheckWarnsOffDealPayment(t *testing.T) {
 
 func TestTransferCancelAndConfirm(t *testing.T) {
 	landlord, tenant := login(t, "landlord"), login(t, "tenant")
-	resetDeal(t, landlord, "funds_locked") // ผู้เช่า 28,500 กันไว้ 6,500 → ใช้ได้ 22,000
+	resetDeal(t, landlord, "funds_locked")
 	body := func(action string, amount int) string {
 		return fmt.Sprintf(`{"toAccountId":%q,"amountSatang":%d,"memo":"ค่าส่วนกลางล่วงหน้า","action":%q}`, landlordAccount, amount, action)
 	}
@@ -60,7 +59,6 @@ func TestTransferCancelAndConfirm(t *testing.T) {
 		t.Errorf("landlord = %v", bal)
 	}
 
-	// เงินที่ถูกกันไว้ใช้โอนไม่ได้ — ใช้ได้เหลือ 19,000
 	res, out = tenant.post("/transfers", body("CONFIRM", 2_000_000))
 	if res.StatusCode != http.StatusUnprocessableEntity || errorCode(out) != "INSUFFICIENT_BALANCE" {
 		t.Errorf("over available: %d %v", res.StatusCode, out)

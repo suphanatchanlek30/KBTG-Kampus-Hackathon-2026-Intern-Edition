@@ -1,7 +1,6 @@
 import { ChevronRight, Lock } from "lucide-react";
 import { brand } from "@/config/brand";
 
-/** แบนเนอร์เตือนบน T1 (Figma: 353×74 · r20 · card · ไอคอนล็อก 42×42 r14 card2) */
 export function TipBanner() {
   return (
     <section className="flex items-center gap-3 rounded-card bg-card p-4">

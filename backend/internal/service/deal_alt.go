@@ -12,11 +12,7 @@ import (
 	"github.com/suphanatchanlek30/ksure/backend/internal/repository/db"
 )
 
-// ---- ทางแยกของดีล (Phase 8): ยกเลิก 2 ฝ่าย, แจ้งปัญหา, คืนเงิน ----
 
-// Cancel — POST /deals/{id}/cancel (D11): ต้องยินยอมทั้งสองฝ่าย (docs/04-database.md §6.4)
-//   - ฝ่ายแรก: บันทึกคำขอ state เดิม แจ้งเตือนอีกฝ่าย (nextActor = อีกฝ่าย)
-//   - ฝ่ายที่สอง: CANCELLED → REFUNDED คืนยอดที่ยังไม่ปล่อย (ค่าจองที่ปล่อยแล้วไม่คืน)
 func (s *DealService) Cancel(ctx context.Context, actor domain.Actor, idem IdemRequest, rawID string, version int32) (Response, error) {
 	now := s.clock.Now()
 	return runIdempotent(ctx, s.repo, actor, idem, now, http.StatusOK, func(q *db.Queries) (any, error) {
@@ -57,7 +53,6 @@ func (s *DealService) Cancel(ctx context.Context, actor domain.Actor, idem IdemR
 		}
 
 		if theirs == nil {
-			// ฝ่ายแรก — รออีกฝ่าย
 			if err := s.updateCancel(ctx, q, params); err != nil {
 				return nil, err
 			}
@@ -71,7 +66,6 @@ func (s *DealService) Cancel(ctx context.Context, actor domain.Actor, idem IdemR
 			return s.reload(ctx, q, d.ID, role)
 		}
 
-		// ฝ่ายที่สองยินยอม — ยกเลิกและคืนเงินใน transaction เดียว
 		params.State = db.DealState(next[len(next)-1])
 		if err := s.updateCancel(ctx, q, params); err != nil {
 			return nil, err
@@ -91,7 +85,6 @@ func (s *DealService) Cancel(ctx context.Context, actor domain.Actor, idem IdemR
 	})
 }
 
-// ReportIssue — POST /deals/{id}/report-issue (D4): ห้องไม่ตรงกับดีล → hasOpenIssue · เงินยังกันไว้ ไม่ปล่อย
 func (s *DealService) ReportIssue(ctx context.Context, actor domain.Actor, idem IdemRequest, rawID string, version int32) (Response, error) {
 	now := s.clock.Now()
 	return runIdempotent(ctx, s.repo, actor, idem, now, http.StatusOK, func(q *db.Queries) (any, error) {
@@ -134,9 +127,6 @@ func (s *DealService) updateCancel(ctx context.Context, q *db.Queries, p db.Upda
 	return nil
 }
 
-// refund คืนยอดที่ยังไม่ปล่อยให้ผู้เช่า (ปลดการกัน — เงินไม่เคยออกจากบัญชี) แล้วเขียน
-// endEvent (→ endState) + FUNDS_REFUNDED (endState → REFUNDED) · ผู้เรียกต้องเปลี่ยน deals.state เอง
-// คืนยอดที่คืน (0 = ยังไม่มีเงินกัน เช่น WAITING_ACCEPT)
 func (s *DealService) refund(ctx context.Context, q *db.Queries, d db.Deal, endEvent db.DealEventType, endState db.DealState,
 	actor uuid.NullUUID, ledgerKey string, now time.Time) (int64, error) {
 	var unreleased int64
@@ -144,7 +134,7 @@ func (s *DealService) refund(ctx context.Context, q *db.Queries, d db.Deal, endE
 	case domain.StateFundsLocked:
 		unreleased = d.TotalSatang
 	case domain.StateBookingFeeReleased:
-		unreleased = d.MainDepositSatang // ค่าจองปล่อยไปแล้ว ไม่คืน
+		unreleased = d.MainDepositSatang // The released booking fee is not refundable.
 	}
 	actorID := uuid.Nil
 	if actor.Valid {

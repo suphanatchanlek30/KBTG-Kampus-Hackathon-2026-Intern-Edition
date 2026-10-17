@@ -13,7 +13,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// post ส่ง action ที่ต้องมี Idempotency-Key (key ใหม่ทุกครั้งถ้าไม่ระบุ)
 func (c *client) post(path, body string, key ...string) (*http.Response, map[string]any) {
 	c.t.Helper()
 	k := uuid.NewString()
@@ -38,7 +37,6 @@ func ledgerCount(t *testing.T, dealID, typ string) int {
 	return n
 }
 
-// tokenStored = มี invite token ตัวจริงอยู่ในคำตอบที่บันทึกไว้ (ต้องไม่มี — DB เก็บได้แค่ hash)
 func tokenStored(t *testing.T, tok string) bool {
 	t.Helper()
 	var n int
@@ -69,7 +67,6 @@ func num(m map[string]any, path ...string) float64 {
 
 func version(m map[string]any) int { return int(num(m, "version")) }
 
-// resetDeal รีเซ็ต scenario แล้วคืน id ของดีลตัวอย่าง
 func resetDeal(t *testing.T, c *client, scenario string) string {
 	t.Helper()
 	res, body := c.do(http.MethodPost, "/demo/reset?scenario="+scenario, "")
@@ -91,7 +88,6 @@ func newDealBody(t *testing.T, landlord *client, total, booking int) string {
 		propID, total, booking, viewing.Format(time.RFC3339), moveIn)
 }
 
-// flow สำเร็จเต็ม: create → send → lock → confirm-viewing → confirm-move-in (docs/06-roadmap.md Phase 6)
 func TestFullDealFlow(t *testing.T) {
 	landlord, tenant := login(t, "landlord"), login(t, "tenant")
 	resetDeal(t, landlord, "fresh")
@@ -112,7 +108,6 @@ func TestFullDealFlow(t *testing.T) {
 	if !strings.HasPrefix(qrURL, "http://app.test/invites/") {
 		t.Fatalf("qrUrl = %q", qrURL)
 	}
-	// token ตัวจริงต้องไม่อยู่ใน DB: อ่านดีลซ้ำ / ส่งซ้ำด้วย key เดิม ไม่ได้ qrUrl และคำตอบที่บันทึกไม่มี token
 	token := strings.TrimPrefix(qrURL, "http://app.test/invites/")
 	if _, again := landlord.do(http.MethodGet, "/deals/"+id, ""); str(again, "invite", "qrUrl") != "" {
 		t.Error("qrUrl leaked on GET")
@@ -134,7 +129,6 @@ func TestFullDealFlow(t *testing.T) {
 		t.Fatalf("tenant home = %v", home)
 	}
 
-	// เปิดได้ทั้งจาก share code และ token ใน QR — ยังไม่เห็นข้อมูลผู้เช่า
 	for _, code := range []string{str(deal, "shareCode"), token} {
 		res, preview := tenant.do(http.MethodGet, "/invites/"+code, "")
 		if res.StatusCode != http.StatusOK || preview["tenant"] != nil || str(preview, "myRole") != "TENANT" {
@@ -142,7 +136,6 @@ func TestFullDealFlow(t *testing.T) {
 		}
 	}
 
-	// T3 โหลดดีลด้วย id ก่อนกันเงิน — ผู้เช่าที่มีคำเชิญเห็นแบบ preview · คนอื่นยังได้ 403
 	if res, pre := tenant.do(http.MethodGet, "/deals/"+id, ""); res.StatusCode != http.StatusOK || pre["tenant"] != nil {
 		t.Fatalf("tenant GET before lock: %d %v", res.StatusCode, pre)
 	}
@@ -160,7 +153,6 @@ func TestFullDealFlow(t *testing.T) {
 	if str(ll, "state") != "FUNDS_LOCKED" || str(ll, "tenant", "shortName") != "ณัฐธิดา ศ." || num(ll, "amounts", "heldSatang") != 650_000 {
 		t.Fatalf("landlord view: %v", ll)
 	}
-	// คำเชิญถูก revoke แล้วแต่ยังแสดงเป็นประวัติ (เวลาส่ง) เหมือน frontend mock
 	if ll["invite"] == nil || str(ll, "invite", "sentAt") == "" {
 		t.Errorf("invite after lock = %v", ll["invite"])
 	}
@@ -180,7 +172,6 @@ func TestFullDealFlow(t *testing.T) {
 		t.Errorf("final amounts: %v", done["amounts"])
 	}
 
-	// ยอดสุดท้าย: ผู้ให้เช่า 49,350.00 / ผู้เช่า 22,000.00
 	if bal, _, _ := account(t, landlord); bal != 4_935_000 {
 		t.Errorf("landlord balance = %v", bal)
 	}
@@ -201,7 +192,6 @@ func TestFullDealFlow(t *testing.T) {
 	}
 }
 
-// ยิง confirm-viewing ซ้ำ 5 ครั้ง key เดียวกัน → ledger มี RELEASE_BOOKING_FEE 1 แถว
 func TestConfirmViewingIsIdempotent(t *testing.T) {
 	landlord, tenant := login(t, "landlord"), login(t, "tenant")
 	id := resetDeal(t, landlord, "funds_locked")
@@ -231,22 +221,19 @@ func TestConfirmViewingIsIdempotent(t *testing.T) {
 		t.Errorf("landlord paid more than once: %v", bal)
 	}
 
-	// key เดิม body ต่าง → IDEMPOTENCY_CONFLICT
 	res, out := tenant.post("/deals/"+id+"/confirm-viewing", `{"version":3,"checklist":["VIEWED_ROOM","ROOM_MATCHES","LANDLORD_MATCHES"]}`, key)
 	if res.StatusCode != http.StatusConflict || errorCode(out) != "IDEMPOTENCY_CONFLICT" {
 		t.Errorf("same key, new body: %d %v", res.StatusCode, out)
 	}
-	// key ใหม่หลังปล่อยแล้ว → DEAL_STATE_CONFLICT (ไม่ใช่ VERSION_MISMATCH)
 	res, out = tenant.post("/deals/"+id+"/confirm-viewing", body)
 	if res.StatusCode != http.StatusConflict || errorCode(out) != "DEAL_STATE_CONFLICT" {
 		t.Errorf("new key after release: %d %v", res.StatusCode, out)
 	}
 }
 
-// ยิง confirm-viewing 2 request พร้อมกัน (key ต่างกัน) → สำเร็จ 1, 409 1
 func TestConcurrentConfirmViewing(t *testing.T) {
 	landlord, tenant := login(t, "landlord"), login(t, "tenant")
-	for round := range 5 { // หลายรอบ เพิ่มโอกาสชนกันจริง
+	for round := range 5 { // Repeat to exercise the concurrent write path.
 		id := resetDeal(t, landlord, "funds_locked")
 		body := `{"version":2,"checklist":["VIEWED_ROOM","ROOM_MATCHES","LANDLORD_MATCHES"]}`
 
@@ -283,7 +270,6 @@ func TestConcurrentConfirmViewing(t *testing.T) {
 	}
 }
 
-// landlord เรียก confirm → 403 · ผู้ใช้อื่นอ่าน/ทำรายการดีล → 403
 func TestDealGuards(t *testing.T) {
 	landlord, outsider := login(t, "landlord"), login(t, "outsider")
 	id := resetDeal(t, landlord, "funds_locked")
@@ -310,7 +296,6 @@ func TestDealGuards(t *testing.T) {
 	}
 }
 
-// ยอดไม่พอ → 422 และไม่มี ledger event
 func TestLockWithInsufficientBalance(t *testing.T) {
 	landlord, tenant := login(t, "landlord"), login(t, "tenant")
 	id := resetDeal(t, landlord, "waiting_accept")
@@ -386,7 +371,6 @@ func TestRejectDeal(t *testing.T) {
 	if len(home["pendingInvites"].([]any)) != 0 {
 		t.Errorf("invite still pending: %v", home["pendingInvites"])
 	}
-	// ปฏิเสธแล้ว เปิดรหัสเดิมได้ผลลัพธ์ของตัวเอง (ผู้เช่าผูกกับดีลแล้ว) — คนอื่นได้ 404
 	if res, _ := login(t, "outsider").do(http.MethodGet, "/invites/KS-8F4Q21", ""); res.StatusCode != http.StatusNotFound {
 		t.Errorf("outsider preview after reject: %d", res.StatusCode)
 	}
@@ -424,7 +408,6 @@ func TestLookupTenantByPhone(t *testing.T) {
 	if res.StatusCode != http.StatusOK || str(out, "shortName") != "ณัฐธิดา ศ." || len(out) != 1 {
 		t.Errorf("lookup: %d %v", res.StatusCode, out)
 	}
-	// เบอร์ของผู้ให้เช่า (ไม่ใช่ผู้เช่า) → ไม่พบ
 	if res, _ := landlord.do(http.MethodGet, "/users/lookup?phone=0810004821", ""); res.StatusCode != http.StatusNotFound {
 		t.Errorf("landlord phone: %d", res.StatusCode)
 	}
@@ -442,7 +425,6 @@ func TestInvitePreviewRateLimited(t *testing.T) {
 	}
 }
 
-// กดรัวด้วย key เดียวกันพร้อมกัน (เน็ตช้า retry ซ้อน) → ทุกตัวได้คำตอบเดียวกัน ปล่อยเงินครั้งเดียว
 func TestConcurrentSameKey(t *testing.T) {
 	landlord, tenant := login(t, "landlord"), login(t, "tenant")
 	id := resetDeal(t, landlord, "funds_locked")

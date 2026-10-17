@@ -1,12 +1,10 @@
 -- name: ListPayees :many
--- ผู้รับโอนที่เลือกได้ = บัญชีหลักของผู้ใช้เดโมคนอื่น
 SELECT a.id AS account_id, u.display_name, a.bank_name, a.account_no_masked
   FROM demo_accounts a JOIN users u ON u.id = a.user_id
  WHERE a.is_primary AND a.user_id <> @user_id
  ORDER BY u.role, u.username;
 
 -- name: FindOpenDealWithPayee :one
--- T8: ผู้เช่ากำลังโอนหาคู่ดีลที่ยังไม่จบ (docs/04-database.md §6.6)
 SELECT d.id, d.ref_no, p.unit_no
   FROM deals d JOIN properties p ON p.id = d.property_id
  WHERE d.tenant_id = @user_id

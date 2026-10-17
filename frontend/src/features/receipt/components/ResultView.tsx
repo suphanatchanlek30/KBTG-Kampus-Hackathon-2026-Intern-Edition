@@ -18,7 +18,6 @@ import type { DealDTO, TrancheStatus } from "@/types/api";
 type Tone = "warn" | "muted";
 type Outcome = { icon: LucideIcon; tone: Tone; title: string; subtitle: string };
 
-/** ข้อความตามวิธีที่ดีลจบ — ดูจากไทม์ไลน์ (ยกเลิก vs หมดอายุ) */
 function outcome(deal: DealDTO): Outcome {
   const tenant = deal.myRole === "TENANT";
   const refunded = deal.amounts.refundedSatang > 0;
@@ -58,10 +57,6 @@ const TRANCHE: Record<TrancheStatus, { label: string; icon: LucideIcon; classNam
   HELD: { label: "ยังกันไว้", icon: Clock, className: "bg-divider-light text-ink-2" },
 };
 
-/**
- * D3 — ดีลจบแบบไม่สำเร็จ (ปฏิเสธ / หมดอายุ / ยกเลิก-คืนเงิน)
- * layout เดียวกับ L6/T7 (hero → หัวข้อ → ยอด → การ์ดขาว) แต่โทนเหลือง/เทา และไม่มีประกาย — ⚠️ รออนุมัติดีไซน์
- */
 export function ResultView({
   deal,
   onHome,
@@ -69,7 +64,6 @@ export function ResultView({
 }: {
   deal: DealDTO;
   onHome?: () => void;
-  /** ผู้ให้เช่า: สร้างคำขอใหม่ */
   onNewDeal?: () => void;
 }) {
   const enter = useEnter();
@@ -162,7 +156,6 @@ const TONE = {
   muted: { ring: "border-white/10", fill: "bg-card2 border-stroke text-gray", glow: "bg-white/6" },
 } as const;
 
-/** วงกลม hero ⌀92 + วงแหวนบางรอบ — โทนตามผลลัพธ์ ไม่มี ripple/ประกาย (ไม่ใช่ข่าวดี) */
 function ResultHero({ icon: Icon, tone }: { icon: LucideIcon; tone: Tone }) {
   const full = useMotionMode() === "full";
   const t = TONE[tone];
@@ -180,7 +173,6 @@ function ResultHero({ icon: Icon, tone }: { icon: LucideIcon; tone: Tone }) {
   );
 }
 
-/** พื้นหลัง: glow นุ่มๆ + วงแหวนบาง 3 วง กึ่งกลาง hero (ตำแหน่งเดียวกับ L6) */
 function ResultBackground({ tone }: { tone: Tone }) {
   const t = TONE[tone];
   return (

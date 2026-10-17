@@ -11,7 +11,6 @@ import { MintCardDecor } from "@/components/ui/MintCardDecor";
 import { formatBaht } from "@/lib/format/money";
 import type { AccountDTO } from "@/types/api";
 
-// ไม่มี href = ยังไม่ได้ทำ — กดแล้วไม่ไปไหน
 const ACTIONS: { label: string; icon: LucideIcon; href?: string }[] = [
   { label: "โอนเงิน", icon: ArrowUpDown, href: "/transfer" },
   { label: "เติมเงิน", icon: Download },
@@ -21,7 +20,6 @@ const ACTIONS: { label: string; icon: LucideIcon; href?: string }[] = [
 const ACTION_CLASS =
   "flex h-[38px] items-center justify-center gap-1.5 rounded-full border border-white/35 bg-white/50 text-body font-medium text-ink transition-transform active:scale-[0.97]";
 
-// ยอดเงิน count-up เฉพาะครั้งแรกของ session (§5.6)
 const COUNTED_KEY = "ks-balance-counted";
 const balanceCounted = () => {
   try {
@@ -31,11 +29,9 @@ const balanceCounted = () => {
   }
 };
 
-/** การ์ดยอดเงิน L1/T1 (Figma: 353×187 · r28 · grad-mint · pad 20) */
 export function BalanceCard({ account }: { account: AccountDTO }) {
   const full = useMotionMode() === "full";
   const [hidden, setHidden] = useState(false);
-  // นับครั้งที่กดปุ่มตา — 0 = ยังไม่เคยกด ไม่ต้องเล่น crossfade ตอน mount
   const [toggles, setToggles] = useState(0);
   const [countUp] = useState(() => typeof window !== "undefined" && !balanceCounted());
   const counting = full && countUp;
@@ -45,7 +41,6 @@ export function BalanceCard({ account }: { account: AccountDTO }) {
     try {
       sessionStorage.setItem(COUNTED_KEY, "1");
     } catch {
-      // sessionStorage ใช้ไม่ได้ (private mode) — นับทุกครั้งที่ mount ก็ไม่เสียหาย
     }
   }, [counting]);
 
@@ -65,7 +60,6 @@ export function BalanceCard({ account }: { account: AccountDTO }) {
 
       <p className="relative mt-3 text-caption">ยอดเงินที่ใช้ได้</p>
       <div className="relative mt-px flex items-center gap-2">
-        {/* ซ่อน/แสดงยอด: crossfade + blur 4px → 0 (0.2s) */}
         <motion.span
           key={hidden ? "hidden" : "shown"}
           className="text-amount-balance text-ink tabular-nums"

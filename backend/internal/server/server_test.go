@@ -42,7 +42,6 @@ func do(t *testing.T, app *fiber.App, req *http.Request) (*http.Response, []byte
 }
 
 func TestHealthz(t *testing.T) {
-	// healthz ไม่แตะ DB — DB ล่มก็ยังตอบ 200
 	res, body := do(t, newTestApp(fakeDB{err: errors.New("down")}), httptest.NewRequest(http.MethodGet, "/api/v1/healthz", nil))
 	if res.StatusCode != http.StatusOK || string(body) != `{"status":"ok"}` {
 		t.Fatalf("got %d %s", res.StatusCode, body)
@@ -68,7 +67,6 @@ func TestReadyzWhenDatabaseDown(t *testing.T) {
 	if e.Error.Code != "NOT_READY" || e.Error.RequestID == "" {
 		t.Errorf("body = %s", body)
 	}
-	// ข้อความ error ภายในต้องไม่หลุดออกไป
 	if strings.Contains(string(body), "connection refused") {
 		t.Errorf("internal error leaked: %s", body)
 	}

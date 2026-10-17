@@ -1,4 +1,3 @@
-// Package server สร้าง fiber.App: middleware, error handler กลาง และเส้นทาง (routes.go)
 package server
 
 import (
@@ -17,7 +16,6 @@ import (
 	"github.com/suphanatchanlek30/ksure/backend/internal/service"
 )
 
-// Deps คือของที่ handler ต้องใช้ — main.go เป็นคนประกอบ
 type Deps struct {
 	Log           *slog.Logger
 	DB            handler.Pinger
@@ -27,7 +25,6 @@ type Deps struct {
 	Notifications *service.NotificationService
 	Deals         *service.DealService
 	Transfers     *service.TransferService
-	// nil = ปิด /demo/* (DEMO_TOOLS_ENABLED=false)
 	Demo *service.DemoService
 }
 
@@ -40,7 +37,6 @@ func New(deps Deps) *fiber.App {
 		IdleTimeout:  60 * time.Second,
 	})
 
-	// ลำดับ: requestid ก่อน (log/error ใช้) → logger ครอบ recover เพื่อให้ panic ถูก log พร้อม status 500
 	app.Use(requestid.New())
 	app.Use(middleware.RequestLogger(deps.Log))
 	app.Use(recover.New())
@@ -60,8 +56,6 @@ type errorPayload struct {
 	Details   []domain.FieldError `json:"details,omitempty"`
 }
 
-// errorHandler แปลงทุก error เป็นรูปแบบเดียว { error: { code, message, requestId } } (docs/05-api.md §1)
-// ไม่ส่ง stack หรือข้อความ error ภายในออกไป
 func errorHandler(log *slog.Logger) fiber.ErrorHandler {
 	return func(c fiber.Ctx, err error) error {
 		appErr, ok := domain.AsAppError(err)

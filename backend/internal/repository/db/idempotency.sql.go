@@ -73,7 +73,6 @@ type LockIdempotencyKeyParams struct {
 	Key    string
 }
 
-// ล็อก (user, key) จนจบ transaction — request ซ้ำที่มาพร้อมกันจะรอแล้วเห็นคำตอบที่บันทึกไว้
 func (q *Queries) LockIdempotencyKey(ctx context.Context, arg LockIdempotencyKeyParams) error {
 	_, err := q.db.Exec(ctx, lockIdempotencyKey, arg.UserID, arg.Key)
 	return err

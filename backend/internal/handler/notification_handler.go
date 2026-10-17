@@ -30,7 +30,6 @@ type markReadRequest struct {
 	All bool     `json:"all"`
 }
 
-// MarkRead — POST /notifications/read { ids: [...] } หรือ { all: true }
 func (h *NotificationHandler) MarkRead(c fiber.Ctx) error {
 	var req markReadRequest
 	if err := c.Bind().JSON(&req); err != nil {

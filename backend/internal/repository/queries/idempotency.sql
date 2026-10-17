@@ -1,5 +1,4 @@
 -- name: LockIdempotencyKey :exec
--- ล็อก (user, key) จนจบ transaction — request ซ้ำที่มาพร้อมกันจะรอแล้วเห็นคำตอบที่บันทึกไว้
 SELECT pg_advisory_xact_lock(hashtextextended(@user_id::text || ':' || @key::text, 0));
 
 -- name: GetIdempotencyKey :one

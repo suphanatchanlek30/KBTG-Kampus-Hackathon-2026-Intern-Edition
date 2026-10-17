@@ -1,9 +1,6 @@
-// บันทึกส่วนหนึ่งของหน้าเป็นรูป PNG — **ใส่ลายน้ำ SIMULATED · Prototype ทุกครั้ง** (docs/06-roadmap.md Phase 8)
-// กันรูปหลักฐาน/QR ถูกนำไปใช้เป็นสลิปปลอม: ลายน้ำถูกใส่ลงใน DOM ระหว่างจับภาพ จึงไม่มีทางได้รูปที่ไม่มีลายน้ำ
 import { toPng } from "html-to-image";
 import { brand } from "@/config/brand";
 
-/** หา element ที่มองเห็นอยู่ — หน้าที่ซ่อนใน <Activity> ยังมี DOM อยู่ (display: none) */
 export function findVisible(selector: string): HTMLElement | null {
   return (
     Array.from(document.querySelectorAll<HTMLElement>(selector)).find((el) => el.getClientRects().length > 0) ?? null
@@ -40,7 +37,6 @@ function watermark(): HTMLElement {
   return layer;
 }
 
-/** จับภาพ node พร้อมลายน้ำ → Blob PNG */
 export async function captureWithWatermark(node: HTMLElement): Promise<Blob> {
   const layer = watermark();
   const prevPosition = node.style.position;
@@ -55,10 +51,6 @@ export async function captureWithWatermark(node: HTMLElement): Promise<Blob> {
   }
 }
 
-/**
- * บันทึกรูป: มือถือที่แชร์ไฟล์ได้ → แผ่นแชร์ของระบบ (บันทึกลงคลังภาพได้) · อื่นๆ → ดาวน์โหลดไฟล์
- * คืน "shared" | "downloaded" | "cancelled"
- */
 export async function saveImage(node: HTMLElement, filename: string): Promise<"shared" | "downloaded" | "cancelled"> {
   const blob = await captureWithWatermark(node);
   const file = new File([blob], filename, { type: "image/png" });
@@ -77,7 +69,6 @@ export async function saveImage(node: HTMLElement, filename: string): Promise<"s
   return "downloaded";
 }
 
-/** แชร์ข้อความ/ลิงก์ (Web Share API) — ไม่รองรับ → คัดลอกแทน · คืน "shared" | "copied" | "cancelled" */
 export async function shareText(data: { title: string; text: string; url?: string }) {
   if (navigator.share) {
     try {

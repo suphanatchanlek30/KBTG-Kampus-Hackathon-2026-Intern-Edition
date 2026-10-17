@@ -34,7 +34,6 @@ type FindOpenDealWithPayeeRow struct {
 	UnitNo string
 }
 
-// T8: ผู้เช่ากำลังโอนหาคู่ดีลที่ยังไม่จบ (docs/04-database.md §6.6)
 func (q *Queries) FindOpenDealWithPayee(ctx context.Context, arg FindOpenDealWithPayeeParams) (FindOpenDealWithPayeeRow, error) {
 	row := q.db.QueryRow(ctx, findOpenDealWithPayee, arg.UserID, arg.ToAccountID)
 	var i FindOpenDealWithPayeeRow
@@ -89,7 +88,6 @@ type ListPayeesRow struct {
 	AccountNoMasked string
 }
 
-// ผู้รับโอนที่เลือกได้ = บัญชีหลักของผู้ใช้เดโมคนอื่น
 func (q *Queries) ListPayees(ctx context.Context, userID uuid.UUID) ([]ListPayeesRow, error) {
 	rows, err := q.db.Query(ctx, listPayees, userID)
 	if err != nil {

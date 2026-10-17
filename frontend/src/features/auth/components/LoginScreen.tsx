@@ -17,7 +17,6 @@ const ACCOUNTS: { role: Role; title: string; name: string; icon: typeof House }[
   { role: "TENANT", title: "ผู้เช่า", name: "ณัฐธิดา ศรีสุข", icon: KeyRound },
 ];
 
-/** /login — D0 ล็อกอินเดโม (ไม่มีรหัสผ่าน · เลือกบัญชีเดโม) — ⚠️ รออนุมัติดีไซน์ (docs/01-user-flow.md §7) */
 export function LoginScreen() {
   const [pending, setPending] = useState<Role | null>(null);
 

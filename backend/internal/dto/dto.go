@@ -1,5 +1,3 @@
-// Package dto คือรูปร่าง JSON ที่ตอบ frontend — ต้องตรงกับ docs/05-api.md §3 และ frontend/src/types/api.ts
-// เงินเป็น int64 สตางค์ · เวลาเป็น string ISO-8601 มี offset (+07:00) · วันล้วน "2026-11-01"
 package dto
 
 type UserDTO struct {
@@ -91,7 +89,7 @@ type DemoResetDTO struct {
 	DealID   *string `json:"dealId"`
 }
 
-// ---- Deal (docs/05-api.md §3 DealDTO) ----
+// Deal
 
 type DealPropertyDTO struct {
 	ID           string `json:"id"`
@@ -129,7 +127,6 @@ type TrancheDTO struct {
 
 type InviteDTO struct {
 	ExpiresAt string `json:"expiresAt"`
-	// ส่งเฉพาะตอนสร้าง/ออกใหม่ — DB เก็บแค่ hash ของ token จึงอ่านซ้ำไม่ได้
 	QrURL  string  `json:"qrUrl,omitempty"`
 	SentAt *string `json:"sentAt"`
 }
@@ -145,7 +142,6 @@ type TimelineItemDTO struct {
 	AmountSatang *int64 `json:"amountSatang"`
 }
 
-// AccountBalanceDTO แนบมากับคำตอบของ lock (T4 "ยอดที่ใช้ได้ตอนนี้")
 type AccountBalanceDTO struct {
 	AvailableSatang int64 `json:"availableSatang"`
 	HeldSatang      int64 `json:"heldSatang"`
@@ -177,8 +173,6 @@ type DealDTO struct {
 	Account        *AccountBalanceDTO `json:"account,omitempty"`
 }
 
-// Redacted คือสำเนาที่ไม่มี qrUrl — ใช้เก็บใน idempotency_keys เพราะ token จริงต้องไม่อยู่ใน DB
-// (ส่งซ้ำด้วย key เดิมจะไม่ได้ qrUrl → frontend เรียก POST /deals/{id}/invite เพื่อออกใหม่)
 func (d DealDTO) Redacted() any {
 	if d.Invite != nil && d.Invite.QrURL != "" {
 		inv := *d.Invite
@@ -214,7 +208,7 @@ type UserLookupDTO struct {
 	ShortName string `json:"shortName"`
 }
 
-// ---- Transfer (T8) ----
+// Transfer
 
 type PayeeDTO struct {
 	AccountID       string `json:"accountId"`

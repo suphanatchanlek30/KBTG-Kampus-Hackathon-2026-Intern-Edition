@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# ดึงเฟรม "K Sure UI v3-final" จาก Figma แล้วสร้าง docs/design/figma-spec/ ใหม่
-# ต้องมี Personal Access Token ใน ~/.figma_token (scope: File content read-only)
 set -euo pipefail
 FILE_KEY="KLFeKqPDsAOhGLcbfrjT7N"
 NODE_ID="29:2"

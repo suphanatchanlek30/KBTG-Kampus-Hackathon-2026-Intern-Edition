@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# K Sure API — build เป็น static binary แล้วรันบน distroless แบบ non-root
+# Build a static API binary and run it as a non-root user on distroless.
 
 FROM golang:1.27-alpine AS build
 WORKDIR /src

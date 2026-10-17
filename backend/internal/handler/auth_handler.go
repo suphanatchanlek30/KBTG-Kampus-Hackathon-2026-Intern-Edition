@@ -45,15 +45,13 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 	return c.JSON(out)
 }
 
-// Logout — POST /auth/logout: ลบ cookie (ไม่ต้องล็อกอินก็เรียกได้)
 func (h *AuthHandler) Logout(c fiber.Ctx) error {
 	ck := h.cookie("")
-	ck.Expires = time.Unix(0, 0) // วันที่ในอดีต = browser ลบ cookie ทิ้ง
+	ck.Expires = time.Unix(0, 0) // Expire the cookie in the browser.
 	c.Cookie(ck)
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-// cookie: HttpOnly (JS อ่านไม่ได้) · SameSite=Lax · Secure เมื่อเดโมผ่าน HTTPS
 func (h *AuthHandler) cookie(value string) *fiber.Cookie {
 	return &fiber.Cookie{
 		Name:     session.CookieName,

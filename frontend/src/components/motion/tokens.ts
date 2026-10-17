@@ -1,4 +1,3 @@
-// ค่าอนิเมชันกลาง (docs/02-ui-spec.md §5) — ใช้ร่วมกันทุก component ใน components/motion
 
 export const EASE_OUT_EXPO = [0.16, 1, 0.3, 1] as const;
 export const EASE_IN_OUT = [0.65, 0, 0.35, 1] as const;
@@ -9,5 +8,4 @@ export const SPRING_HERO = { type: "spring", stiffness: 260, damping: 18 } as co
 export const SPRING_CARD = { type: "spring", stiffness: 200, damping: 24 } as const;
 export const SPRING_DOT = { type: "spring", stiffness: 400, damping: 22 } as const;
 
-/** reduced motion: spring/slide → opacity อย่างเดียว 0.15s (§5.9) */
 export const REDUCED_FADE = { duration: 0.15 } as const;

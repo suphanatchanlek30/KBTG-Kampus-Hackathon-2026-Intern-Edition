@@ -14,9 +14,7 @@ import (
 	"github.com/suphanatchanlek30/ksure/backend/internal/repository/db"
 )
 
-// ---- หมดอายุอัตโนมัติ (docs/04-database.md §6.5) ----
 
-// RunExpiryWorker ตรวจทุก tick จน ctx ถูกยกเลิก (API ปิด) — error ไม่ทำให้ worker หยุด รอบหน้าลองใหม่
 func (s *DealService) RunExpiryWorker(ctx context.Context, tick time.Duration, log *slog.Logger) {
 	t := time.NewTicker(tick)
 	defer t.Stop()
@@ -35,14 +33,11 @@ func (s *DealService) RunExpiryWorker(ctx context.Context, tick time.Duration, l
 	}
 }
 
-// ExpireDue หาดีลที่ถึงกำหนด (ไม่ล็อก) แล้วจัดการทีละดีลใน transaction ของมันเอง — คืนจำนวนที่หมดอายุจริง
-// ห้าม SELECT ... FOR UPDATE ทั้งชุดใน tx เดียวแล้วไปเปิด tx ใหม่ต่อดีล (tx ใหม่จะรอ lock ที่ตัวเองถือ)
 func (s *DealService) ExpireDue(ctx context.Context) (int, error) {
 	ids, err := s.repo.ListDueDeals(ctx, s.clock.Now())
 	if err != nil {
 		return 0, fmt.Errorf("list due deals: %w", err)
 	}
-	// ดีลหนึ่งพังต้องไม่ขวางดีลอื่น (ไม่งั้นดีลที่ error ซ้ำๆ จะบังการคืนเงินอัตโนมัติของทุกดีลทุกรอบ)
 	expired := 0
 	var errs []error
 	for _, id := range ids {
@@ -58,8 +53,6 @@ func (s *DealService) ExpireDue(ctx context.Context) (int, error) {
 	return expired, errors.Join(errs...)
 }
 
-// ExpireNow — POST /demo/deals/{id}/expire-now: ให้ดีล active หมดอายุทันที (โชว์การคืนเงินอัตโนมัติบนเวที)
-// ไม่แก้ expires_at (CHECK expires_at > viewing_at) — ข้ามการตรวจ "ถึงกำหนดหรือยัง" แทน
 func (s *DealService) ExpireNow(ctx context.Context, rawID string) error {
 	id, err := uuid.Parse(rawID)
 	if err != nil {
@@ -75,8 +68,6 @@ func (s *DealService) ExpireNow(ctx context.Context, rawID string) error {
 	return nil
 }
 
-// expireOne: SKIP LOCKED — ผู้เช่ากำลัง confirm อยู่ = ข้าม แล้ว "ตรวจซ้ำหลังได้ lock" ว่ายัง active และยังถึงกำหนดจริง
-// → expiry กับ confirm ที่ชนกันได้ผลลัพธ์เดียวเสมอ (confirm ก็ตรวจ now < expires_at หลังได้ lock เช่นกัน)
 func (s *DealService) expireOne(ctx context.Context, id uuid.UUID, force bool) (bool, error) {
 	done := false
 	err := s.repo.WithTx(ctx, func(q *db.Queries) error {

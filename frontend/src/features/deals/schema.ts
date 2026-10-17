@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// ร่างดีล L2 → L3 (ยังไม่บันทึก server จนกด "สร้างคำขอ" ใน L3) — เงินเป็นสตางค์
 export const dealDraftSchema = z
   .object({
     propertyId: z.string().min(1),

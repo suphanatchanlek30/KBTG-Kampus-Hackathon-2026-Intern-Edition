@@ -1,4 +1,3 @@
-// Command api คือ K Sure API: อ่าน config → ต่อ DB → migrate → เปิด HTTP → ปิดอย่างสุภาพเมื่อได้ SIGINT/SIGTERM
 package main
 
 import (
@@ -10,7 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-	_ "time/tzdata" // APP_TZ ใช้ได้แม้ image ไม่มีฐานข้อมูล timezone
+	_ "time/tzdata" // Keep timezone data available in minimal container images.
 
 	"github.com/gofiber/fiber/v3"
 
@@ -78,7 +77,6 @@ func run() error {
 	}
 	app := server.New(deps)
 
-	// expiry worker หยุดพร้อม API (ctx ถูกยกเลิกเมื่อได้ SIGINT/SIGTERM)
 	go deps.Deals.RunExpiryWorker(ctx, cfg.ExpiryTick, log)
 
 	errCh := make(chan error, 1)

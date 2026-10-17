@@ -10,16 +10,11 @@ import (
 	"github.com/suphanatchanlek30/ksure/backend/internal/repository/db"
 )
 
-// viewOpts ปรับสิ่งที่ DealDTO เปิดเผย
 type viewOpts struct {
-	// qrURL ส่งเฉพาะตอนสร้าง/ออก QR ใหม่ (token จริงไม่ได้เก็บใน DB)
 	qrURL string
-	// invitePreview = ผู้เช่าดูผ่านคำเชิญ (T2) ก่อนเป็นคู่ดีล — ไม่มีข้อมูลผู้เช่า
 	invitePreview bool
 }
 
-// buildDealDTO ประกอบ DealDTO จากดีล + ห้อง + คู่ดีล + ไทม์ไลน์ + ledger (docs/05-api.md §3)
-// ใช้ q เดียวกับ action เพื่ออ่านค่าหลังเขียนใน transaction เดียวกัน
 func (s *DealService) buildDealDTO(ctx context.Context, q *db.Queries, d db.Deal, role domain.Role, opt viewOpts) (dto.DealDTO, error) {
 	prop, err := q.GetProperty(ctx, d.PropertyID)
 	if err != nil {
@@ -42,7 +37,7 @@ func (s *DealService) buildDealDTO(ctx context.Context, q *db.Queries, d db.Deal
 		return dto.DealDTO{}, fmt.Errorf("list ledger: %w", err)
 	}
 
-	verified := true // ชื่อผู้ให้เช่าตรงกับชื่อบัญชีธนาคาร (เดโม: บัญชีของระบบเอง)
+	verified := true // Demo accounts are treated as name-verified.
 	out := dto.DealDTO{
 		ID: d.ID.String(), RefNo: d.RefNo, ShareCode: d.ShareCode, State: string(d.State), Version: d.Version,
 		DealType: d.DealType,
@@ -113,7 +108,6 @@ func (s *DealService) buildDealDTO(ctx context.Context, q *db.Queries, d db.Deal
 		iRequested, theyRequested = theyRequested, iRequested
 	}
 	for _, a := range AllowedActions(state, role) {
-		// ขอยกเลิกไปแล้ว → รออีกฝ่าย · แจ้งปัญหาไปแล้ว → ไม่ต้องแจ้งซ้ำ
 		if (a == domain.ActionCancel && iRequested) || (a == domain.ActionReportIssue && d.HasOpenIssue) {
 			continue
 		}
@@ -121,7 +115,6 @@ func (s *DealService) buildDealDTO(ctx context.Context, q *db.Queries, d db.Deal
 	}
 	next := NextActor(state)
 	if next != nil && iRequested != theyRequested {
-		// มีคำขอยกเลิกค้างอยู่ — คนที่ต้องทำต่อคือฝ่ายที่ยังไม่ได้ยินยอม
 		other := domain.RoleLandlord
 		if (role == domain.RoleLandlord) == iRequested {
 			other = domain.RoleTenant
@@ -135,7 +128,6 @@ func (s *DealService) buildDealDTO(ctx context.Context, q *db.Queries, d db.Deal
 	return out, nil
 }
 
-// fillMoney คำนวณยอดและสถานะงวดจาก ledger (ไม่ใช่จาก state) — ledger คือความจริงของเงิน
 func (s *DealService) fillMoney(out *dto.DealDTO, d db.Deal, ledger []db.LedgerEvent) {
 	var held, released, refunded int64
 	var bookingAt, mainAt *string

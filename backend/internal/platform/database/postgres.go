@@ -1,4 +1,3 @@
-// Package database สร้าง pgxpool และรัน migration (goose)
 package database
 
 import (
@@ -13,7 +12,6 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
-// Connect เปิด pool และ ping ให้แน่ใจว่าต่อได้ก่อนรับ request
 func Connect(ctx context.Context, url string) (*pgxpool.Pool, error) {
 	cfg, err := pgxpool.ParseConfig(url)
 	if err != nil {
@@ -32,7 +30,6 @@ func Connect(ctx context.Context, url string) (*pgxpool.Pool, error) {
 	return pool, nil
 }
 
-// Migrate รัน goose up ด้วยไฟล์ที่ฝังใน binary (backend/migrations)
 func Migrate(ctx context.Context, pool *pgxpool.Pool, migrations fs.FS, log *slog.Logger) error {
 	db := stdlib.OpenDBFromPool(pool)
 	defer func() { _ = db.Close() }()

@@ -1,17 +1,15 @@
-# assets/ — ไฟล์ต้นฉบับ (คุณหามาใส่)
+# Asset Sources
 
-โฟลเดอร์นี้เก็บ **ไฟล์ต้นฉบับ** ของโลโก้ ไอคอน ภาพ ฯลฯ — ตอนสร้าง frontend (Phase 1) จะ copy ไปที่ `frontend/public/`
+This directory stores source assets and their usage notes. Runtime assets belong in `frontend/public/` so Next.js can serve them directly.
 
-| โฟลเดอร์ | ใส่อะไร | ความสำคัญ |
-|---|---|---|
-| [`brand/`](./brand/) | โลโก้ K Sure (SVG) | 🔴 |
-| [`app-icons/`](./app-icons/) | ไอคอนแอป PWA / favicon | 🟡 |
-| [`illustrations/`](./illustrations/) | ภาพประกอบ (โล่+บ้าน แบนเนอร์ L1) | 🟡 |
-| [`backgrounds/`](./backgrounds/) | ลายเส้นโค้ง / แสงเขียวพื้นหลัง | 🟡 |
-| [`fonts/`](./fonts/) | (ปกติว่าง — ใช้ Google Fonts) | ⚪ |
-| [`icons/`](./icons/) | ไอคอนพิเศษที่ lucide ไม่มี | ⚪ |
-| [`sounds/`](./sounds/) | เสียง success / warning | ⚪ |
+| Directory | Purpose |
+| --- | --- |
+| `app-icons/` | Source files for installable-app icons. |
+| `backgrounds/` | Source artwork for generated screen backgrounds. |
+| `brand/` | K Sure logo assets. |
+| `fonts/` | Font source and licensing notes. |
+| `icons/` | Reusable icon sources. |
+| `illustrations/` | Product illustration sources. |
+| `sounds/` | Optional interaction-sound sources. |
 
-รายละเอียดเต็ม: [docs/07-assets.md](../docs/07-assets.md)
-
-**ตั้งชื่อไฟล์:** ตัวเล็กทั้งหมด คั่นด้วย `-` เช่น `ksure-mark-on-white.svg`
+Do not add production assets without confirming ownership, license, and redistribution rights.

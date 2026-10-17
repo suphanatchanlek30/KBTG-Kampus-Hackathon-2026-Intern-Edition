@@ -2,11 +2,9 @@ import type { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
 
 type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  /** ต้องมีเสมอ เพราะปุ่มไม่มีข้อความ */
   "aria-label": string;
 };
 
-/** ปุ่มวงกลมบน header (Figma: 38×38 r19 #16181C) */
 export function IconButton({ className, type = "button", ...props }: IconButtonProps) {
   return (
     <button

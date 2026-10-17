@@ -11,7 +11,6 @@ type CheckListProps = {
   onToggle?: (index: number) => void;
 };
 
-/** เช็กลิสต์ T5/T6 (Figma: การ์ด r20 pad16 gap13 · กล่องติ๊ก 22 r11 · ข้อความ 13.5/500) */
 export function CheckList({ items, checked, onToggle }: CheckListProps) {
   const full = useMotionMode() === "full";
   return (
@@ -29,7 +28,6 @@ export function CheckList({ items, checked, onToggle }: CheckListProps) {
               aria-hidden
               className="relative flex size-[22px] shrink-0 items-center justify-center rounded-full border border-stroke peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-neon"
             >
-              {/* ติ๊ก: พื้น neon scale 0.6 → 1 spring + วาดถูก 0.2s (§5.8) */}
               {checked[i] && (
                 <motion.span
                   className="absolute -inset-px flex items-center justify-center rounded-full bg-neon text-ink"

@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "./Toast";
 
-/** รหัสดีล + ปุ่มคัดลอก (Figma L4: 321×46 r14 bg #0A0A0B · pad 0/14 · gap 10 · รหัส 16/600 ls 2) */
 export function CodeField({ label, code }: { label: string; code: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -30,7 +29,6 @@ export function CodeField({ label, code }: { label: string; code: string }) {
       <span className="text-caption text-muted">{label}</span>
       <span className="flex-1 text-code select-all">{code}</span>
       <button type="button" onClick={copy} aria-label={`คัดลอก${label}`} className="grid text-neon">
-        {/* Copy ↔ Check crossfade 0.15s ซ้อนในช่องเดียวกัน (§5.8) */}
         <AnimatePresence initial={false}>
           <motion.span
             key={copied ? "check" : "copy"}

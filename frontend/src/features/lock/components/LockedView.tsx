@@ -25,7 +25,6 @@ type LockedViewProps = {
   onHome?: () => void;
 };
 
-/** T4 — กันเงินเรียบร้อย (อนิเมชัน §5.1 แบบ T4: ห่วงกุญแจล็อกลง · stepper เริ่ม 0.9s) */
 export function LockedView({ deal, account, onClose, onShare, onViewStatus, onHome }: LockedViewProps) {
   const enter = useEnter();
   return (

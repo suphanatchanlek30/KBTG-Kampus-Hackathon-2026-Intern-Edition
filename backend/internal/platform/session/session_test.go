@@ -45,7 +45,6 @@ func TestParseRejects(t *testing.T) {
 	later := NewManager(secret, time.Hour, clock.Fixed{T: start.Add(time.Hour + time.Second)})
 	otherKey := NewManager(strings.Repeat("x", 32), time.Hour, clock.Fixed{T: start})
 
-	// เปลี่ยน role ใน payload โดยไม่เซ็นใหม่
 	parts := strings.Split(tok, ".")
 	forgedPayload := jwt.NewWithClaims(jwt.SigningMethodHS256, claims{Role: domain.RoleLandlord, RegisteredClaims: jwt.RegisteredClaims{
 		Subject: actor.UserID.String(), Issuer: issuer, ExpiresAt: jwt.NewNumericDate(start.Add(time.Hour)),

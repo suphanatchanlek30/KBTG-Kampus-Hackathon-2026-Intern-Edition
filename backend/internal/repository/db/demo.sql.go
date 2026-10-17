@@ -154,7 +154,6 @@ TRUNCATE ledger_events, deal_events, deal_invites, notifications, transfers, ide
   RESTART IDENTITY CASCADE
 `
 
-// ล้างทุกอย่างที่เกิดระหว่างเดโม (users/accounts/properties คงไว้) — TRUNCATE ไม่เรียก trigger append-only ของ ledger
 func (q *Queries) TruncateDemoData(ctx context.Context) error {
 	_, err := q.db.Exec(ctx, truncateDemoData)
 	return err

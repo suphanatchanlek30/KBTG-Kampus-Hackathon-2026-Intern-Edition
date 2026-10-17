@@ -32,11 +32,9 @@ type DealStatusViewProps = {
   onBack?: () => void;
   onShare?: () => void;
   onAction?: (action: DealStatusAction) => void;
-  /** D11 — เปิด sheet ขอยกเลิก/ยินยอม (ไม่ส่ง = ไม่แสดงลิงก์ เช่นหน้า /dev/overlay) */
   onCancel?: () => void;
 };
 
-/** ปุ่มหลักตาม state และ role (docs/01-user-flow.md §6 "สิ่งที่แต่ละหน้าจอแสดงตาม state") */
 function primaryAction(deal: DealDTO): { action: DealStatusAction; label: string; icon: ReactNode } | null {
   const tenant = deal.myRole === "TENANT";
   switch (deal.state) {
@@ -63,10 +61,6 @@ function primaryAction(deal: DealDTO): { action: DealStatusAction; label: string
   }
 }
 
-/**
- * L5 สถานะดีล (ผู้ให้เช่า) · D1 = state WAITING_ACCEPT · D8 = มุมผู้เช่า
- * ⚠️ D1 / D8 ยังรออนุมัติดีไซน์ — ใช้ layout L5 ตาม docs/01-user-flow.md §7
- */
 export function DealStatusView({ deal, onBack, onShare, onAction, onCancel }: DealStatusViewProps) {
   const badge = stateBadge(deal.state);
   const counterparty =
@@ -119,7 +113,6 @@ export function DealStatusView({ deal, onBack, onShare, onAction, onCancel }: De
         <Badge variant={badge.variant}>{badge.label}</Badge>
       </section>
 
-      {/* D11 — สถานะคำขอยกเลิก (⚠️ รออนุมัติดีไซน์) */}
       {iRequestedCancel && (
         <InfoNote tone="warn" icon={<Hourglass size={16} strokeWidth={1.6} />}>
           ส่งคำขอยกเลิกแล้ว · รอ{other}ยินยอม — ระหว่างนี้เงินยังกันไว้

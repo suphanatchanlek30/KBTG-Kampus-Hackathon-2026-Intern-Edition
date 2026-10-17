@@ -10,7 +10,7 @@ import { shareText } from "@/lib/export-image";
 import { formatBaht } from "@/lib/format/money";
 import { LockedView } from "./LockedView";
 
-/** /deals/[id]/locked — T4 */
+/** Handles the locked-funds confirmation route. */
 export function LockedScreen() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();

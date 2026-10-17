@@ -6,7 +6,7 @@ import { useProperty } from "../hooks";
 import { useDealDraft } from "../store";
 import { CreateDealView } from "./CreateDealView";
 
-/** /deals/new — L2 */
+/** Handles the deal-creation route. */
 export function CreateDealScreen() {
   const router = useRouter();
   const { draft, update } = useDealDraft();

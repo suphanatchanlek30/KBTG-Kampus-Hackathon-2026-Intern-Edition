@@ -7,10 +7,6 @@ import { cn } from "@/lib/cn";
 const LENGTH = 6;
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"] as const;
 
-/**
- * D2 — PIN pad จำลอง 6 หลัก: รับเลขอะไรก็ได้ ไม่ส่งไป server ไม่เก็บ (docs/03-architecture.md §4)
- * ครบ 6 หลักแล้วเรียก onComplete (ไม่ส่งค่า PIN ออกไป)
- */
 export function PinPad({ onComplete, disabled = false }: { onComplete: () => void; disabled?: boolean }) {
   const [count, setCount] = useState(0);
 

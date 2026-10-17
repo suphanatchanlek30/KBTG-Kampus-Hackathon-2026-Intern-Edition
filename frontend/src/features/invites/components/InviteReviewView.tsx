@@ -22,7 +22,6 @@ type InviteReviewViewProps = {
   onReject?: () => void;
 };
 
-/** T2 — ผู้เช่าตรวจสอบรายละเอียดดีลก่อนยอมรับ */
 export function InviteReviewView({ deal, rejecting, onBack, onAccept, onReject }: InviteReviewViewProps) {
   const { property, landlord, amounts } = deal;
   const moveIn = `${deal.moveInDate}T00:00:00+07:00`;

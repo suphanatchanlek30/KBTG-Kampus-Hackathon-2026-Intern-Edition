@@ -9,7 +9,6 @@ import (
 
 type actorKey struct{}
 
-// Auth อ่าน cookie ks_session → ตรวจ JWT → เก็บ Actor ไว้ใน context · ไม่มี/ผิด/หมดอายุ = 401
 func Auth(sessions *session.Manager) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		raw := c.Cookies(session.CookieName)
@@ -25,7 +24,6 @@ func Auth(sessions *session.Manager) fiber.Handler {
 	}
 }
 
-// RequireRole ให้ผ่านเฉพาะ role ที่ระบุ — ต้องวางหลัง Auth
 func RequireRole(role domain.Role) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		if ActorFrom(c).Role != role {
@@ -35,7 +33,6 @@ func RequireRole(role domain.Role) fiber.Handler {
 	}
 }
 
-// ActorFrom คืนผู้ใช้ที่ล็อกอินอยู่ (zero value ถ้า route ไม่ได้ผ่าน Auth)
 func ActorFrom(c fiber.Ctx) domain.Actor {
 	return fiber.Locals[domain.Actor](c, actorKey{})
 }

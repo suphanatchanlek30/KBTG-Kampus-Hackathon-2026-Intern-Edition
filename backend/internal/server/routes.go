@@ -10,7 +10,6 @@ import (
 	"github.com/suphanatchanlek30/ksure/backend/internal/server/middleware"
 )
 
-// registerRoutes ผูก path → handler ตาม docs/05-api.md §2 (เพิ่มทีละ Phase)
 func registerRoutes(app *fiber.App, deps Deps) {
 	v1 := app.Group("/api/v1")
 
@@ -18,7 +17,6 @@ func registerRoutes(app *fiber.App, deps Deps) {
 	v1.Get("/healthz", health.Live)
 	v1.Get("/readyz", health.Ready)
 
-	// ส่วนที่เหลือต้องมี service — test ของ health สร้าง app โดยไม่ส่งมา
 	if deps.Users == nil {
 		return
 	}
@@ -27,8 +25,6 @@ func registerRoutes(app *fiber.App, deps Deps) {
 	v1.Post("/auth/demo-login", auth.Login)
 	v1.Post("/auth/logout", auth.Logout)
 
-	// ทุก route ข้างล่างต้องล็อกอิน (cookie ks_session) — ผูกราย route ไม่ใช้ Group.Use
-	// เพื่อให้ path ที่ไม่มีอยู่จริงยังได้ 404 ไม่ใช่ 401
 	authed := middleware.Auth(deps.Sessions)
 	landlordOnly := middleware.RequireRole(domain.RoleLandlord)
 
@@ -57,7 +53,6 @@ func registerRoutes(app *fiber.App, deps Deps) {
 	v1.Post("/deals/:id/report-issue", authed, tenantOnly, idem, deals.ReportIssue)
 	v1.Get("/deals/:id/calendar.ics", authed, deals.Calendar)
 	v1.Get("/users/lookup", authed, landlordOnly, deals.LookupUser)
-	// 30 ครั้ง/นาที/ผู้ใช้ — พอสำหรับคนจริง แต่สุ่มเดา share code (32^6 แบบ) ไม่ได้
 	v1.Get("/invites/:code", authed, tenantOnly, middleware.PerUserRateLimit(30, time.Minute), deals.PreviewInvite)
 
 	transfers := handler.NewTransferHandler(deps.Transfers)

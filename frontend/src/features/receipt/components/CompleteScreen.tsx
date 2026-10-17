@@ -12,14 +12,12 @@ import { findVisible, saveImage, shareText } from "@/lib/export-image";
 import { formatBaht } from "@/lib/format/money";
 import { CompleteView } from "./CompleteView";
 
-/** /deals/[id]/complete — L6 (ผู้ให้เช่า) · T7 (ผู้เช่า) */
 export function CompleteScreen() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { data: deal, error } = useDeal(id);
   const { data: me } = useMe();
 
-  // ยังปล่อยไม่ครบ → กลับหน้าสถานะ
   const notDone = deal && deal.state !== "RELEASED";
   useEffect(() => {
     if (notDone) router.replace(`/deals/${id}`);

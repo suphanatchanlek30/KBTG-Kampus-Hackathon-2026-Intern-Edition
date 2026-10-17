@@ -1,5 +1,3 @@
-// Integration test: ยิง HTTP เข้า app จริงที่ต่อ Postgres จริง
-// ต้องตั้ง TEST_DATABASE_URL (make test ตั้งให้ และสร้าง DB ksure_test ให้) — ไม่ตั้ง = ข้าม
 package integration
 
 import (
@@ -32,7 +30,6 @@ var (
 	deals *service.DealService
 )
 
-// ผู้ใช้คนที่สาม (ไม่ใช่คู่ดีล) — ใช้ทดสอบ NOT_DEAL_PARTY และ rate limit
 const outsiderSQL = `
 INSERT INTO users (id, username, role, display_name, short_name, phone) VALUES
   ('00000000-0000-0000-0000-00000000c001', 'outsider', 'TENANT', 'คนนอก ทดสอบ', 'คนนอก ท.', '0800000000')
@@ -44,7 +41,7 @@ ON CONFLICT DO NOTHING;`
 func TestMain(m *testing.M) {
 	url := os.Getenv("TEST_DATABASE_URL")
 	if url == "" {
-		os.Exit(0) // ไม่มี DB ให้ทดสอบ — go test ./... ธรรมดายังผ่าน
+		os.Exit(0) // Allow unit-only runs when no test database is configured.
 	}
 	ctx := context.Background()
 	log := slog.New(slog.NewJSONHandler(io.Discard, nil))
@@ -85,7 +82,6 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-// client จำ cookie เหมือน browser หนึ่งตัว
 type client struct {
 	t      *testing.T
 	cookie *http.Cookie
@@ -96,7 +92,6 @@ func (c *client) do(method, path, body string) (*http.Response, map[string]any) 
 	return c.doWith(method, path, body, nil)
 }
 
-// doWith ส่ง header เพิ่ม (เช่น Idempotency-Key)
 func (c *client) doWith(method, path, body string, headers map[string]string) (*http.Response, map[string]any) {
 	c.t.Helper()
 	var r io.Reader
@@ -217,7 +212,6 @@ func TestPropertiesIsLandlordOnly(t *testing.T) {
 	}
 }
 
-// ยอดเงินแต่ละ scenario ต้องตรงกับ ledger (docs/04-database.md §2, §5)
 func TestDemoScenarioBalances(t *testing.T) {
 	landlord, tenant := login(t, "landlord"), login(t, "tenant")
 	tests := []struct {
@@ -229,9 +223,9 @@ func TestDemoScenarioBalances(t *testing.T) {
 	}{
 		{"fresh", 2_850_000, 0, 2_850_000, 4_285_000, 0, 0, 0},
 		{"waiting_accept", 2_850_000, 0, 2_850_000, 4_285_000, 1, 0, 1},
-		{"funds_locked", 2_850_000, 650_000, 2_200_000, 4_285_000, 1, 1, 0}, // T4 "ยอดที่ใช้ได้ตอนนี้ 22,000.00"
+		{"funds_locked", 2_850_000, 650_000, 2_200_000, 4_285_000, 1, 1, 0},
 		{"booking_released", 2_750_000, 550_000, 2_200_000, 4_385_000, 1, 1, 0},
-		{"released", 2_200_000, 0, 2_200_000, 4_935_000, 0, 0, 0}, // ผู้ให้เช่า 49,350.00 / ผู้เช่า 22,000.00
+		{"released", 2_200_000, 0, 2_200_000, 4_935_000, 0, 0, 0},
 	}
 	for _, tt := range tests {
 		t.Run(tt.scenario, func(t *testing.T) {
@@ -269,7 +263,6 @@ func TestPendingInviteMatchesMockup(t *testing.T) {
 	if inv["shareCode"] != "KS-8F4Q21" || inv["fromShortName"] != "สมชาย ใ." || inv["totalSatang"] != float64(650_000) {
 		t.Errorf("invite = %v", inv)
 	}
-	// เวลาเป็น ISO-8601 พร้อม offset ไทย
 	if s, _ := inv["viewingAt"].(string); !strings.HasSuffix(s, "T14:00:00+07:00") {
 		t.Errorf("viewingAt = %v", inv["viewingAt"])
 	}
@@ -286,7 +279,6 @@ func TestNotificationsReadFlow(t *testing.T) {
 	}
 	id := items[0].(map[string]any)["id"].(string)
 
-	// อ่านของคนอื่นไม่ได้ — ผู้ให้เช่าส่ง id ของผู้เช่ามาก็ไม่มีผล
 	landlord.do(http.MethodPost, "/notifications/read", `{"ids":["`+id+`"]}`)
 	if _, me := tenant.do(http.MethodGet, "/me", ""); me["unreadNotifications"] != float64(1) {
 		t.Errorf("landlord marked tenant's notification: %v", me)

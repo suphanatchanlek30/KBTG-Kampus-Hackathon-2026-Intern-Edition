@@ -1,5 +1,3 @@
--- ข้อมูลเดโมตั้งต้น ค่าตรง mockup — docs/04-database.md §5
--- ดีลตัวอย่างแต่ละ scenario สร้างผ่าน POST /demo/reset (Phase 5) เพราะวันที่ต้องคำนวณจาก now()
 
 -- +goose Up
 INSERT INTO users (id, username, role, display_name, short_name, phone) VALUES
@@ -15,6 +13,5 @@ INSERT INTO properties (landlord_id, property_type, project_name, unit_no, detai
    '1 ห้องนอน · 28 ตร.ม. · ชั้น 12', 'BTS ปุณณวิถี');
 
 -- +goose Down
--- TRUNCATE ไม่เรียก trigger append-only ของ ledger_events (DELETE จะ error) — ล้างดีลที่สร้างระหว่างเดโมไปด้วย
 TRUNCATE ledger_events, deal_events, deal_invites, notifications, transfers, idempotency_keys, deals,
   ref_counters, properties, demo_accounts, users RESTART IDENTITY CASCADE;

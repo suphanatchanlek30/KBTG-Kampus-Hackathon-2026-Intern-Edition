@@ -1,4 +1,3 @@
-/** ลายวงแหวนขาวมุมขวาบนของการ์ดมิ้นต์ (การ์ดยอดเงิน L1/T1 และ Funds Secured L5 ใช้ค่าเดียวกันใน Figma) */
 export function MintCardDecor() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0">

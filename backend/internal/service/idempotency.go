@@ -11,31 +11,20 @@ import (
 	"github.com/suphanatchanlek30/ksure/backend/internal/repository/db"
 )
 
-// IdemRequest มาจาก middleware Idempotency (header Idempotency-Key + hash ของ method/path/body)
 type IdemRequest struct {
 	Key         string
-	MethodPath  string // "POST /api/v1/deals/:id/confirm-viewing" — ไว้ดูใน DB
+	MethodPath  string // Stored for request auditing.
 	RequestHash string
 }
 
-// Response คือคำตอบ JSON ที่บันทึกไว้ — ส่งซ้ำได้ทุกครั้งที่ใช้ key เดิม
 type Response struct {
 	Status   int
 	Body     []byte
 	Replayed bool
 }
 
-// redactor = คำตอบที่มีข้อมูลห้ามเก็บ (เช่น QR token ใน DealDTO)
 type redactor interface{ Redacted() any }
 
-// runIdempotent รัน action ใน transaction เดียวกับการบันทึกคำตอบ (docs/05-api.md §1 Idempotency)
-//
-//  1. ล็อก (user, key) ด้วย advisory lock — request key เดิมที่มาพร้อมกันต้องรอคิว
-//  2. มีคำตอบเดิมแล้ว: body ต่าง → IDEMPOTENCY_CONFLICT · body เดิม → ส่งคำตอบเดิม ไม่ทำซ้ำ
-//  3. ยังไม่มี: รัน fn แล้วบันทึกคำตอบก่อน commit — commit ไม่ผ่าน = ไม่มีทั้งผลของ action และคำตอบ
-//
-// บันทึกเฉพาะคำตอบที่สำเร็จ — fn คืน error (เช่น ยอดไม่พอ) = rollback ทั้งหมด ลองใหม่ด้วย key เดิมได้
-// ผลลัพธ์ที่มีความลับ (redactor) เก็บเป็นฉบับตัดความลับ แต่ตอบครั้งแรกด้วยฉบับเต็ม
 func runIdempotent(ctx context.Context, repo *repository.Repository, actor domain.Actor, req IdemRequest,
 	now time.Time, status int, fn func(q *db.Queries) (any, error)) (Response, error) {
 	var out Response

@@ -10,12 +10,10 @@ import { RequestCard } from "./RequestCard";
 import { ServiceGrid } from "./ServiceGrid";
 import { TipBanner } from "./TipBanner";
 
-// Phase 2 ใช้คำทักทายตาม mockup — ภายหลังค่อยคำนวณตามเวลา (ต้องทำฝั่ง client กัน hydration mismatch)
 const GREETING = "สวัสดีตอนเช้า";
 
 type HomeViewProps = { home: HomeDTO; onMenu?: () => void; onBell?: () => void };
 
-/** L1 — หน้าหลักผู้ให้เช่า (Figma: เนื้อหา pad 4/20/8/20 · gap 12) */
 export function LandlordHomeView({ home, onMenu, onBell }: HomeViewProps) {
   return (
     <AppShell
@@ -44,7 +42,6 @@ export function LandlordHomeView({ home, onMenu, onBell }: HomeViewProps) {
   );
 }
 
-/** T1 — หน้าหลักผู้เช่า: การ์ดคำขอใหม่อยู่บนสุด */
 export function TenantHomeView({ home, onMenu, onBell }: HomeViewProps) {
   const invite = home.pendingInvites[0];
   return (
