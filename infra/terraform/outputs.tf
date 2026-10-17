@@ -1,6 +1,6 @@
 output "api_domain" {
   description = "Hostname configured for the API."
-  value       = var.api_domain
+  value       = local.resolved_api_domain
 }
 
 output "elastic_ip" {

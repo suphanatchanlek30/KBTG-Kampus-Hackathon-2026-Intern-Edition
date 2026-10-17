@@ -2,18 +2,38 @@
 set -euxo pipefail
 exec > >(tee /var/log/ksure-bootstrap.log | logger -t ksure-bootstrap -s 2>/dev/console) 2>&1
 
-dnf install -y docker git curl
+dnf install -y docker git
 systemctl enable --now docker
 
 install -d -m 0755 /usr/local/lib/docker/cli-plugins
+curl --fail --location --retry 5 \
+  "https://github.com/docker/buildx/releases/download/v0.17.1/buildx-v0.17.1.linux-arm64" \
+  --output /usr/local/lib/docker/cli-plugins/docker-buildx
+chmod 0755 /usr/local/lib/docker/cli-plugins/docker-buildx
+docker buildx version
+
 curl --fail --location --retry 5 \
   "https://github.com/docker/compose/releases/download/${docker_compose_version}/docker-compose-linux-aarch64" \
   --output /usr/local/lib/docker/cli-plugins/docker-compose
 chmod 0755 /usr/local/lib/docker/cli-plugins/docker-compose
 docker compose version
 
+if [ ! -d /opt/ksure/.git ]; then
+%{ if repository_ssh_key != null ~}
+  install -d -m 0700 /root/.ssh
+  cat > /root/.ssh/ksure_deploy <<'KEY'
+${repository_ssh_key}
+KEY
+  chmod 0600 /root/.ssh/ksure_deploy
+  ssh-keyscan github.com >> /root/.ssh/known_hosts
+  GIT_SSH_COMMAND="ssh -i /root/.ssh/ksure_deploy -o IdentitiesOnly=yes" \
+    git clone --depth 1 --branch "${git_ref}" "${repository_ssh_url}" /opt/ksure
+  git -C /opt/ksure config core.sshCommand "ssh -i /root/.ssh/ksure_deploy -o IdentitiesOnly=yes"
+%{ else ~}
+  git clone --depth 1 --branch "${git_ref}" "${repository_url}" /opt/ksure
+%{ endif ~}
+fi
 install -d -m 0755 /opt/ksure/data/postgres /opt/ksure/data/caddy/data /opt/ksure/data/caddy/config
-git clone --depth 1 --branch "${git_ref}" "${repository_url}" /opt/ksure
 
 cat > /opt/ksure/deploy/.env <<'ENV'
 API_DOMAIN=${api_domain}

@@ -1,6 +1,14 @@
-# Copy this file to terraform.tfvars and replace both URLs before terraform apply.
-api_domain      = "api.example.com"
+# Copy this file to terraform.tfvars and set frontend_origin before terraform apply.
+# Leave api_domain empty to use an automatic api.<elastic-ip>.nip.io hostname.
+api_domain      = ""
 frontend_origin = "https://your-project.vercel.app"
 
 # Pin a branch or release tag for the first deployment.
 git_ref = "develop"
+
+# For a private repository, create a read-only GitHub deploy key and add:
+# repository_ssh_private_key = <<-KEY
+# -----BEGIN OPENSSH PRIVATE KEY-----
+# ...
+# -----END OPENSSH PRIVATE KEY-----
+# KEY

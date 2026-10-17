@@ -15,8 +15,8 @@ Terraform creates a dedicated VPC, public subnet, EC2 instance, Elastic IP, secu
 
 ## Before you apply
 
-1. Use a public GitHub repository. The instance clones the configured `repository_url` without credentials.
-2. Choose an API hostname such as `api.example.com`.
+1. Use a public GitHub repository, or create a read-only GitHub deploy key for a private repository. Store its private half as `repository_ssh_private_key` in the untracked `terraform.tfvars` file. Add the public half in GitHub: **Repository Settings → Deploy keys → Add deploy key**.
+2. Set `api_domain` to a hostname you own, or leave it empty to use an automatic `api.<elastic-ip>.nip.io` hostname for this prototype.
 3. Confirm that AWS credentials can create EC2, VPC, IAM, and Elastic IP resources in the selected region.
 4. Install Terraform and AWS CLI locally.
 
@@ -27,27 +27,27 @@ The default region is `ap-southeast-7` and the default instance is `t4g.small`. 
 ```bash
 cd infra/terraform
 cp terraform.tfvars.example terraform.tfvars
-# Edit api_domain and frontend_origin in terraform.tfvars.
+# Edit frontend_origin in terraform.tfvars. api_domain is optional.
 terraform init
 terraform plan
 terraform apply
 ```
 
-After `apply`, create an A record at the DNS provider for `api_domain` using the `elastic_ip` output. Wait for DNS to resolve, then Caddy automatically obtains and renews its HTTPS certificate.
+When `api_domain` is set, create an A record at the DNS provider using the `elastic_ip` output. When it is empty, Terraform uses `api.<elastic-ip>.nip.io`; `nip.io` resolves that hostname automatically. Caddy then obtains and renews its HTTPS certificate.
 
 ```bash
 terraform output
-curl -fsS https://api.example.com/api/v1/readyz
+curl -fsS "https://$(terraform output -raw api_domain)/api/v1/readyz"
 ```
 
 Set these production environment variables in the Vercel project and redeploy it:
 
 ```env
-API_ORIGIN=https://api.example.com
+API_ORIGIN=https://$(terraform output -raw api_domain)
 NEXT_PUBLIC_USE_MOCK=false
 ```
 
-The frontend already rewrites `/api/*` to `API_ORIGIN`, so browsers continue to call the Vercel domain. HTTPS also enables camera access for the QR scanner.
+The frontend already rewrites `/api/*` to `API_ORIGIN`, so browsers continue to call the Vercel domain. HTTPS also enables camera access for the QR scanner. Replace the temporary hostname with a custom domain before a long-lived public release.
 
 ## Operate
 
