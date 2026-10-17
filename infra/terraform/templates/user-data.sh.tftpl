@@ -1,0 +1,46 @@
+#!/bin/bash
+set -euxo pipefail
+exec > >(tee /var/log/ksure-bootstrap.log | logger -t ksure-bootstrap -s 2>/dev/console) 2>&1
+
+dnf install -y docker git curl
+systemctl enable --now docker
+
+install -d -m 0755 /usr/local/lib/docker/cli-plugins
+curl --fail --location --retry 5 \
+  "https://github.com/docker/compose/releases/download/${docker_compose_version}/docker-compose-linux-aarch64" \
+  --output /usr/local/lib/docker/cli-plugins/docker-compose
+chmod 0755 /usr/local/lib/docker/cli-plugins/docker-compose
+docker compose version
+
+install -d -m 0755 /opt/ksure/data/postgres /opt/ksure/data/caddy/data /opt/ksure/data/caddy/config
+git clone --depth 1 --branch "${git_ref}" "${repository_url}" /opt/ksure
+
+cat > /opt/ksure/deploy/.env <<'ENV'
+API_DOMAIN=${api_domain}
+APP_BASE_URL=${frontend_origin}
+POSTGRES_PASSWORD=${postgres_password}
+JWT_SECRET=${jwt_secret}
+ENV
+chmod 0600 /opt/ksure/deploy/.env
+
+cat > /etc/systemd/system/ksure.service <<'UNIT'
+[Unit]
+Description=K Sure prototype stack
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/ksure/deploy
+ExecStart=/usr/bin/docker compose --env-file .env -f docker-compose.ec2.yml up -d --build --remove-orphans
+ExecStop=/usr/bin/docker compose --env-file .env -f docker-compose.ec2.yml stop
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+systemctl daemon-reload
+systemctl enable --now ksure.service

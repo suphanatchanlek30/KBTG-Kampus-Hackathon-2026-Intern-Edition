@@ -49,5 +49,6 @@ The API is available at `http://localhost:8080/api/v1`; Adminer is available at 
 - The prototype uses demo authentication and simulated funds.
 - Secrets belong in local environment files or deployment configuration, never source control.
 - The QR scanner requires HTTPS or `localhost` in browsers that enforce secure camera access.
+- The EC2 prototype deployment is documented in [infra/README.md](../infra/README.md). It runs Caddy, the API, and PostgreSQL on one encrypted EBS-backed instance.
 
 See [the API guide](./05-api.md), [data model](./04-database.md), and [frontend README](../frontend/README.md) for implementation details.
