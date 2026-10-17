@@ -11,13 +11,11 @@ import { errorMessage } from "@/lib/api/errors";
 import { DEMO_TRANSFER } from "@/mocks/fixtures";
 import { TransferView } from "./TransferView";
 
-/** /transfer — โอนเงิน + T8 เตือนเมื่อโอนหาคู่ดีลที่ยังไม่จบ */
 export function TransferScreen() {
   const router = useRouter();
   const [warning, setWarning] = useState<string | null>(null);
   const { data: payees } = usePayees();
   const transfer = useCreateTransfer();
-  // ค่าเริ่มต้นตามสคริปต์เดโม (3,000 "ค่าส่วนกลางล่วงหน้า" หาผู้ให้เช่า) — แก้ได้
   const [amountSatang, setAmount] = useState<number>(DEMO_TRANSFER.amountSatang);
   const [memo, setMemo] = useState<string>(DEMO_TRANSFER.memo);
   const [picked, setPicked] = useState<string | null>(null);
@@ -38,7 +36,6 @@ export function TransferScreen() {
 
   if (!payee) return <ScreenSkeleton />;
 
-  // บันทึกทั้งโอนจริงและยกเลิก — server นับว่าผู้ใช้ยกเลิกหลังเห็นคำเตือนกี่ครั้ง (docs/05-api.md #26)
   function send(action: "CONFIRM" | "CANCEL") {
     transfer.mutate(
       { toAccountId: payee!.accountId, amountSatang, memo, action },

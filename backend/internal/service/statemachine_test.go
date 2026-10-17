@@ -21,7 +21,6 @@ var (
 	allActors = []domain.Role{domain.RoleLandlord, domain.RoleTenant, domain.RoleSystem}
 )
 
-// ตารางที่คาดหวัง เขียนแยกจากโค้ดตามเอกสาร docs/04-database.md §2 — ทุกคู่ที่ไม่อยู่ในนี้ต้องถูกปฏิเสธ
 var allowed = map[string][]domain.DealState{
 	"WAITING_ACCEPT/REJECT/TENANT":                {domain.StateRejected},
 	"WAITING_ACCEPT/LOCK/TENANT":                  {domain.StateFundsLocked},
@@ -36,7 +35,6 @@ var allowed = map[string][]domain.DealState{
 	"BOOKING_FEE_RELEASED/EXPIRE/SYSTEM":          {domain.StateExpired, domain.StateRefunded},
 }
 
-// ทุกคู่ state × action × actor (10 × 6 × 3 = 180 กรณี)
 func TestNextStatesEveryCombination(t *testing.T) {
 	for _, s := range allStates {
 		for _, a := range allActions {

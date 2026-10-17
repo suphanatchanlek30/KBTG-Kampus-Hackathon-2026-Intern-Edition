@@ -21,9 +21,7 @@ import (
 )
 
 const (
-	// ยอดสูงสุดต่อดีล 1,000,000 บาท — กันตัวเลขผิดพลาด (ไม่ใช่กติกาธุรกิจ)
 	maxDealSatang = 100_000_000
-	// ดีลหมดอายุ = วันเข้าอยู่ + 2 วัน 23:59:59 (docs/04-database.md §5 ค่าเริ่มต้นฟอร์ม L2)
 	expiryDaysAfterMoveIn = 2
 	shareCodeAttempts     = 10
 )
@@ -33,7 +31,6 @@ var (
 	moveInChecklist  = []string{"GOT_KEYS", "ROOM_USABLE", "CONTRACT_SIGNED"}
 )
 
-// DealService: สร้างดีล คำเชิญ และ action ที่เปลี่ยน state/เงิน — ทุก action ที่เขียนอยู่ใน transaction เดียว
 type DealService struct {
 	repo       *repository.Repository
 	clock      clock.Clock
@@ -46,9 +43,7 @@ func NewDealService(repo *repository.Repository, c clock.Clock, loc *time.Locati
 	return &DealService{repo: repo, clock: c, loc: loc, inviteTTL: inviteTTL, appBaseURL: appBaseURL}
 }
 
-// ---- อ่าน ----
 
-// Get — GET /deals/{id}: คู่ดีล · หรือผู้เช่าที่กำลังพิจารณาคำเชิญที่ยังใช้ได้ (preview ไม่มีข้อมูลผู้เช่า)
 func (s *DealService) Get(ctx context.Context, actor domain.Actor, rawID string) (dto.DealDTO, error) {
 	d, err := s.findDeal(ctx, s.repo.Queries, rawID, false)
 	if err != nil {
@@ -58,7 +53,6 @@ func (s *DealService) Get(ctx context.Context, actor domain.Actor, rawID string)
 	if ok {
 		return s.buildDealDTO(ctx, s.repo.Queries, d, role, viewOpts{})
 	}
-	// ผู้เช่าที่ยังไม่ได้ตอบคำเชิญ (T2 → T3) ยังไม่ใช่คู่ดีล แต่ต้องเห็นดีลเพื่อกันเงิน — ให้ดูแบบเดียวกับ /invites
 	if actor.Role == domain.RoleTenant && !d.TenantID.Valid && domain.DealState(d.State) == domain.StateWaitingAccept {
 		now := s.clock.Now()
 		if _, err := s.repo.GetActiveInvite(ctx, db.GetActiveInviteParams{DealID: d.ID, Now: now}); err == nil && now.Before(d.ExpiresAt) {
@@ -97,7 +91,6 @@ func (s *DealService) List(ctx context.Context, actor domain.Actor, status strin
 	return out, nil
 }
 
-// PreviewInvite — GET /invites/{codeOrToken} (T2): ผู้เช่าเปิดดีลจากรหัสที่พิมพ์/สแกน หรือ token ใน QR
 func (s *DealService) PreviewInvite(ctx context.Context, actor domain.Actor, code string) (dto.DealDTO, error) {
 	q := s.repo.Queries
 	now := s.clock.Now()
@@ -130,7 +123,6 @@ func (s *DealService) PreviewInvite(ctx context.Context, actor domain.Actor, cod
 		}
 	}
 
-	// ผู้เช่าของดีลนี้แล้ว (เปิด QR เดิมซ้ำหลังกันเงิน) → เห็นดีลเต็ม
 	if d.TenantID.Valid && d.TenantID.UUID == actor.UserID {
 		return s.buildDealDTO(ctx, q, d, domain.RoleTenant, viewOpts{})
 	}
@@ -143,7 +135,6 @@ func (s *DealService) PreviewInvite(ctx context.Context, actor domain.Actor, cod
 	return s.buildDealDTO(ctx, q, d, domain.RoleTenant, viewOpts{invitePreview: true})
 }
 
-// LookupTenant — GET /users/lookup?phone= (D10): คืนแค่ชื่อย่อ ไม่เปิดเผยข้อมูลอื่น
 func (s *DealService) LookupTenant(ctx context.Context, phone string) (dto.UserLookupDTO, error) {
 	u, err := s.findTenantByPhone(ctx, s.repo.Queries, phone)
 	if err != nil {
@@ -152,7 +143,6 @@ func (s *DealService) LookupTenant(ctx context.Context, phone string) (dto.UserL
 	return dto.UserLookupDTO{ShortName: u.ShortName}, nil
 }
 
-// ---- เขียน (idempotent) ----
 
 type CreateDealInput struct {
 	PropertyID       string
@@ -162,7 +152,6 @@ type CreateDealInput struct {
 	MoveInDate       string
 }
 
-// Create — POST /deals (L3): ดีลเกิดเป็น WAITING_ACCEPT ทันที + คำเชิญ QR
 func (s *DealService) Create(ctx context.Context, actor domain.Actor, idem IdemRequest, in CreateDealInput) (Response, error) {
 	now := s.clock.Now()
 	propID, viewingAt, moveIn, err := s.validateCreate(in, now)
@@ -218,7 +207,6 @@ func (s *DealService) Create(ctx context.Context, actor domain.Actor, idem IdemR
 	})
 }
 
-// ReissueInvite — POST /deals/{id}/invite (L4): ออก QR ใหม่ อันเก่าใช้ไม่ได้ทันที
 func (s *DealService) ReissueInvite(ctx context.Context, actor domain.Actor, idem IdemRequest, rawID string) (Response, error) {
 	now := s.clock.Now()
 	return runIdempotent(ctx, s.repo, actor, idem, now, http.StatusOK, func(q *db.Queries) (any, error) {
@@ -238,11 +226,10 @@ func (s *DealService) ReissueInvite(ctx context.Context, actor domain.Actor, ide
 }
 
 type SendInviteInput struct {
-	Channel string // IN_APP (ค่าเริ่มต้น) | PHONE
+	Channel string // IN_APP or PHONE.
 	Phone   string
 }
 
-// SendInvite — POST /deals/{id}/invite/send (L4 "ส่งเข้าแอปผู้เช่า", D10)
 func (s *DealService) SendInvite(ctx context.Context, actor domain.Actor, idem IdemRequest, rawID string, in SendInviteInput) (Response, error) {
 	now := s.clock.Now()
 	channel := db.InviteChannelINAPP
@@ -275,7 +262,6 @@ func (s *DealService) SendInvite(ctx context.Context, actor domain.Actor, idem I
 			return nil, fmt.Errorf("get landlord: %w", err)
 		}
 
-		// คำเชิญแบบระบุผู้รับ (token ไม่ได้ใช้ — ผู้เช่าเปิดจากการ์ดในแอปด้วย share code)
 		_, hash := token.NewInvite()
 		if err := q.InsertDealInvite(ctx, db.InsertDealInviteParams{
 			DealID: d.ID, TokenHash: hash, Channel: channel, TargetUserID: uuid.NullUUID{UUID: target.ID, Valid: true},
@@ -320,7 +306,6 @@ func (s *DealService) Reject(ctx context.Context, actor domain.Actor, idem IdemR
 		if err != nil {
 			return nil, fmt.Errorf("get tenant account: %w", err)
 		}
-		// ผูกผู้เช่ากับดีล เพื่อให้เปิดดูผลลัพธ์ (D3) ได้
 		if err := s.setState(ctx, q, d, next, now, uuid.NullUUID{UUID: actor.UserID, Valid: true}, uuid.NullUUID{UUID: acc.ID, Valid: true}); err != nil {
 			return nil, err
 		}
@@ -344,11 +329,10 @@ func (s *DealService) Reject(ctx context.Context, actor domain.Actor, idem IdemR
 
 type LockInput struct {
 	Version    int32
-	InviteCode string // share code หรือ token จาก QR — ยืนยันว่าผู้เช่าได้รับคำเชิญของดีลนี้จริง
-	Method     string // FACE_ID | PIN — เก็บเป็นข้อมูลประกอบเท่านั้น ไม่มีค่า PIN
+	InviteCode string // Invite share code or QR token.
+	Method     string // FACE_ID or PIN; no PIN value is stored.
 }
 
-// Lock — POST /deals/{id}/lock (T3): ยอมรับ + กันเงิน WAITING_ACCEPT → FUNDS_LOCKED (docs/04-database.md §6.1)
 func (s *DealService) Lock(ctx context.Context, actor domain.Actor, idem IdemRequest, rawID string, in LockInput) (Response, error) {
 	if in.Method != "FACE_ID" && in.Method != "PIN" {
 		return Response{}, invalid("method", "FACE_ID | PIN", "วิธียืนยันตัวตนไม่ถูกต้อง")
@@ -378,7 +362,6 @@ func (s *DealService) Lock(ctx context.Context, actor domain.Actor, idem IdemReq
 			return nil, fmt.Errorf("lock tenant account: %w", err)
 		}
 		if acc.BalanceSatang-acc.HeldSatang < d.TotalSatang {
-			// ยังไม่ได้เขียนอะไร — rollback แล้วไม่มี ledger event
 			return nil, domain.NewError(domain.CodeInsufficientBalance, "ยอดเงินที่ใช้ได้ไม่พอสำหรับกันเงิน")
 		}
 		tenantAcc := uuid.NullUUID{UUID: acc.ID, Valid: true}
@@ -429,7 +412,6 @@ type ConfirmInput struct {
 	Checklist []string
 }
 
-// ConfirmViewing — POST /deals/{id}/confirm-viewing (T5): ปล่อยค่าจอง (docs/04-database.md §6.2)
 func (s *DealService) ConfirmViewing(ctx context.Context, actor domain.Actor, idem IdemRequest, rawID string, in ConfirmInput) (Response, error) {
 	return s.release(ctx, actor, idem, rawID, in, releaseSpec{
 		action: domain.ActionConfirmViewing, checklist: viewingChecklist,
@@ -443,7 +425,6 @@ func (s *DealService) ConfirmViewing(ctx context.Context, actor domain.Actor, id
 	})
 }
 
-// ConfirmMoveIn — POST /deals/{id}/confirm-move-in (T6): ปล่อยมัดจำหลัก (docs/04-database.md §6.3)
 func (s *DealService) ConfirmMoveIn(ctx context.Context, actor domain.Actor, idem IdemRequest, rawID string, in ConfirmInput) (Response, error) {
 	return s.release(ctx, actor, idem, rawID, in, releaseSpec{
 		action: domain.ActionConfirmMoveIn, checklist: moveInChecklist,
@@ -471,10 +452,8 @@ type releaseSpec struct {
 	body         func(tenant, unit string) string
 }
 
-// release ปล่อยเงินงวดหนึ่งจากผู้เช่าไปผู้ให้เช่า — กดครั้งเดียวผ่าน 2 state ใน transaction เดียว
 func (s *DealService) release(ctx context.Context, actor domain.Actor, idem IdemRequest, rawID string, in ConfirmInput, spec releaseSpec) (Response, error) {
 	if !sameSet(in.Checklist, spec.checklist) {
-		// ตรวจฝั่ง server ด้วย กันการยิง API ข้ามหน้าจอที่ต้องติ๊กครบ
 		return Response{}, invalid("checklist", strings.Join(spec.checklist, ", "), "กรุณายืนยันให้ครบทุกข้อ")
 	}
 	now := s.clock.Now()
@@ -491,7 +470,6 @@ func (s *DealService) release(ctx context.Context, actor domain.Actor, idem Idem
 			return nil, err
 		}
 
-		// ล็อกสองบัญชีเรียงตาม id (กัน deadlock)
 		ids := []uuid.UUID{d.TenantAccountID.UUID, d.LandlordAccountID}
 		if _, err := q.GetAccountsForUpdate(ctx, ids); err != nil {
 			return nil, fmt.Errorf("lock accounts: %w", err)
@@ -530,7 +508,6 @@ func (s *DealService) release(ctx context.Context, actor domain.Actor, idem Idem
 
 // ---- helpers ----
 
-// findDeal หาดีลจาก id ใน path · forUpdate = ล็อกแถวจนจบ transaction
 func (s *DealService) findDeal(ctx context.Context, q *db.Queries, rawID string, forUpdate bool) (db.Deal, error) {
 	id, err := uuid.Parse(rawID)
 	if err != nil {
@@ -551,8 +528,6 @@ func (s *DealService) findDeal(ctx context.Context, q *db.Queries, rawID string,
 	return d, nil
 }
 
-// checkTransition ตรวจหลังได้ lock แล้ว ตามลำดับ: state → version → วันหมดอายุ
-// (state ก่อน version: กดปล่อยซ้ำหลังปล่อยแล้วต้องได้ DEAL_STATE_CONFLICT ตาม docs/05-api.md)
 func (s *DealService) checkTransition(d db.Deal, action domain.Action, role domain.Role, v int32, now time.Time) ([]domain.DealState, error) {
 	next, err := NextStates(domain.DealState(d.State), action, role)
 	if err != nil {
@@ -567,7 +542,6 @@ func (s *DealService) checkTransition(d db.Deal, action domain.Action, role doma
 	return next, nil
 }
 
-// setState เขียน state สุดท้ายของ transition + version+1 (หนึ่ง action = หนึ่ง version)
 func (s *DealService) setState(ctx context.Context, q *db.Queries, d db.Deal, next []domain.DealState, now time.Time, tenantID, tenantAcc uuid.NullUUID) error {
 	n, err := q.UpdateDealState(ctx, db.UpdateDealStateParams{
 		ID: d.ID, Version: d.Version, State: db.DealState(next[len(next)-1]), Now: now,
@@ -590,7 +564,6 @@ func (s *DealService) reload(ctx context.Context, q *db.Queries, id uuid.UUID, r
 	return s.buildDealDTO(ctx, q, d, role, viewOpts{})
 }
 
-// landlordWaitingDeal = ดีลของผู้ให้เช่าคนนี้ที่ยังรอผู้เช่า และยังไม่หมดอายุ
 func (s *DealService) landlordWaitingDeal(ctx context.Context, q *db.Queries, actor domain.Actor, rawID string, now time.Time) (db.Deal, error) {
 	d, err := s.findDeal(ctx, q, rawID, true)
 	if err != nil {
@@ -608,7 +581,6 @@ func (s *DealService) landlordWaitingDeal(ctx context.Context, q *db.Queries, ac
 	return d, nil
 }
 
-// checkInviteCode ยืนยันว่ารหัส (share code หรือ token) เป็นคำเชิญที่ยังใช้ได้ของดีลนี้
 func (s *DealService) checkInviteCode(ctx context.Context, q *db.Queries, d db.Deal, code string, now time.Time) error {
 	if token.IsShareCode(code) {
 		if code != d.ShareCode {
@@ -633,7 +605,6 @@ func (s *DealService) checkInviteCode(ctx context.Context, q *db.Queries, d db.D
 	return nil
 }
 
-// issueQRInvite สร้างคำเชิญ QR ใหม่ คืน URL ที่มี token (ครั้งเดียว — DB เก็บแค่ hash)
 func (s *DealService) issueQRInvite(ctx context.Context, q *db.Queries, dealID uuid.UUID, now time.Time) (string, error) {
 	tok, hash := token.NewInvite()
 	if err := q.InsertDealInvite(ctx, db.InsertDealInviteParams{
@@ -644,7 +615,6 @@ func (s *DealService) issueQRInvite(ctx context.Context, q *db.Queries, dealID u
 	return s.appBaseURL + "/invites/" + tok, nil
 }
 
-// closeInvites: ดีลถูกตอบแล้ว → คำเชิญทั้งหมดใช้ไม่ได้ และการ์ดคำขอของผู้เช่าถือว่าอ่านแล้ว
 func (s *DealService) closeInvites(ctx context.Context, q *db.Queries, dealID, tenantID uuid.UUID, now time.Time) error {
 	if err := q.RevokeInvites(ctx, db.RevokeInvitesParams{DealID: dealID, Now: &now}); err != nil {
 		return fmt.Errorf("revoke invites: %w", err)
@@ -728,7 +698,6 @@ func (s *DealService) validateCreate(in CreateDealInput, now time.Time) (uuid.UU
 	return propID, viewingAt, moveIn, nil
 }
 
-// partyRole บอกว่า actor เป็นฝ่ายไหนของดีล (ไม่ใช่คู่ดีล = false)
 func partyRole(d db.Deal, actor domain.Actor) (domain.Role, bool) {
 	switch {
 	case d.LandlordID == actor.UserID:
@@ -771,7 +740,6 @@ func addLedger(ctx context.Context, q *db.Queries, dealID uuid.UUID, typ db.Ledg
 		DealID: dealID, EventType: typ, AmountSatang: amount, FromAccountID: from, ToAccountID: to,
 		ActorID: uuid.NullUUID{UUID: actor, Valid: true}, IdempotencyKey: idemKey, CreatedAt: at,
 	}); err != nil {
-		// UNIQUE (deal_id, event_type) คือด่านสุดท้าย — ถ้าชนแปลว่าเงินงวดนี้ถูกปล่อยไปแล้ว
 		return fmt.Errorf("insert ledger %s: %w", typ, err)
 	}
 	return nil
@@ -786,7 +754,6 @@ func notify(ctx context.Context, q *db.Queries, user uuid.UUID, typ db.Notificat
 	return nil
 }
 
-// bahtText = ยอดสำหรับข้อความแจ้งเตือน: 650000 → "6,500" · 123450 → "1,234.50"
 func bahtText(satang int64) string {
 	baht, frac := satang/100, satang%100
 	s := fmt.Sprintf("%d", baht)

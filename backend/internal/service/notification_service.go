@@ -26,7 +26,6 @@ func NewNotificationService(repo *repository.Repository, c clock.Clock, loc *tim
 	return &NotificationService{repo: repo, clock: c, loc: loc}
 }
 
-// List — แจ้งเตือนล่าสุด 50 รายการ + จำนวนที่ยังไม่อ่าน
 func (s *NotificationService) List(ctx context.Context, actor domain.Actor) (dto.NotificationsDTO, error) {
 	rows, err := s.repo.ListNotifications(ctx, db.ListNotificationsParams{UserID: actor.UserID, Limit: notificationPageSize})
 	if err != nil {
@@ -46,7 +45,6 @@ func (s *NotificationService) List(ctx context.Context, actor domain.Actor) (dto
 	return out, nil
 }
 
-// MarkRead — อ่านตาม ids หรือทั้งหมด (all = true) · คืนจำนวนที่ยังไม่อ่านหลังอัปเดต
 func (s *NotificationService) MarkRead(ctx context.Context, actor domain.Actor, ids []string, all bool) (dto.UnreadCountDTO, error) {
 	now := s.clock.Now()
 	switch {

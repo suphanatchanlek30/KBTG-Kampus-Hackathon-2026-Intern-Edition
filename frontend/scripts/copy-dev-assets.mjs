@@ -1,5 +1,3 @@
-// copy รูป mockup (docs/design/screens) → public/dev/screens ให้หน้า /dev/overlay ใช้
-// ไม่ commit ซ้ำใน frontend เพราะต้นฉบับอยู่ใน docs แล้ว
 import { cpSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 

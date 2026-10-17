@@ -29,7 +29,6 @@ type ListActiveDealsRow struct {
 	TotalSatang int64
 }
 
-// ดีลที่ยังไม่จบ — ผู้ให้เช่าเห็นตั้งแต่สร้างคำขอ · ผู้เช่าเห็นหลังกันเงินแล้ว (ก่อนหน้านั้นอยู่ใน pending invites)
 func (q *Queries) ListActiveDeals(ctx context.Context, userID uuid.UUID) ([]ListActiveDealsRow, error) {
 	rows, err := q.db.Query(ctx, listActiveDeals, userID)
 	if err != nil {
@@ -89,7 +88,6 @@ type ListPendingInvitesRow struct {
 	ShareCode     string
 }
 
-// คำขอที่ส่งเข้าแอปผู้เช่าแล้วและยังรอตอบ (T1 การ์ด "คำขอ K Sure ใหม่")
 func (q *Queries) ListPendingInvites(ctx context.Context, arg ListPendingInvitesParams) ([]ListPendingInvitesRow, error) {
 	rows, err := q.db.Query(ctx, listPendingInvites, arg.TenantID, arg.Now)
 	if err != nil {

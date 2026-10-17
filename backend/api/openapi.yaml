@@ -1,10 +1,9 @@
-# สัญญา API ของ K Sure — เขียนตาม docs/05-api.md (เพิ่ม endpoint ทีละ Phase)
 openapi: 3.1.0
 info:
   title: K Sure API (Prototype)
   version: 0.1.0
   description: |
-    เงินเป็น integer สตางค์ · เวลาเป็น ISO-8601 มี offset · ทุก response ส่ง header X-Request-ID กลับ
+    Money uses integer satang. Times use offset ISO 8601. Every response returns X-Request-ID.
 servers:
   - url: http://localhost:8080/api/v1
 security:
@@ -12,7 +11,7 @@ security:
 paths:
   /healthz:
     get:
-      summary: process ยังทำงาน (ไม่แตะ DB)
+      summary: Confirm the process is running without checking the database
       operationId: healthz
       tags: [health]
       security: []
@@ -25,25 +24,25 @@ paths:
               example: { status: ok }
   /readyz:
     get:
-      summary: ต่อฐานข้อมูลได้
+      summary: Confirm the database is reachable
       operationId: readyz
       tags: [health]
       security: []
       responses:
         "200":
-          description: พร้อมรับ request
+          description: Ready to receive requests
           content:
             application/json:
               schema: { $ref: "#/components/schemas/HealthStatus" }
               example: { status: ready }
         "503":
-          description: ต่อ DB ไม่ได้ (code = NOT_READY)
+          description: Database unavailable (code = NOT_READY)
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
   /auth/demo-login:
     post:
-      summary: ล็อกอินด้วยบัญชีเดโม (ไม่มีรหัสผ่าน) → cookie ks_session
+      summary: Sign in with a demo account and set the ks_session cookie
       operationId: demoLogin
       tags: [auth]
       security: []
@@ -58,7 +57,7 @@ paths:
                 username: { type: string, enum: [landlord, tenant] }
       responses:
         "200":
-          description: สำเร็จ — Set-Cookie ks_session (HttpOnly, SameSite=Lax)
+          description: Session created; sets an HttpOnly, SameSite=Lax cookie
           headers:
             Set-Cookie: { schema: { type: string } }
           content:
@@ -72,15 +71,15 @@ paths:
         "401": { $ref: "#/components/responses/Error" }
   /auth/logout:
     post:
-      summary: ลบ cookie ks_session
+      summary: Delete the ks_session cookie
       operationId: logout
       tags: [auth]
       security: []
       responses:
-        "204": { description: ลบแล้ว }
+        "204": { description: Session deleted }
   /me:
     get:
-      summary: ผู้ใช้ + บัญชีหลัก + จำนวนแจ้งเตือนที่ยังไม่อ่าน
+      summary: Get the current user, primary account, and unread count
       operationId: getMe
       tags: [user]
       responses:
@@ -92,7 +91,7 @@ paths:
         "401": { $ref: "#/components/responses/Error" }
   /home:
     get:
-      summary: ข้อมูลหน้าหลัก L1 / T1 ในครั้งเดียว
+      summary: Get home-screen data
       operationId: getHome
       tags: [user]
       responses:
@@ -104,7 +103,7 @@ paths:
         "401": { $ref: "#/components/responses/Error" }
   /properties:
     get:
-      summary: ห้องของผู้ให้เช่า (LANDLORD เท่านั้น)
+      summary: List properties owned by the landlord
       operationId: listProperties
       tags: [user]
       responses:
@@ -121,7 +120,7 @@ paths:
         "403": { $ref: "#/components/responses/Error" }
   /notifications:
     get:
-      summary: แจ้งเตือนล่าสุด 50 รายการ
+      summary: List the latest 50 notifications
       operationId: listNotifications
       tags: [notifications]
       responses:
@@ -138,7 +137,7 @@ paths:
         "401": { $ref: "#/components/responses/Error" }
   /notifications/read:
     post:
-      summary: ทำเครื่องหมายว่าอ่านแล้ว (ระบุ ids หรือ all = true)
+      summary: Mark specified notifications, or all notifications, as read
       operationId: markNotificationsRead
       tags: [notifications]
       requestBody:
@@ -152,7 +151,7 @@ paths:
                 all: { type: boolean }
       responses:
         "200":
-          description: จำนวนที่ยังไม่อ่านหลังอัปเดต
+          description: Unread count after the update
           content:
             application/json:
               schema:
@@ -164,7 +163,7 @@ paths:
         "401": { $ref: "#/components/responses/Error" }
   /deals:
     get:
-      summary: ดีลของฉัน
+      summary: List the current user's deals
       operationId: listDeals
       tags: [deals]
       parameters:
@@ -181,7 +180,7 @@ paths:
                   items: { type: array, items: { $ref: "#/components/schemas/DealSummary" } }
         "401": { $ref: "#/components/responses/Error" }
     post:
-      summary: สร้างดีล → WAITING_ACCEPT + คำเชิญ QR (LANDLORD)
+      summary: Create a deal in WAITING_ACCEPT and issue a QR invite
       operationId: createDeal
       tags: [deals]
       parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
@@ -196,8 +195,8 @@ paths:
                 propertyId: { type: string, format: uuid }
                 totalSatang: { type: integer, format: int64, minimum: 1, maximum: 100000000 }
                 bookingFeeSatang: { type: integer, format: int64, description: "0 < booking < total" }
-                viewingAt: { type: string, format: date-time, description: ต้องอยู่ในอนาคต }
-                moveInDate: { type: string, format: date, description: ไม่ก่อนวันดูห้อง (เวลาไทย) }
+                viewingAt: { type: string, format: date-time, description: Must be in the future. }
+                moveInDate: { type: string, format: date, description: Cannot precede the viewing date in Bangkok time. }
       responses:
         "201": { $ref: "#/components/responses/Deal" }
         "400": { $ref: "#/components/responses/Error" }
@@ -206,7 +205,7 @@ paths:
   /deals/{id}:
     parameters: [{ $ref: "#/components/parameters/DealID" }]
     get:
-      summary: ดีล + ไทม์ไลน์ + งวดเงิน — คู่ดีล หรือผู้เช่าที่มีคำเชิญที่ยังใช้ได้ (preview ไม่มีข้อมูลผู้เช่า)
+      summary: Get a deal, timeline, and tranches for a party or eligible invitee
       operationId: getDeal
       tags: [deals]
       responses:
@@ -216,7 +215,7 @@ paths:
   /deals/{id}/invite:
     parameters: [{ $ref: "#/components/parameters/DealID" }]
     post:
-      summary: ออก QR ใหม่ (อันเก่าใช้ไม่ได้) — LANDLORD
+      summary: Issue a new QR invite and revoke the previous one
       operationId: reissueInvite
       tags: [deals]
       parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
@@ -227,7 +226,7 @@ paths:
   /deals/{id}/invite/send:
     parameters: [{ $ref: "#/components/parameters/DealID" }]
     post:
-      summary: ส่งคำขอเข้าแอปผู้เช่า (IN_APP) หรือตามเบอร์ (PHONE) — LANDLORD
+      summary: Send an invite in-app or to a phone number
       operationId: sendInvite
       tags: [deals]
       parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
@@ -241,7 +240,7 @@ paths:
                 phone: { type: string, example: "0890001432" }
       responses:
         "200":
-          description: ส่งแล้ว
+          description: Invite sent
           content:
             application/json:
               schema:
@@ -255,7 +254,7 @@ paths:
   /deals/{id}/reject:
     parameters: [{ $ref: "#/components/parameters/DealID" }]
     post:
-      summary: ปฏิเสธดีล WAITING_ACCEPT → REJECTED (TENANT)
+      summary: Reject a WAITING_ACCEPT deal
       operationId: rejectDeal
       tags: [deal actions]
       parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
@@ -266,7 +265,7 @@ paths:
   /deals/{id}/lock:
     parameters: [{ $ref: "#/components/parameters/DealID" }]
     post:
-      summary: ยอมรับ + กันเงิน WAITING_ACCEPT → FUNDS_LOCKED (TENANT)
+      summary: Accept a deal and lock funds
       operationId: lockDeal
       tags: [deal actions]
       parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
@@ -279,8 +278,8 @@ paths:
               required: [version, inviteCode, method]
               properties:
                 version: { type: integer }
-                inviteCode: { type: string, description: share code หรือ token จาก QR ของดีลนี้ }
-                method: { type: string, enum: [FACE_ID, PIN], description: เก็บเป็นข้อมูลประกอบเท่านั้น ไม่มีค่า PIN }
+                inviteCode: { type: string, description: Deal share code or QR token. }
+                method: { type: string, enum: [FACE_ID, PIN], description: Recorded metadata only; no PIN is stored. }
       responses:
         "200": { $ref: "#/components/responses/Deal" }
         "403": { $ref: "#/components/responses/Error" }
@@ -290,7 +289,7 @@ paths:
   /deals/{id}/confirm-viewing:
     parameters: [{ $ref: "#/components/parameters/DealID" }]
     post:
-      summary: ยืนยันดูห้อง → ปล่อยค่าจอง (FUNDS_LOCKED → BOOKING_FEE_RELEASED)
+      summary: Confirm viewing and release the booking fee
       operationId: confirmViewing
       tags: [deal actions]
       parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
@@ -305,7 +304,7 @@ paths:
                 version: { type: integer }
                 checklist:
                   type: array
-                  description: ต้องครบทั้ง 3 ข้อ
+                  description: All three confirmations are required.
                   items: { type: string, enum: [VIEWED_ROOM, ROOM_MATCHES, LANDLORD_MATCHES] }
       responses:
         "200": { $ref: "#/components/responses/Deal" }
@@ -315,7 +314,7 @@ paths:
   /deals/{id}/confirm-move-in:
     parameters: [{ $ref: "#/components/parameters/DealID" }]
     post:
-      summary: ยืนยันเข้าอยู่ → ปล่อยมัดจำหลัก (BOOKING_FEE_RELEASED → RELEASED)
+      summary: Confirm move-in and release the main deposit
       operationId: confirmMoveIn
       tags: [deal actions]
       parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
@@ -338,7 +337,7 @@ paths:
         "409": { $ref: "#/components/responses/Error" }
   /invites/{code}:
     get:
-      summary: ผู้เช่าดูดีลจาก share code หรือ token (T2) — จำกัด 30 ครั้ง/นาที
+      summary: Preview an invite by share code or token; limited to 30 requests per minute
       operationId: previewInvite
       tags: [deals]
       parameters:
@@ -350,7 +349,7 @@ paths:
         "429": { $ref: "#/components/responses/Error" }
   /users/lookup:
     get:
-      summary: หาผู้เช่าจากเบอร์มือถือ (คืนแค่ชื่อย่อ) — LANDLORD
+      summary: Look up a tenant by phone number and return the short name
       operationId: lookupUser
       tags: [deals]
       parameters:
@@ -364,7 +363,7 @@ paths:
         "404": { $ref: "#/components/responses/Error" }
   /transfers/payees:
     get:
-      summary: ผู้รับโอนที่เลือกได้ (บัญชีหลักของผู้ใช้เดโมคนอื่น)
+      summary: List available transfer payees from other demo accounts
       operationId: listPayees
       tags: [transfers]
       responses:
@@ -388,7 +387,7 @@ paths:
                         accountNoMasked: { type: string }
   /transfers/precheck:
     post:
-      summary: ตรวจว่ากำลังโอนหาคู่ดีลที่ยังไม่จบไหม (T8)
+      summary: Check whether a transfer targets a counterparty in an active deal
       operationId: precheckTransfer
       tags: [transfers]
       requestBody:
@@ -403,7 +402,7 @@ paths:
                 amountSatang: { type: integer, format: int64 }
       responses:
         "200":
-          description: warning = null คือโอนได้ตามปกติ
+          description: A null warning permits the transfer.
           content:
             application/json:
               schema:
@@ -422,7 +421,7 @@ paths:
                       - type: "null"
   /transfers:
     post:
-      summary: โอนจำลอง (CONFIRM) หรือบันทึกว่ายกเลิกหลังเห็นคำเตือน (CANCEL)
+      summary: Simulate a transfer or record a cancellation after a warning
       operationId: createTransfer
       tags: [transfers]
       parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
@@ -440,7 +439,7 @@ paths:
                 action: { type: string, enum: [CONFIRM, CANCEL] }
       responses:
         "201":
-          description: บันทึกแล้ว — warningShown คำนวณที่ server
+          description: Recorded; the server calculates warningShown.
           content:
             application/json:
               schema:
@@ -456,7 +455,7 @@ paths:
   /deals/{id}/cancel:
     parameters: [{ $ref: "#/components/parameters/DealID" }]
     post:
-      summary: ขอยกเลิก (ฝ่ายแรก) / ยินยอมยกเลิก (ฝ่ายที่สอง → REFUNDED คืนยอดที่ยังไม่ปล่อย)
+      summary: Request cancellation or approve it and refund unreleased funds
       operationId: cancelDeal
       tags: [deal actions]
       parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
@@ -469,7 +468,7 @@ paths:
   /deals/{id}/report-issue:
     parameters: [{ $ref: "#/components/parameters/DealID" }]
     post:
-      summary: แจ้งห้องไม่ตรงกับดีล (TENANT · FUNDS_LOCKED) → hasOpenIssue · เงินยังกันไว้
+      summary: Report a property mismatch while funds remain locked
       operationId: reportIssue
       tags: [deal actions]
       parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
@@ -481,7 +480,7 @@ paths:
   /deals/{id}/calendar.ics:
     parameters: [{ $ref: "#/components/parameters/DealID" }]
     get:
-      summary: ไฟล์ปฏิทิน (นัดดูห้อง + วันเข้าอยู่)
+      summary: Download a calendar file for viewing and move-in dates
       operationId: dealCalendar
       tags: [deals]
       responses:
@@ -494,7 +493,7 @@ paths:
   /demo/deals/{id}/expire-now:
     parameters: [{ $ref: "#/components/parameters/DealID" }]
     post:
-      summary: ให้ดีล active หมดอายุทันที (Demo tools) — มีเงินกัน → คืนอัตโนมัติ
+      summary: Expire an active deal immediately and refund held funds
       operationId: demoExpireNow
       tags: [demo]
       responses:
@@ -502,7 +501,7 @@ paths:
         "409": { $ref: "#/components/responses/Error" }
   /demo/reset:
     post:
-      summary: รีเซ็ตข้อมูลเดโมตาม scenario (มีเมื่อ DEMO_TOOLS_ENABLED=true)
+      summary: Reset demo data for a scenario when demo tools are enabled
       operationId: demoReset
       tags: [demo]
       parameters:
@@ -536,7 +535,7 @@ components:
       name: Idempotency-Key
       in: header
       required: true
-      description: UUID ต่อการกดหนึ่งครั้ง — ส่งซ้ำ key เดิมได้คำตอบเดิม (header Idempotent-Replayed true)
+      description: One UUID per action. Reuse returns the original response and Idempotent-Replayed true.
       schema: { type: string, maxLength: 255 }
     DealID:
       name: id
@@ -560,13 +559,13 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/Deal" }
     Error:
-      description: error (ดู code)
+      description: Error code
       content:
         application/json:
           schema: { $ref: "#/components/schemas/ErrorResponse" }
   headers:
     XRequestID:
-      description: รหัสอ้างอิง request — ส่งมาเองได้ ถ้าไม่ส่ง server สร้างให้
+      description: Request reference supplied by the client or generated by the server.
       schema: { type: string }
   schemas:
     User:
@@ -663,7 +662,7 @@ components:
       enum: [WAITING_ACCEPT, REJECTED, FUNDS_LOCKED, BOOKING_FEE_RELEASED, RELEASED, EXPIRED, REFUNDED]
     Deal:
       type: object
-      description: docs/05-api.md §3 DealDTO
+      description: Deal response payload
       required: [id, refNo, shareCode, state, version, dealType, property, landlord, tenant, amounts, tranches,
                  viewingAt, moveInDate, expiresAt, invite, cancel, hasOpenIssue, myRole, nextActor, allowedActions,
                  timeline, createdAt]
@@ -708,7 +707,7 @@ components:
               required: [expiresAt, sentAt]
               properties:
                 expiresAt: { type: string, format: date-time }
-                qrUrl: { type: string, description: เฉพาะตอนสร้าง/ออกใหม่ }
+                qrUrl: { type: string, description: Included only when an invite is created or reissued. }
                 sentAt: { type: [string, "null"], format: date-time }
             - type: "null"
         cancel:
@@ -735,7 +734,7 @@ components:
         createdAt: { type: string, format: date-time }
         account:
           type: object
-          description: เฉพาะคำตอบของ lock (T4 ยอดที่ใช้ได้ตอนนี้)
+          description: Included only in the lock-funds response.
           properties:
             availableSatang: { type: integer, format: int64 }
             heldSatang: { type: integer, format: int64 }
@@ -769,7 +768,7 @@ components:
               enum: [VALIDATION_FAILED, IDEMPOTENCY_KEY_REQUIRED, UNAUTHENTICATED, FORBIDDEN_ROLE, NOT_DEAL_PARTY,
                      NOT_FOUND, DEAL_STATE_CONFLICT, VERSION_MISMATCH, IDEMPOTENCY_CONFLICT, INVITE_EXPIRED,
                      INSUFFICIENT_BALANCE, RATE_LIMITED, INTERNAL, NOT_READY]
-            message: { type: string, description: ข้อความภาษาไทยพร้อมแสดง }
+            message: { type: string, description: Thai message safe to display to the user. }
             requestId: { type: string }
             details:
               type: array

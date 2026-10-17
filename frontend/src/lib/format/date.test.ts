@@ -13,7 +13,6 @@ import {
   toBangkokInputValue,
 } from "./date";
 
-// ค่าตาม docs/02-ui-spec.md §3.2 และข้อมูลเดโมใน docs/01-user-flow.md §2 (เวลา Asia/Bangkok = UTC+7)
 const VIEWING = "2026-10-18T14:00:00+07:00";
 const MOVE_IN = "2026-11-01T00:00:00+07:00";
 const EXPIRY = "2026-11-03T23:59:00+07:00";
@@ -63,7 +62,6 @@ describe("Thai Buddhist-era date formats", () => {
   });
 
   it("converts from UTC to Bangkok across a day boundary", () => {
-    // 2026-10-31 17:00 UTC = 2026-11-01 00:00 ที่กรุงเทพฯ
     expect(formatDate("2026-10-31T17:00:00Z")).toBe("1 พ.ย. 2569");
     expect(formatTime("2026-10-31T17:00:00Z")).toBe("00:00");
   });

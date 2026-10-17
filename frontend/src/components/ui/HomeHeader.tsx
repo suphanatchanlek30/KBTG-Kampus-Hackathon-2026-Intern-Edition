@@ -17,10 +17,8 @@ type HomeHeaderProps = {
   onMenu?: () => void;
 };
 
-/** Header หน้าหลัก L1/T1 (Figma: สูง 64 · pad 0/20 · gap 12 · โลโก้ 42×42 r14) */
 export function HomeHeader({ greeting, name, notificationCount = 0, onBell, onMenu }: HomeHeaderProps) {
   const full = useMotionMode() === "full";
-  // จำนวนแจ้งเตือนเพิ่มขึ้น → badge เด้ง + กระดิ่งส่าย (§5.6) — เทียบกับค่าของ render ก่อนหน้า
   const [seenCount, setSeenCount] = useState(notificationCount);
   const [rings, setRings] = useState(0);
   if (notificationCount !== seenCount) {
@@ -56,7 +54,6 @@ export function HomeHeader({ greeting, name, notificationCount = 0, onBell, onMe
             className="absolute -top-0.5 left-6 flex"
             initial={ringing ? { scale: 0 } : false}
             animate={{ scale: 1 }}
-            // spring เด้งเกินราว 1.25 แล้วกลับ 1
             transition={{ type: "spring", stiffness: 520, damping: 14 }}
           >
             <Badge variant="count" aria-hidden>

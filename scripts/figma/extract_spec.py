@@ -150,8 +150,8 @@ def main():
         b = n["absoluteBoundingBox"]
         spec = simplify(n, b["x"], b["y"])
         (out_dir / f"{code}.json").write_text(json.dumps(spec, ensure_ascii=False, indent=1))
-        header = [f"# {code} — Figma spec (K Sure UI v3-final, node `{node_id}`)", "",
-                  "> สร้างอัตโนมัติจาก Figma REST API · พิกัดเทียบมุมซ้ายบนของเฟรมโทรศัพท์ (393×852) · หน่วย px", ""]
+        header = [f"# {code} — Figma specification (K Sure UI v3-final, node `{node_id}`)", "",
+                  "> Generated from the Figma REST API. Coordinates use the 393 × 852 phone frame in pixels.", ""]
         (out_dir / f"{code}.md").write_text("\n".join(header + to_md(spec)) + "\n")
         print(code, "ok")
 

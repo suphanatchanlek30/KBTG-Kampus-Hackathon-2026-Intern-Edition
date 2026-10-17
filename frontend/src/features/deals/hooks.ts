@@ -18,14 +18,12 @@ export const queryKeys = {
   notifications: ["notifications"] as const,
 };
 
-// Polling (docs/05-api.md §5) — เฉพาะ API จริง (mock เปลี่ยนได้จากเครื่องนี้เครื่องเดียว)
 const FINISHED: DealState[] = ["RELEASED", "REJECTED", "EXPIRED", "REFUNDED"];
 const poll = (ms: number) => (env.useMock ? false : ms);
 
 export const useMe = () => useQuery({ queryKey: queryKeys.me, queryFn: dealsApi.getMe, refetchInterval: poll(10_000) });
 export const useHome = () =>
   useQuery({ queryKey: queryKeys.home, queryFn: dealsApi.getHome, refetchInterval: poll(5_000) });
-/** L5 / D8: อัปเดตเองทุก NEXT_PUBLIC_POLL_MS จนดีลจบ */
 export const useDeal = (id: string) =>
   useQuery({
     queryKey: queryKeys.deal(id),
@@ -34,19 +32,12 @@ export const useDeal = (id: string) =>
   });
 export const useInvite = (code: string) =>
   useQuery({ queryKey: queryKeys.invite(code), queryFn: () => dealsApi.getInvite(code), retry: false });
-/** ห้องแรกของผู้ให้เช่า (เดโมมีห้องเดียว) */
 export const useProperty = () =>
   useQuery({ queryKey: queryKeys.properties, queryFn: dealsApi.getProperties, select: (items) => items[0] });
 export const usePayees = () => useQuery({ queryKey: queryKeys.payees, queryFn: dealsApi.getPayees });
 
 const isNetwork = (err: unknown) => err instanceof ApiError && err.isNetwork;
 
-/**
- * action ที่เปลี่ยนเงิน/state — หนึ่งการกดใช้ Idempotency-Key เดียว (scope บอกว่า "การกดเดียวกัน" คืออะไร)
- * - เน็ตหลุด: retry อัตโนมัติ 2 ครั้งด้วย key เดิม · ถ้ายังไม่ได้ ผู้ใช้กดซ้ำก็ยังได้ key เดิม → server ทำแค่ครั้งเดียว
- * - สำเร็จ / server ปฏิเสธ (4xx): ทิ้ง key แล้ว invalidate ทุก query
- *   (route ที่เปิดไว้ยังค้างอยู่ใน <Activity> ของ Cache Components จึงต้องรีเฟรชข้อมูลทุกหน้า)
- */
 function useAction<TVars, TData>(scope: (vars: TVars) => string, fn: (vars: TVars, key: string) => Promise<TData>) {
   const qc = useQueryClient();
   return useMutation({
@@ -60,7 +51,6 @@ function useAction<TVars, TData>(scope: (vars: TVars) => string, fn: (vars: TVar
     onError: (err, vars) => {
       if (!isNetwork(err)) releaseIdempotencyKey(scope(vars));
       toast.error(errorMessage(err));
-      // ดีลเปลี่ยนไปแล้ว (อีกเครื่องกดก่อน) → ดึงข้อมูลใหม่ให้หน้าพาไปตาม state ล่าสุด
       if (err instanceof ApiError && err.status === 409) void qc.invalidateQueries();
     },
   });
@@ -73,7 +63,6 @@ export const useCreateDeal = () =>
 export const useSendInvite = () =>
   useAction((v: dealsApi.SendInviteInput) => `send-invite:${v.id}:${v.phone ?? "app"}`, dealsApi.sendInvite);
 export const useRejectDeal = () => useAction(dealScope("reject"), dealsApi.rejectDeal);
-/** T3 — Face ID หรือ PIN (D2 · ค่า PIN ไม่ถูกส่ง) */
 export const useLockDeal = () =>
   useAction(
     (v: { deal: DealDTO; method: "FACE_ID" | "PIN" }) => `lock:${v.deal.id}:v${v.deal.version}`,
@@ -84,7 +73,6 @@ export const useConfirmMoveIn = () => useAction(dealScope("confirm-move-in"), de
 export const useCancelDeal = () => useAction(dealScope("cancel"), dealsApi.cancelDeal);
 export const useReportIssue = () => useAction(dealScope("report-issue"), dealsApi.reportIssue);
 
-/** Demo tools — ไม่ต้องมี idempotency (ทำซ้ำได้ผลเดิม: ดีลจบแล้วได้ 409) */
 export const useExpireNow = () => {
   const qc = useQueryClient();
   return useMutation({

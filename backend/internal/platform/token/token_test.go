@@ -9,7 +9,6 @@ import (
 
 func TestFormatRefNo(t *testing.T) {
 	bkk, _ := time.LoadLocation("Asia/Bangkok")
-	// 14 ต.ค. 2569 → KS-691014-0458 (ตรง mockup)
 	got := FormatRefNo(time.Date(2026, 10, 14, 10, 24, 0, 0, bkk), 458)
 	if got != "KS-691014-0458" {
 		t.Errorf("got %s", got)

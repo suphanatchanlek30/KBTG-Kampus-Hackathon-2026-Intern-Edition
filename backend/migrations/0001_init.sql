@@ -1,4 +1,3 @@
--- Schema ตั้งต้น — ต้นฉบับอยู่ที่ docs/04-database.md §3 (แก้ที่เอกสารก่อน แล้วค่อยทำ migration ใหม่ ห้ามแก้ไฟล์นี้หลัง merge)
 
 -- +goose Up
 CREATE EXTENSION IF NOT EXISTS pgcrypto;  -- gen_random_uuid()
@@ -15,23 +14,21 @@ CREATE TYPE notification_type AS ENUM ('DEAL_INVITE','FUNDS_LOCKED','BOOKING_FEE
                                        'DEAL_REJECTED','CANCEL_REQUESTED','DEAL_REFUNDED','DEAL_EXPIRED');
 CREATE TYPE transfer_status   AS ENUM ('COMPLETED_SIMULATED','CANCELLED_BY_USER');
 
--- ผู้ใช้เดโม (ไม่มี KYC จริง)
 CREATE TABLE users (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  username      text NOT NULL UNIQUE,              -- 'landlord', 'tenant' (ใช้ตอน demo login)
+  username      text NOT NULL UNIQUE,              -- Used by demo login.
   role          user_role NOT NULL,
-  display_name  text NOT NULL,                     -- 'สมชาย ใจดี'
-  short_name    text NOT NULL,                     -- 'สมชาย ใ.'
-  phone         text UNIQUE,                       -- เบอร์สมมติ ใช้ค้นในแท็บ "เบอร์มือถือผู้เช่า"
+  display_name  text NOT NULL,
+  short_name    text NOT NULL,
+  phone         text UNIQUE,                       -- Demo phone used for tenant lookup.
   created_at    timestamptz NOT NULL DEFAULT now()
 );
 
--- บัญชีธนาคารจำลอง (ไม่เก็บเลขบัญชีเต็ม)
 CREATE TABLE demo_accounts (
   id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id            uuid NOT NULL REFERENCES users(id),
-  bank_name          text NOT NULL,                -- 'กสิกรไทย'
-  account_type       text NOT NULL,                -- 'ออมทรัพย์'
+  bank_name          text NOT NULL,
+  account_type       text NOT NULL,
   account_no_masked  text NOT NULL,                -- 'xxx-x-x4821'
   balance_satang     bigint NOT NULL CHECK (balance_satang >= 0),
   held_satang        bigint NOT NULL DEFAULT 0 CHECK (held_satang >= 0 AND held_satang <= balance_satang),
@@ -41,15 +38,14 @@ CREATE TABLE demo_accounts (
 );
 CREATE UNIQUE INDEX demo_accounts_one_primary ON demo_accounts(user_id) WHERE is_primary;
 
--- ห้อง (ไม่มีรูป ตาม UI v3)
 CREATE TABLE properties (
   id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   landlord_id    uuid NOT NULL REFERENCES users(id),
   property_type  text NOT NULL DEFAULT 'คอนโด',
-  project_name   text NOT NULL,                    -- 'The Park สุขุมวิท 64'
+  project_name   text NOT NULL,
   unit_no        text NOT NULL,                    -- 'A1203'
-  detail_label   text NOT NULL,                    -- '1 ห้องนอน · 28 ตร.ม. · ชั้น 12'
-  nearby_label   text,                             -- 'BTS ปุณณวิถี'
+  detail_label   text NOT NULL,
+  nearby_label   text,
   created_at     timestamptz NOT NULL DEFAULT now(),
   UNIQUE (landlord_id, project_name, unit_no)
 );
@@ -60,7 +56,7 @@ CREATE TABLE deals (
   share_code                  text NOT NULL UNIQUE,      -- 'KS-8F4Q21'
   landlord_id                 uuid NOT NULL REFERENCES users(id),
   landlord_account_id         uuid NOT NULL REFERENCES demo_accounts(id),
-  tenant_id                   uuid REFERENCES users(id), -- NULL จนกว่าผู้เช่าจะ lock (หรือถูกระบุตอนส่งเข้าแอป)
+  tenant_id                   uuid REFERENCES users(id), -- Null until the tenant is assigned or locks funds.
   tenant_account_id           uuid REFERENCES demo_accounts(id),
   property_id                 uuid NOT NULL REFERENCES properties(id),
   deal_type                   text NOT NULL DEFAULT 'RENTAL_DEPOSIT',
@@ -88,20 +84,18 @@ CREATE INDEX deals_landlord_idx ON deals(landlord_id, created_at DESC);
 CREATE INDEX deals_tenant_idx   ON deals(tenant_id, created_at DESC);
 CREATE INDEX deals_expiry_idx   ON deals(expires_at) WHERE state IN ('WAITING_ACCEPT','FUNDS_LOCKED','BOOKING_FEE_RELEASED');
 
--- คำเชิญ: เก็บเฉพาะ hash ของ token (ห้ามเก็บ token จริง)
 CREATE TABLE deal_invites (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   deal_id         uuid NOT NULL REFERENCES deals(id),
   token_hash      bytea NOT NULL UNIQUE,            -- sha256(token)
   channel         invite_channel NOT NULL,
-  target_user_id  uuid REFERENCES users(id),        -- ระบุเมื่อส่งเข้าแอป/เบอร์
-  expires_at      timestamptz NOT NULL,             -- created + 24h → L4 "ใช้ได้ถึง 15 ต.ค. 2569 · 10:24"
+  target_user_id  uuid REFERENCES users(id),        -- Set for in-app or phone delivery.
+  expires_at      timestamptz NOT NULL,             -- Set from the invite lifetime.
   revoked_at      timestamptz,
   created_at      timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX deal_invites_deal_idx ON deal_invites(deal_id);
 
--- ไทม์ไลน์ (ทุก action ที่ผู้ใช้เห็น)
 CREATE TABLE deal_events (
   id             bigserial PRIMARY KEY,
   deal_id        uuid NOT NULL REFERENCES deals(id),
@@ -116,7 +110,6 @@ CREATE TABLE deal_events (
 );
 CREATE INDEX deal_events_deal_idx ON deal_events(deal_id, id);
 
--- Ledger จำลอง: append-only
 CREATE TABLE ledger_events (
   id               bigserial PRIMARY KEY,
   deal_id          uuid NOT NULL REFERENCES deals(id),
@@ -129,10 +122,9 @@ CREATE TABLE ledger_events (
   metadata         jsonb NOT NULL DEFAULT '{"simulated": true}',
   created_at       timestamptz NOT NULL DEFAULT now(),
   UNIQUE (deal_id, idempotency_key),
-  UNIQUE (deal_id, event_type)          -- 🔒 ด่านสุดท้าย: แต่ละประเภทเกิดได้ครั้งเดียวต่อดีล → ปล่อยเงินซ้ำไม่ได้แน่นอน
+  UNIQUE (deal_id, event_type)          -- Prevent duplicate event types per deal.
 );
 
--- กัน UPDATE/DELETE ledger (append-only)
 -- +goose StatementBegin
 CREATE FUNCTION forbid_ledger_mutation() RETURNS trigger AS $$
 BEGIN RAISE EXCEPTION 'ledger_events is append-only'; END; $$ LANGUAGE plpgsql;
@@ -145,20 +137,19 @@ CREATE TABLE notifications (
   user_id     uuid NOT NULL REFERENCES users(id),
   type        notification_type NOT NULL,
   deal_id     uuid REFERENCES deals(id),
-  title       text NOT NULL,                 -- 'คำขอ K Sure ใหม่'
-  body        text NOT NULL,                 -- 'จากคุณสมชาย ใ.'
+  title       text NOT NULL,
+  body        text NOT NULL,
   read_at     timestamptz,
   created_at  timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX notifications_unread_idx ON notifications(user_id, created_at DESC) WHERE read_at IS NULL;
 
--- การโอนจำลอง (สำหรับเดโม T8)
 CREATE TABLE transfers (
   id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   from_account_id   uuid NOT NULL REFERENCES demo_accounts(id),
   to_account_id     uuid NOT NULL REFERENCES demo_accounts(id),
   amount_satang     bigint NOT NULL CHECK (amount_satang > 0),
-  memo              text,                     -- 'ค่าส่วนกลางล่วงหน้า'
+  memo              text,
   status            transfer_status NOT NULL,
   warning_shown     boolean NOT NULL DEFAULT false,
   related_deal_id   uuid REFERENCES deals(id),
@@ -170,14 +161,13 @@ CREATE TABLE idempotency_keys (
   user_id        uuid NOT NULL REFERENCES users(id),
   key            text NOT NULL,
   method_path    text NOT NULL,              -- 'POST /api/v1/deals/{id}/confirm-viewing'
-  request_hash   text NOT NULL,              -- sha256(body) → ถ้า key เดิมแต่ body ต่าง = IDEMPOTENCY_CONFLICT
+  request_hash   text NOT NULL,              -- Detects payload reuse with a different body.
   status_code    integer NOT NULL,
   response_body  jsonb NOT NULL,
   created_at     timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (user_id, key)
 );
 
--- เลขอ้างอิงรายวัน KS-YYMMDD-NNNN (YY = พ.ศ. 2 หลัก)
 CREATE TABLE ref_counters (
   day       date PRIMARY KEY,
   last_seq  integer NOT NULL

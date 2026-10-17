@@ -25,7 +25,6 @@ type AdjustAccountParams struct {
 	ID           uuid.UUID
 }
 
-// เปลี่ยนยอดแบบบวก/ลบ — CHECK ในตารางกันยอดติดลบและ held > balance เป็นด่านสุดท้าย
 func (q *Queries) AdjustAccount(ctx context.Context, arg AdjustAccountParams) error {
 	_, err := q.db.Exec(ctx, adjustAccount,
 		arg.BalanceDelta,
@@ -62,7 +61,6 @@ const getAccountsForUpdate = `-- name: GetAccountsForUpdate :many
 SELECT id, user_id, bank_name, account_type, account_no_masked, balance_satang, held_satang, is_primary, created_at, updated_at FROM demo_accounts WHERE id = ANY($1::uuid[]) ORDER BY id FOR UPDATE
 `
 
-// ล็อกหลายบัญชีเรียงตาม id เสมอ — กัน deadlock เมื่อสอง transaction ล็อกคู่บัญชีเดียวกันสลับลำดับ
 func (q *Queries) GetAccountsForUpdate(ctx context.Context, ids []uuid.UUID) ([]DemoAccount, error) {
 	rows, err := q.db.Query(ctx, getAccountsForUpdate, ids)
 	if err != nil {
@@ -120,7 +118,6 @@ const getPrimaryAccountForUpdate = `-- name: GetPrimaryAccountForUpdate :one
 SELECT id, user_id, bank_name, account_type, account_no_masked, balance_satang, held_satang, is_primary, created_at, updated_at FROM demo_accounts WHERE user_id = $1 AND is_primary FOR UPDATE
 `
 
-// ล็อกแถวไว้จนจบ transaction (กันยอดเงินชนกัน) — ล็อกหลายบัญชีให้เรียงตาม id เสมอ
 func (q *Queries) GetPrimaryAccountForUpdate(ctx context.Context, userID uuid.UUID) (DemoAccount, error) {
 	row := q.db.QueryRow(ctx, getPrimaryAccountForUpdate, userID)
 	var i DemoAccount
@@ -149,7 +146,6 @@ type SetAccountBalanceParams struct {
 	HeldSatang    int64
 }
 
-// ใช้กับ demo reset เท่านั้น — action จริงปรับยอดผ่าน ledger (Phase 6)
 func (q *Queries) SetAccountBalance(ctx context.Context, arg SetAccountBalanceParams) error {
 	_, err := q.db.Exec(ctx, setAccountBalance, arg.ID, arg.BalanceSatang, arg.HeldSatang)
 	return err

@@ -14,7 +14,6 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
 import { formatBaht } from "@/lib/format/money";
 
-// แคตตาล็อกทุก component ทุก variant — ใช้ตรวจสี/ขนาดเทียบ Foundations (docs/design/foundations.png)
 
 const COLORS = [
   ["bg", "bg-bg", "#0A0A0B"],
@@ -78,7 +77,6 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-/** กล่องกว้าง 393 เท่าจอ mockup */
 function PhoneWidth({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <div className={`w-[393px] max-w-full overflow-hidden rounded-2xl border border-line bg-bg ${className ?? ""}`}>

@@ -16,7 +16,6 @@ func NewDealHandler(deals *service.DealService) *DealHandler {
 	return &DealHandler{deals: deals}
 }
 
-// ---- อ่าน ----
 
 func (h *DealHandler) Get(c fiber.Ctx) error {
 	out, err := h.deals.Get(c.Context(), middleware.ActorFrom(c), c.Params("id"))
@@ -50,7 +49,6 @@ func (h *DealHandler) LookupUser(c fiber.Ctx) error {
 	return c.JSON(out)
 }
 
-// ---- เขียน (ผ่าน middleware Idempotency) ----
 
 type createDealRequest struct {
 	PropertyID       string `json:"propertyId"`
@@ -172,7 +170,6 @@ func (h *DealHandler) ExpireNow(c fiber.Ctx) error {
 	return h.Get(c)
 }
 
-// send เขียนคำตอบที่ service บันทึกไว้ (JSON เดิมทุกครั้งที่ใช้ key เดิม)
 func send(c fiber.Ctx) func(service.Response, error) error {
 	return func(r service.Response, err error) error {
 		if err != nil {

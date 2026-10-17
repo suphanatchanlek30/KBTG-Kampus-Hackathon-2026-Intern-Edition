@@ -12,7 +12,6 @@ const rgba = (hex: string, alpha: number) => {
   return `rgb(${(n >> 16) & 255} ${(n >> 8) & 255} ${n & 255} / ${alpha})`;
 };
 
-// Figma export ไม่มีค่ามุมหมุน — แถบ sweep ใน mockup เอียงขึ้นทางขวา ประมาณจากภาพ
 const SWEEP_ROTATE_DEG = -24;
 
 function shapeStyle(s: BackgroundShape): CSSProperties {
@@ -35,31 +34,21 @@ function shapeStyle(s: BackgroundShape): CSSProperties {
 }
 
 export type HeroBackgroundOptions = {
-  /** ⌀ วงกลม hero — ripple เริ่มจากขนาดนี้ */
   size: number;
-  /** วินาทีต่อรอบของ ripple (L6/T7/T4 = 2.4 · T3 ระหว่างสแกน = 3.2) */
   ripple?: number;
-  /** เลื่อน glow/ripple แนวตั้ง (px, ลบ = ขึ้น) ให้ตรงกับวงกลมจริง เมื่อ layout ต่างจากศูนย์กลางวงแหวนใน Figma (T4 = -4) */
   offsetY?: number;
 };
 
 type ScreenBackgroundProps = {
   screen: BackgroundId;
-  /** หน้า success (L6, T7, T4, T3): วงแหวนกระจายออก ประกายกระพริบ ripple รอบ hero (§5.1) */
   hero?: HeroBackgroundOptions;
 };
 
-/**
- * ลายพื้นหลังของหน้าจอ (แสงเขียว, วงแหวน, จุด) ตามค่า Figma ของแต่ละหน้า
- * พิกัดอ้างอิงเฟรม 393×852 ที่มี status bar 50px — บนมือถือจริงไม่มี status bar จึงเลื่อนขึ้น 50px
- * กล่องกว้าง 393 วางกึ่งกลางจอ: จอ 360/430 วงแหวน ripple glow ยังอยู่ตรงกลาง hero (ส่วนที่ล้นถูก AppShell ตัด)
- */
 export function ScreenBackground({ screen, hero }: ScreenBackgroundProps) {
   const mode = useMotionMode();
   const shapes = SCREEN_BACKGROUNDS[screen];
   const animated = hero && mode !== "static";
 
-  // วงแหวนเรียงจากในออกนอกสำหรับ stagger · ripple อยู่กึ่งกลางวงในสุด (= กึ่งกลาง hero)
   const rings = shapes.filter((s) => s.kind === "ring").sort((a, b) => a.w - b.w);
   const inner = rings[0];
 
@@ -67,7 +56,6 @@ export function ScreenBackground({ screen, hero }: ScreenBackgroundProps) {
     <div aria-hidden className="absolute -top-[50px] left-[calc(50%-196.5px)] h-[852px] w-[393px] framed:top-0">
       {shapes.map((s, i) => {
         const style = shapeStyle(s);
-        // "dot" ใน Figma คือประกาย ✦ 4 แฉก
         if (s.kind === "dot") {
           const sparkle = <Sparkle size={s.w} color={rgba(s.hex, s.alpha)} />;
           if (!animated) {
@@ -94,7 +82,6 @@ export function ScreenBackground({ screen, hero }: ScreenBackgroundProps) {
           const order = rings.indexOf(s);
           return <motion.div key={i} className="absolute" style={style} {...ringEnter(order, mode)} />;
         }
-        // glow / sweep: grad-hero ค่อยๆ สว่างขึ้น
         return (
           <motion.div
             key={i}
@@ -107,7 +94,6 @@ export function ScreenBackground({ screen, hero }: ScreenBackgroundProps) {
         );
       })}
 
-      {/* glow ของวงกลม hero วาดที่ชั้นนี้ (ไม่ถูก <main> ตัดขอบ) — แสดงทุกโหมด รวม reduced/static */}
       {hero && inner && (
         <HeroGlow cx={inner.x + inner.w / 2} cy={inner.y + inner.h / 2 + (hero.offsetY ?? 0)} size={hero.size} />
       )}
@@ -118,7 +104,6 @@ export function ScreenBackground({ screen, hero }: ScreenBackgroundProps) {
   );
 }
 
-/** เงาเรืองของวงกลม hero (shadow-hero) — โผล่พร้อมวงกลม (spring 0.1s) */
 function HeroGlow({ cx, cy, size }: { cx: number; cy: number; size: number }) {
   return (
     <motion.span
@@ -131,10 +116,6 @@ function HeroGlow({ cx, cy, size }: { cx: number; cy: number; size: number }) {
   );
 }
 
-/**
- * ลูปรอบ hero ตั้งแต่ 1.2s (§5.1) — CSS keyframes หยุดเองเมื่อ Activity ซ่อนหน้า (display: none)
- * glow breathing: ชั้นแยกที่มีเงาอยู่แล้ว เปลี่ยนแค่ opacity (ไม่ repaint box-shadow ทุกเฟรม)
- */
 function HeroLoops({ cx, cy, size, ripple = 2.4 }: HeroBackgroundOptions & { cx: number; cy: number }) {
   const box: CSSProperties = { left: cx - size / 2, top: cy - size / 2, width: size, height: size };
   return (
@@ -148,7 +129,6 @@ function HeroLoops({ cx, cy, size, ripple = 2.4 }: HeroBackgroundOptions & { cx:
   );
 }
 
-/** ค่าสุ่มแบบคงที่ต่อ index (ไม่ใช้ Math.random — render ซ้ำได้ค่าเดิม) ในช่วง 0..range */
 const jitter = (i: number, range: number) => Math.round(((i * 0.618034) % 1) * range * 100) / 100;
 
 function ringEnter(order: number, mode: MotionMode) {
@@ -162,7 +142,6 @@ function ringEnter(order: number, mode: MotionMode) {
   };
 }
 
-/** ✦ โผล่ระหว่าง 0.4–1.2s แล้วค่อย twinkle (CSS) */
 function sparkleEnter(i: number, mode: MotionMode) {
   if (mode === "reduced") {
     return { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: REDUCED_FADE };

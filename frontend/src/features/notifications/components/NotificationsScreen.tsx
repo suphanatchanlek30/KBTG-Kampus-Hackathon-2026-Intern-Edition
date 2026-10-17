@@ -14,16 +14,13 @@ import { formatDayMonthTimeCompact } from "@/lib/format/date";
 import { cn } from "@/lib/cn";
 import type { NotificationDTO } from "@/types/api";
 
-/** คำเชิญ → หน้าหลัก (การ์ดคำขอ) · อื่นๆ → สถานะดีล (ดีลที่จบแล้วจะพาไปผลลัพธ์/ใบเสร็จเอง) */
 const hrefOf = (n: NotificationDTO) => (n.type === "DEAL_INVITE" || !n.dealId ? "/home" : `/deals/${n.dealId}`);
 
-/** /notifications — D7 รายการแจ้งเตือน (⚠️ รออนุมัติดีไซน์ — การ์ดแบบคำขอใน T1) */
 export function NotificationsScreen() {
   const router = useRouter();
   const { data, error } = useNotifications();
   const markAll = useMarkAllRead();
 
-  // เปิดหน้าแล้วถือว่าอ่านทั้งหมด — จำว่าอันไหน "ใหม่" ตอนเปิด (ปรับ state ระหว่าง render) เพื่อยังแสดงจุดใหม่ในรอบนี้
   const [freshIds, setFreshIds] = useState<Set<string> | null>(null);
   if (data && freshIds === null) setFreshIds(new Set(data.items.filter((n) => !n.readAt).map((n) => n.id)));
   const hasUnread = (data?.unreadCount ?? 0) > 0;

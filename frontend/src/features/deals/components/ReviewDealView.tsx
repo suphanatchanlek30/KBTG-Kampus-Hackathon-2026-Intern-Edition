@@ -26,7 +26,6 @@ type ReviewDealViewProps = {
   onSubmit?: () => void;
 };
 
-/** L3 — สร้างดีล ขั้นที่ 2 ตรวจสอบและส่ง */
 export function ReviewDealView({ draft, property, landlord, submitting, onSubmit }: ReviewDealViewProps) {
   const mainDeposit = draft.totalSatang - draft.bookingFeeSatang;
   const moveIn = `${draft.moveInDate}T00:00:00+07:00`;

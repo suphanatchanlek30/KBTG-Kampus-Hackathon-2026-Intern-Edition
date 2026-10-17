@@ -13,7 +13,6 @@ import { formatBaht } from "@/lib/format/money";
 import { useCancelDeal, useDeal } from "../hooks";
 import { DealStatusView, type DealStatusAction } from "./DealStatusView";
 
-/** /deals/[id] — L5 / D1 (ผู้ให้เช่า) · D8 (ผู้เช่า) */
 export function DealStatusScreen() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -21,14 +20,11 @@ export function DealStatusScreen() {
   const cancel = useCancelDeal();
   const [cancelOpen, setCancelOpen] = useState(false);
 
-  // จบแบบไม่สำเร็จ (ปฏิเสธ / หมดอายุ / ยกเลิก-คืนเงิน) → D3
   const failed = deal && ["REJECTED", "EXPIRED", "REFUNDED"].includes(deal.state);
   useEffect(() => {
     if (failed) router.replace(`/deals/${id}/result`);
   }, [failed, id, router]);
 
-  // ผู้ให้เช่าเฝ้าหน้านี้อยู่แล้วผู้เช่าปล่อยเงินครบ (เห็นผ่าน polling) → ไป L6 เอง (docs/05-api.md §5)
-  // เปิดดีลที่จบไปแล้วตั้งแต่แรกไม่ย้าย — ดูสถานะได้ และมีปุ่มไปใบเสร็จ
   const seenState = useRef<string | null>(null);
   const released = deal?.myRole === "LANDLORD" && deal.state === "RELEASED";
   useEffect(() => {
@@ -81,11 +77,9 @@ export function DealStatusScreen() {
         toast.success("คัดลอกสถานะดีลแล้ว");
       }
     } catch {
-      // ผู้ใช้ปิดหน้าต่างแชร์ — ไม่ต้องทำอะไร
     }
   };
 
-  // ยอดที่จะคืนถ้ายกเลิก — ค่าจองที่ปล่อยแล้วไม่คืน (docs/04-database.md §6.4)
   const refundSatang = deal.amounts.heldSatang;
   const theyRequested = Boolean(
     deal.myRole === "TENANT" ? deal.cancel.landlordRequestedAt : deal.cancel.tenantRequestedAt,
@@ -100,7 +94,6 @@ export function DealStatusScreen() {
         onAction={onAction}
         onCancel={() => setCancelOpen(true)}
       />
-      {/* D11 — ยกเลิกต้องยินยอมทั้งสองฝ่าย (⚠️ รออนุมัติดีไซน์) */}
       <BottomSheet
         open={cancelOpen}
         onClose={() => setCancelOpen(false)}

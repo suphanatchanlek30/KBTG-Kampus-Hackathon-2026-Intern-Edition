@@ -21,14 +21,11 @@ type ShareInviteViewProps = {
   inviteUrl: string;
   sending?: boolean;
   onClose?: () => void;
-  /** ส่งเข้าแอปผู้เช่า — phone = ส่งตามเบอร์ (D10) */
   onSend?: (phone?: string) => void;
   onSaveQr?: () => void;
-  /** D10 — หาผู้เช่าจากเบอร์ คืนชื่อย่อ (ไม่พบ = throw) */
   onLookup?: (phone: string) => Promise<string>;
 };
 
-/** L4 — ส่งคำขอให้ผู้เช่า (QR / รหัสดีล) · แท็บเบอร์มือถือ = D10 (ยังไม่ได้ออกแบบ) */
 export function ShareInviteView({
   deal,
   inviteUrl,
@@ -113,7 +110,6 @@ export function ShareInviteView({
         </section>
       ) : (
         <section className="flex flex-col gap-3 rounded-card bg-card p-4">
-          {/* D10 — รออนุมัติดีไซน์ (docs/01-user-flow.md §7) */}
           <p className="text-card-title">ส่งด้วยเบอร์มือถือผู้เช่า</p>
           <form
             className="flex gap-2"

@@ -16,7 +16,6 @@ type TransferViewProps = {
   payee: PayeeDTO;
   amountSatang: number;
   memo: string;
-  /** เลือกผู้รับอื่นได้ (ไม่ส่ง = แสดงอย่างเดียว เช่น /dev/overlay) */
   payees?: PayeeDTO[];
   onPayeeChange?: (payee: PayeeDTO) => void;
   onAmountChange?: (satang: number) => void;
@@ -29,7 +28,6 @@ type TransferViewProps = {
   onProceed?: () => void;
 };
 
-/** หน้าโอนเงิน + T8 sheet เตือนเมื่อโอนหาคู่ดีลที่ยังไม่จบ · เลือกผู้รับ/แก้ยอด/บันทึกช่วยจำได้ */
 export function TransferView({
   payee,
   amountSatang,
@@ -46,7 +44,6 @@ export function TransferView({
   onProceed,
 }: TransferViewProps) {
   const [picking, setPicking] = useState(false);
-  // เก็บข้อความที่พิมพ์ไว้เอง — พิมพ์ "3000." ระหว่างใส่ทศนิยมได้ (ถ้าแปลงกลับจากสตางค์ทุกครั้ง จุดจะหาย)
   const [amountText, setAmountText] = useState(() => String(amountSatang / 100));
   const canPick = (payees?.length ?? 0) > 1 && onPayeeChange;
   return (

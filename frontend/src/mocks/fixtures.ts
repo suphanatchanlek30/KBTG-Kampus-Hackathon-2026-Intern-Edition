@@ -1,5 +1,3 @@
-// ข้อมูลเดโมที่ค่าตรงกับ mockup ทุกตัว (docs/01-user-flow.md §2)
-// ใช้ทั้ง mock API (Phase 2) และหน้า /dev/overlay ที่ต้อง render หลาย state พร้อมกัน
 
 import { dealExpiry } from "@/features/deals/rules";
 import type {
@@ -15,7 +13,6 @@ import type {
   Role,
 } from "@/types/api";
 
-/** เวลาที่แต่ละ action เกิดใน mockup — mock API ใช้ค่านี้แทนเวลาจริง ให้วันที่ตรงภาพ */
 export const DEMO_TIMES = {
   dealCreated: "2026-10-14T10:24:00+07:00",
   inviteSent: "2026-10-14T10:26:00+07:00",
@@ -69,12 +66,10 @@ export const DEMO_USERS = {
 export const DEMO_DEAL_ID = "deal-ks-0458";
 export const DEMO_SHARE_CODE = "KS-8F4Q21";
 
-/** ลำดับ state บนเส้นทางสำเร็จ — ใช้สร้าง fixture ของ state ใดก็ได้ */
 const HAPPY_PATH: DealState[] = ["WAITING_ACCEPT", "FUNDS_LOCKED", "BOOKING_FEE_RELEASED", "RELEASED"];
 const reached = (state: DealState, target: DealState) =>
   HAPPY_PATH.indexOf(state) >= HAPPY_PATH.indexOf(target) && HAPPY_PATH.includes(state);
 
-/** ดีลตัวอย่างใน state ที่ระบุ มองจากมุมของ `role` */
 export function makeDeal(state: DealState, role: Role, input?: Partial<CreateDealInput>): DealDTO {
   const totalSatang = input?.totalSatang ?? DEMO_AMOUNTS.totalSatang;
   const bookingFeeSatang = input?.bookingFeeSatang ?? DEMO_AMOUNTS.bookingFeeSatang;
@@ -181,7 +176,6 @@ export function makeDeal(state: DealState, role: Role, input?: Partial<CreateDea
   };
 }
 
-/** ยอดบัญชีของ role ตาม state ของดีล (คำนวณแบบเดียวกับ ledger ใน docs/04-database.md §2) */
 export function makeMe(role: Role, deal: DealDTO | null, unreadNotifications = 1): MeDTO {
   const base = DEMO_USERS[role];
   const released = deal?.amounts.releasedSatang ?? 0;
@@ -210,7 +204,6 @@ export function makePendingInvite(deal: DealDTO): PendingInviteDTO {
 }
 
 export function makeHome(role: Role, deal: DealDTO | null): HomeDTO {
-  // ดีลที่ยังไม่จบ — ผู้ให้เช่าเห็นตั้งแต่สร้างคำขอ (รอผู้เช่า) · ผู้เช่าเห็นหลังกันเงินแล้ว
   const activeStates =
     role === "LANDLORD"
       ? ["WAITING_ACCEPT", "FUNDS_LOCKED", "BOOKING_FEE_RELEASED"]
@@ -235,7 +228,6 @@ export function makeHome(role: Role, deal: DealDTO | null): HomeDTO {
   };
 }
 
-/** T8 — ผู้รับโอนคือผู้ให้เช่าของดีลที่ยังไม่จบ ("ค่าส่วนกลางล่วงหน้า" = มุกที่มิจฉาชีพใช้บ่อย) */
 export const DEMO_TRANSFER: { payee: PayeeDTO; amountSatang: number; memo: string } = {
   payee: {
     accountId: DEMO_USERS.LANDLORD.account.id,

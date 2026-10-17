@@ -25,7 +25,6 @@ type GetActiveInviteParams struct {
 	Now    time.Time
 }
 
-// คำเชิญล่าสุดที่ยังใช้ได้ของดีล
 func (q *Queries) GetActiveInvite(ctx context.Context, arg GetActiveInviteParams) (DealInvite, error) {
 	row := q.db.QueryRow(ctx, getActiveInvite, arg.DealID, arg.Now)
 	var i DealInvite
@@ -118,7 +117,6 @@ const getDealForUpdate = `-- name: GetDealForUpdate :one
 SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at FROM deals WHERE id = $1 FOR UPDATE
 `
 
-// ล็อกแถวดีลจนจบ transaction — action อื่นบนดีลเดียวกันต้องรอคิว (docs/04-database.md §6)
 func (q *Queries) GetDealForUpdate(ctx context.Context, id uuid.UUID) (Deal, error) {
 	row := q.db.QueryRow(ctx, getDealForUpdate, id)
 	var i Deal
@@ -155,7 +153,6 @@ const getDealForUpdateSkipLocked = `-- name: GetDealForUpdateSkipLocked :one
 SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at FROM deals WHERE id = $1 FOR UPDATE SKIP LOCKED
 `
 
-// ขั้น 2: ได้ 0 แถว = มีคนถือ lock อยู่ (เช่น ผู้เช่ากำลัง confirm) → ข้าม รอบหน้าค่อยดู
 func (q *Queries) GetDealForUpdateSkipLocked(ctx context.Context, id uuid.UUID) (Deal, error) {
 	row := q.db.QueryRow(ctx, getDealForUpdateSkipLocked, id)
 	var i Deal
@@ -212,7 +209,6 @@ const getLatestInvite = `-- name: GetLatestInvite :one
 SELECT id, deal_id, token_hash, channel, target_user_id, expires_at, revoked_at, created_at FROM deal_invites WHERE deal_id = $1 ORDER BY created_at DESC, id DESC LIMIT 1
 `
 
-// คำเชิญล่าสุด (รวมที่ถูก revoke แล้วหลังผู้เช่าตอบ) — DealDTO.invite แสดงเป็นประวัติ
 func (q *Queries) GetLatestInvite(ctx context.Context, dealID uuid.UUID) (DealInvite, error) {
 	row := q.db.QueryRow(ctx, getLatestInvite, dealID)
 	var i DealInvite
@@ -338,7 +334,6 @@ SELECT d.id FROM deals d
  LIMIT 50
 `
 
-// ขั้น 1 ของ expiry worker: หา candidate แบบไม่ล็อก (docs/04-database.md §6.5)
 func (q *Queries) ListDueDeals(ctx context.Context, now time.Time) ([]uuid.UUID, error) {
 	rows, err := q.db.Query(ctx, listDueDeals, now)
 	if err != nil {
@@ -441,7 +436,6 @@ ON CONFLICT (day) DO UPDATE SET last_seq = ref_counters.last_seq + 1
 RETURNING last_seq
 `
 
-// ลำดับรายวันของ ref_no (KS-YYMMDD-NNNN) — แถวของวันถูกล็อกจน commit จึงไม่ซ้ำแม้สร้างพร้อมกัน
 func (q *Queries) NextRefSeq(ctx context.Context, day pgtype.Date) (int32, error) {
 	row := q.db.QueryRow(ctx, nextRefSeq, day)
 	var last_seq int32
@@ -491,7 +485,6 @@ type UpdateDealCancelParams struct {
 	Version             int32
 }
 
-// บันทึกคำขอยกเลิกของฝ่ายหนึ่ง (state เดิม) หรือฝ่ายที่สองยินยอม (state = REFUNDED) — version+1 เสมอ
 func (q *Queries) UpdateDealCancel(ctx context.Context, arg UpdateDealCancelParams) (int64, error) {
 	result, err := q.db.Exec(ctx, updateDealCancel,
 		arg.State,
@@ -524,7 +517,6 @@ type UpdateDealStateParams struct {
 	Version         int32
 }
 
-// optimistic concurrency: version ไม่ตรง = 0 แถว → VERSION_MISMATCH
 func (q *Queries) UpdateDealState(ctx context.Context, arg UpdateDealStateParams) (int64, error) {
 	result, err := q.db.Exec(ctx, updateDealState,
 		arg.State,

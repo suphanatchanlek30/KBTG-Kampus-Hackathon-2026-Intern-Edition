@@ -19,7 +19,6 @@ func actions(m map[string]any) string {
 	return strings.Join(out, ",")
 }
 
-// ยกเลิกต้องยินยอมทั้งสองฝ่าย — ค่าจองที่ปล่อยแล้วไม่คืน (docs/04-database.md §6.4)
 func TestCancelNeedsBothParties(t *testing.T) {
 	cases := []struct {
 		scenario               string
@@ -47,7 +46,6 @@ func TestCancelNeedsBothParties(t *testing.T) {
 			if str(first, "nextActor") != wantNext {
 				t.Errorf("nextActor = %v, want %s", first["nextActor"], wantNext)
 			}
-			// ขอซ้ำ (key ใหม่) → conflict ไม่ใช่ยกเลิกเอง
 			if res, out := c[tc.firstBy].post("/deals/"+id+"/cancel", fmt.Sprintf(`{"version":%d}`, tc.version+1)); res.StatusCode != http.StatusConflict {
 				t.Errorf("repeat request: %d %v", res.StatusCode, out)
 			}
@@ -117,7 +115,6 @@ func TestExpireNowRefunds(t *testing.T) {
 	}
 }
 
-// คำเชิญหมดอายุ (ดีลยังไม่หมด) → worker เปลี่ยนเป็น EXPIRED ไม่มีเงินให้คืน
 func TestWorkerExpiresStaleInvite(t *testing.T) {
 	landlord := login(t, "landlord")
 	id := resetDeal(t, landlord, "waiting_accept")
@@ -132,7 +129,6 @@ func TestWorkerExpiresStaleInvite(t *testing.T) {
 	}
 }
 
-// expiry ชนกับ confirm พร้อมกัน → ได้ผลลัพธ์เดียว: ดีลเลยกำหนดแล้วจึงต้องคืนเงิน ไม่ปล่อยค่าจอง
 func TestExpiryRacesConfirm(t *testing.T) {
 	landlord, tenant := login(t, "landlord"), login(t, "tenant")
 	for round := range 5 {
@@ -158,7 +154,6 @@ func TestExpiryRacesConfirm(t *testing.T) {
 		}()
 		close(start)
 		wg.Wait()
-		// worker อาจข้าม (SKIP LOCKED) ระหว่างที่ confirm ถือ lock — รอบถัดไปต้องจัดการ
 		if _, err := deals.ExpireDue(context.Background()); err != nil {
 			t.Fatal(err)
 		}

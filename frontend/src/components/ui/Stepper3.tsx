@@ -17,21 +17,14 @@ const STEPS: { label: string; icon: LucideIcon }[] = [
   { label: "เข้าอยู่", icon: Key },
 ];
 
-// §5.3: จุด done เด้งเข้า stagger 0.15s + วาดถูก 0.3s · เส้นเชื่อม scaleX 0.5s หลังจุดซ้ายเสร็จ
 const DOT_STAGGER = 0.15;
 
 type StepperRowProps = {
   statuses: Statuses;
   tone?: "dark" | "light";
-  /** วินาทีที่เริ่มอนิเมชันเข้า (ไม่ระบุ = แสดงเลย) — pulse ring ของขั้นปัจจุบันทำงานเสมอ */
   delay?: number;
 };
 
-/**
- * แถว stepper 3 ขั้น (Figma: วงกลม 34 r17 · ป้าย 11px · เส้น 1.5px ที่ y+16)
- * done = เขียวมีถูก · current = ขอบเขียวพื้น neon/12 · upcoming = ขอบ line พื้นดำ
- * tone="light" ใช้บนการ์ดขาว (T7): ป้ายสี ink-2 · เส้นที่ผ่านแล้วสีดำ
- */
 export function StepperRow({ statuses, tone = "dark", delay }: StepperRowProps) {
   const light = tone === "light";
   const mode = useMotionMode();
@@ -107,7 +100,6 @@ export function StepperRow({ statuses, tone = "dark", delay }: StepperRowProps) 
   );
 }
 
-/** Stepper ในการ์ดมืด T4/T6 (Figma: การ์ด r20 pad 16 gap 10) — children = เนื้อหาใต้ stepper (T6) */
 export function Stepper3({ statuses, delay, children }: { statuses: Statuses; delay?: number; children?: ReactNode }) {
   return (
     <section className="flex flex-col gap-2.5 rounded-card bg-card p-4">

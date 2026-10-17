@@ -69,7 +69,6 @@ func TestComputeDemoTimes(t *testing.T) {
 				t.Errorf("ExpiresAt = %s, want %s", s, tt.expires)
 			}
 
-			// เหตุการณ์ที่เกิดแล้วต้องอยู่ในอดีตและเรียงลำดับ — ไม่งั้นไทม์ไลน์กลับหัว
 			order := []time.Time{got.Created, got.InviteSent, got.Accepted, got.ViewingConfirmed, got.MoveInConfirmed}
 			for i := 1; i < len(order); i++ {
 				if order[i].Before(order[i-1]) {
@@ -79,7 +78,6 @@ func TestComputeDemoTimes(t *testing.T) {
 			if got.MoveInConfirmed.After(now) {
 				t.Errorf("MoveInConfirmed %v is in the future", got.MoveInConfirmed)
 			}
-			// ดีลต้องยังไม่หมดอายุ และคำเชิญยังใช้ได้
 			if !got.ExpiresAt.After(now) || !got.InviteExpires.After(now) {
 				t.Errorf("deal/invite already expired: %+v", got)
 			}

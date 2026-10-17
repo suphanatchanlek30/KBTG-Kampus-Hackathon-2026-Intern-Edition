@@ -1,4 +1,3 @@
-// Package service คือ business logic — ไม่รู้จัก Fiber · action ที่เปลี่ยนข้อมูลหลายตารางรันใน repo.WithTx
 package service
 
 import (
@@ -13,7 +12,6 @@ import (
 	"github.com/suphanatchanlek30/ksure/backend/internal/repository/db"
 )
 
-// UserService: ล็อกอินเดโม, ข้อมูลผู้ใช้ (/me), หน้าหลัก (/home) และห้องของผู้ให้เช่า
 type UserService struct {
 	repo  *repository.Repository
 	clock clock.Clock
@@ -24,7 +22,6 @@ func NewUserService(repo *repository.Repository, c clock.Clock, loc *time.Locati
 	return &UserService{repo: repo, clock: c, loc: loc}
 }
 
-// Login หาผู้ใช้เดโมจาก username (ไม่มีรหัสผ่าน — เป็น prototype)
 func (s *UserService) Login(ctx context.Context, username string) (domain.Actor, dto.LoginDTO, error) {
 	if username == "" {
 		return domain.Actor{}, dto.LoginDTO{}, &domain.AppError{
@@ -43,11 +40,9 @@ func (s *UserService) Login(ctx context.Context, username string) (domain.Actor,
 	return actor, dto.LoginDTO{User: userDTO(u)}, nil
 }
 
-// Me — ผู้ใช้ + บัญชีหลัก + จำนวนแจ้งเตือนที่ยังไม่อ่าน
 func (s *UserService) Me(ctx context.Context, actor domain.Actor) (dto.MeDTO, error) {
 	u, err := s.repo.GetUserByID(ctx, actor.UserID)
 	if repository.IsNotFound(err) {
-		// cookie ยังใช้ได้แต่ผู้ใช้หายไป (เช่น db-reset) → ให้ล็อกอินใหม่
 		return dto.MeDTO{}, domain.NewError(domain.CodeUnauthenticated, "กรุณาเข้าสู่ระบบอีกครั้ง")
 	}
 	if err != nil {
@@ -64,7 +59,6 @@ func (s *UserService) Me(ctx context.Context, actor domain.Actor) (dto.MeDTO, er
 	return dto.MeDTO{User: userDTO(u), Account: accountDTO(acc), UnreadNotifications: unread}, nil
 }
 
-// Home — ข้อมูลหน้า L1/T1 ในครั้งเดียว
 func (s *UserService) Home(ctx context.Context, actor domain.Actor) (dto.HomeDTO, error) {
 	me, err := s.Me(ctx, actor)
 	if err != nil {
@@ -99,7 +93,6 @@ func (s *UserService) Home(ctx context.Context, actor domain.Actor) (dto.HomeDTO
 	return home, nil
 }
 
-// Properties — ห้องของผู้ให้เช่า (route ตรวจ role LANDLORD แล้ว)
 func (s *UserService) Properties(ctx context.Context, actor domain.Actor) (dto.PropertiesDTO, error) {
 	rows, err := s.repo.ListPropertiesByLandlord(ctx, actor.UserID)
 	if err != nil {

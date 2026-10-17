@@ -9,7 +9,6 @@ import (
 	"github.com/suphanatchanlek30/ksure/backend/internal/domain"
 )
 
-// Calendar — GET /deals/{id}/calendar.ics: นัดดูห้อง + วันเข้าอยู่ (RFC 5545) สำหรับคู่ดีล
 func (s *DealService) Calendar(ctx context.Context, actor domain.Actor, rawID string) (body []byte, filename string, err error) {
 	deal, err := s.Get(ctx, actor, rawID)
 	if err != nil {
@@ -52,7 +51,6 @@ func (s *DealService) Calendar(ctx context.Context, actor domain.Actor, rawID st
 	return []byte(b.String()), "ksure-" + deal.RefNo + ".ics", nil
 }
 
-// icsText escape ตาม RFC 5545 §3.3.11
 func icsText(s string) string {
 	return strings.NewReplacer(`\`, `\\`, ";", `\;`, ",", `\,`, "\n", `\n`).Replace(s)
 }

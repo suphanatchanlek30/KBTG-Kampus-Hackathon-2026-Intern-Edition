@@ -14,8 +14,6 @@ const maxIdempotencyKeyLen = 255
 
 type idemKey struct{}
 
-// Idempotency บังคับ header Idempotency-Key บน route ที่เปลี่ยนเงิน/state (🔁 ใน docs/05-api.md)
-// และคำนวณ hash ของ method + path + body — key เดิมแต่ hash ต่าง = IDEMPOTENCY_CONFLICT (ตรวจใน service)
 func Idempotency() fiber.Handler {
 	return func(c fiber.Ctx) error {
 		key := c.Get("Idempotency-Key")
@@ -34,7 +32,6 @@ func Idempotency() fiber.Handler {
 	}
 }
 
-// IdempotencyFrom คืนข้อมูล idempotency ของ request (route ต้องผ่าน Idempotency ก่อน)
 func IdempotencyFrom(c fiber.Ctx) service.IdemRequest {
 	return fiber.Locals[service.IdemRequest](c, idemKey{})
 }

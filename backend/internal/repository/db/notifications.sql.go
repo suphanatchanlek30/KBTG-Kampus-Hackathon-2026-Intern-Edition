@@ -114,7 +114,6 @@ type MarkNotificationsReadParams struct {
 	Ids    []uuid.UUID
 }
 
-// อ่านเฉพาะของตัวเอง — id ของคนอื่นถูกข้ามเงียบๆ
 func (q *Queries) MarkNotificationsRead(ctx context.Context, arg MarkNotificationsReadParams) error {
 	_, err := q.db.Exec(ctx, markNotificationsRead, arg.ReadAt, arg.UserID, arg.Ids)
 	return err

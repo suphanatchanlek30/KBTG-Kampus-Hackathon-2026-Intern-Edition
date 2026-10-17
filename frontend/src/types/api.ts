@@ -1,4 +1,3 @@
-// DTO ตรงกับ docs/05-api.md §3 — เงินเป็นสตางค์ (integer) · เวลาเป็น ISO-8601 มี offset
 
 export type Role = "LANDLORD" | "TENANT";
 
@@ -64,7 +63,6 @@ export type DealDTO = {
   };
   tranches: { key: TrancheKey; amountSatang: number; status: TrancheStatus; releasedAt: string | null }[];
   viewingAt: string;
-  /** วันล้วน `2026-11-01` */
   moveInDate: string;
   expiresAt: string;
   invite: { expiresAt: string; qrUrl?: string; sentAt?: string | null } | null;
@@ -124,23 +122,22 @@ export type TransferPrecheckDTO = {
 
 export type PayeeDTO = { accountId: string; displayName: string; bankName: string; accountNoMasked: string };
 
-/** POST /deals/{id}/invite/send (#12) */
+/** Request body for POST /deals/{id}/invite/send. */
 export type InviteSentDTO = { sentTo: { shortName: string }; sentAt: string };
 
-/** POST /transfers (#26) */
+/** Request body for POST /transfers. */
 export type TransferResultDTO = {
   id: string;
   status: "COMPLETED_SIMULATED" | "CANCELLED_BY_USER";
   warningShown: boolean;
 };
 
-/** POST /auth/demo-login (#3) */
+/** Request body for POST /auth/demo-login. */
 export type LoginDTO = { user: MeDTO["user"] };
 
-/** POST /demo/reset (#27) — ชื่อ scenario ฝั่ง backend */
 export type DemoScenario = "fresh" | "waiting_accept" | "funds_locked" | "booking_released" | "released";
 
-/** GET /notifications (#22) */
+/** Response body for GET /notifications. */
 export type NotificationType =
   | "DEAL_INVITE"
   | "FUNDS_LOCKED"

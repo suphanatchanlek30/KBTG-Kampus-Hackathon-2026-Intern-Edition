@@ -4,7 +4,6 @@ import { cn } from "@/lib/cn";
 
 export type Rule = { icon: LucideIcon; text: ReactNode };
 
-/** รายการกติกา L3/T2 (Figma: ไอคอน 14 ในกล่อง 14×16 pad-top 2 · gap 8 · ข้อความ 12/18 gray) */
 export function RulesList({
   rules,
   className,
@@ -12,7 +11,6 @@ export function RulesList({
 }: {
   rules: Rule[];
   className?: string;
-  /** light = กล่องสว่างใน sheet T8 (ไอคอนส้ม · ข้อความ ink-2) */
   tone?: "dark" | "light";
 }) {
   return (

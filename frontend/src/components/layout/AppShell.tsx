@@ -10,18 +10,10 @@ import { StatusBar } from "./StatusBar";
 
 type AppShellProps = {
   children: ReactNode;
-  /** AppHeader / HomeHeader — ไม่เลื่อนตามเนื้อหา */
   header?: ReactNode;
-  /** StickyFooter / BottomNav — ติดล่างเสมอ */
   footer?: ReactNode;
-  /** ลายพื้นหลัง (glow, วงแหวน) วางแบบ absolute ใต้เนื้อหา */
   background?: ReactNode;
-  /** สีพื้นแถบ home indicator — หน้าที่มี BottomNav ใช้ "bg-nav" ให้ต่อกับแถบ nav */
   indicatorClassName?: string;
-  /**
-   * อนิเมชันตอนหน้าแสดง (§5.7) — push = หน้ามีปุ่ม ← · modal = หน้ามีปุ่ม × · fade = หน้าหลัก
-   * enter-only: motion เล่นใหม่ทุกครั้งที่ Activity แสดงหน้าเดิม จึงไม่ต้องพึ่ง template.tsx (ซึ่งไม่ remount)
-   */
   enter?: PageEnter;
   className?: string;
 };
@@ -40,10 +32,6 @@ function pageEnter(enter: PageEnter | undefined, mode: MotionMode) {
   };
 }
 
-/**
- * โครงหน้าจอ: [status bar] · header · เนื้อหา (เลื่อนได้) · footer · [home indicator]
- * ตามเฟรม 393×852: 50 · 52|64 · … · 68|64 · 30
- */
 export function AppShell({
   children,
   header,
@@ -53,7 +41,6 @@ export function AppShell({
   enter,
   className,
 }: AppShellProps) {
-  // status bar / home indicator ปลอมเป็นของ "เครื่อง" ไม่ขยับตามหน้า
   const motionProps = pageEnter(enter, useMotionMode());
   return (
     <div className="relative flex h-full min-h-0 flex-1 flex-col pt-[env(safe-area-inset-top)] framed:pt-0">
@@ -69,7 +56,6 @@ export function AppShell({
       <motion.main
         {...motionProps}
         className={cn(
-          // [&>*]:shrink-0 — เนื้อหาสูงเกินจอต้องเลื่อนดู ไม่ใช่บีบการ์ดให้เตี้ยลง (flex column จะ shrink ลูกโดยปริยาย)
           "relative z-0 no-scrollbar min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain [&>*]:shrink-0",
           className,
         )}

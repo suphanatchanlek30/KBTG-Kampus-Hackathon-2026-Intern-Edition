@@ -16,7 +16,6 @@ const getDefaultTenant = `-- name: GetDefaultTenant :one
 SELECT id, username, role, display_name, short_name, phone, created_at FROM users WHERE role = 'TENANT' ORDER BY username = 'tenant' DESC, created_at LIMIT 1
 `
 
-// ผู้รับของ "ส่งเข้าแอปผู้เช่า" ในเดโม (ยังไม่มีการเลือกผู้เช่า)
 func (q *Queries) GetDefaultTenant(ctx context.Context) (User, error) {
 	row := q.db.QueryRow(ctx, getDefaultTenant)
 	var i User

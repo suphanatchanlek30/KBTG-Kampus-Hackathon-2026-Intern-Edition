@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/Button";
 import { useInvite, useRejectDeal } from "@/features/deals/hooks";
 import { InviteReviewView } from "./InviteReviewView";
 
-/** /invites/[code] — T2 (ผิดพลาด/หมดอายุ = D6 ซึ่งยังรอออกแบบ) */
 export function InviteReviewScreen() {
   const { code } = useParams<{ code: string }>();
   const router = useRouter();
@@ -17,7 +16,6 @@ export function InviteReviewScreen() {
   const reject = useRejectDeal();
   const [confirmReject, setConfirmReject] = useState(false);
 
-  // คำขอนี้ไม่ได้รอผู้เช่าแล้ว (เช่น กันเงินไปแล้ว) → ไปหน้าสถานะดีล
   const redirectTo = deal && deal.state !== "WAITING_ACCEPT" ? `/deals/${deal.id}` : null;
   useEffect(() => {
     if (redirectTo) router.replace(redirectTo);

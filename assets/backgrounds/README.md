@@ -1,7 +1,5 @@
-# assets/backgrounds
+# Background Sources
 
-ลายพื้นหลัง (export SVG จาก Figma) — ดู [docs/07-assets.md §5](../../docs/07-assets.md#5-พื้นหลัง--assetsbackgrounds)
+Store editable background artwork here. Generated TypeScript background definitions are maintained in `frontend/src/components/layout/backgrounds.generated.ts`.
 
-- [ ] `bg-curves.svg` 🟡 เส้นโค้งมุมขวาบนทุกหน้า
-- [ ] `bg-glow.svg` 🟡 แสงเขียว
-- [ ] `balance-card-waves.svg` ⚪ ลายบนการ์ดยอดเงิน
+Regenerate backgrounds with `node frontend/scripts/gen-backgrounds.mjs`, then format the generated file with Prettier.

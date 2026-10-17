@@ -1,4 +1,3 @@
-// แปลง state ของดีล → ป้าย / ข้อความ / ขั้นไทม์ไลน์ ตามมุมของแต่ละ role (docs/01-user-flow.md §6)
 import { formatDate, formatDateTime } from "@/lib/format/date";
 import { formatBaht } from "@/lib/format/money";
 import type { DealDTO, DealEventType, DealState } from "@/types/api";
@@ -23,11 +22,9 @@ export function stateBadge(state: DealState): BadgeInfo {
   }
 }
 
-/** ดีลอยู่ในสถานะที่กันเงินแล้วหรือไม่ (มีเงินถูกกันหรือเคยกัน) */
 export const isFundsSecured = (state: DealState) =>
   state === "FUNDS_LOCKED" || state === "BOOKING_FEE_RELEASED" || state === "RELEASED";
 
-/** ดีลจบแบบไม่สำเร็จ → หน้า D3 (Phase 8) */
 export const isClosedUnsuccessfully = (state: DealState) =>
   state === "REJECTED" || state === "EXPIRED" || state === "REFUNDED";
 
@@ -36,7 +33,6 @@ export type TimelineStep = { key: string; title: string; detail: string; status:
 
 const eventAt = (deal: DealDTO, type: DealEventType) => deal.timeline.find((e) => e.type === type)?.at;
 
-/** ไทม์ไลน์ 4 ขั้นคงที่ของ L5/D8 (docs/05-api.md: timeline → 4 ขั้น) */
 export function timelineSteps(deal: DealDTO): TimelineStep[] {
   const { amounts } = deal;
   const locked = eventAt(deal, "FUNDS_LOCKED");
@@ -76,7 +72,6 @@ export function timelineSteps(deal: DealDTO): TimelineStep[] {
   ];
 }
 
-/** ข้อความสถานะใต้ยอดในกล่องค่าจอง/มัดจำหลักของการ์ด Funds Secured */
 export function trancheStatusLabel(deal: DealDTO, key: "BOOKING_FEE" | "MAIN_DEPOSIT"): string {
   const tranche = deal.tranches.find((t) => t.key === key);
   const tenantSide = deal.myRole === "TENANT";

@@ -1,4 +1,3 @@
-// Package session ออกและตรวจ JWT ที่อยู่ใน cookie ks_session (ล็อกอินเดโม — ไม่มีรหัสผ่าน)
 package session
 
 import (
@@ -37,7 +36,6 @@ func NewManager(secret string, ttl time.Duration, c clock.Clock) *Manager {
 
 func (m *Manager) TTL() time.Duration { return m.ttl }
 
-// Issue สร้าง JWT (HS256) ที่บอกว่าเป็นใคร role อะไร และหมดอายุเมื่อไร
 func (m *Manager) Issue(actor domain.Actor) (token string, expiresAt time.Time, err error) {
 	now := m.clock.Now()
 	expiresAt = now.Add(m.ttl)
@@ -57,7 +55,6 @@ func (m *Manager) Issue(actor domain.Actor) (token string, expiresAt time.Time, 
 	return token, expiresAt, nil
 }
 
-// Parse ตรวจลายเซ็น อัลกอริทึม ผู้ออก และวันหมดอายุ — ผิดข้อใดข้อหนึ่ง = ErrInvalid
 func (m *Manager) Parse(token string) (domain.Actor, error) {
 	var c claims
 	_, err := jwt.ParseWithClaims(token, &c, func(*jwt.Token) (any, error) { return m.secret, nil },

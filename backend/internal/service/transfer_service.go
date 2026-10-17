@@ -18,7 +18,6 @@ import (
 
 const maxMemoLen = 100
 
-// TransferService: โอนเงินจำลอง + ตรวจว่ากำลังโอนหาคู่ดีลที่ยังไม่จบ (T8 anti-scam)
 type TransferService struct {
 	repo  *repository.Repository
 	clock clock.Clock
@@ -43,7 +42,6 @@ func (s *TransferService) Payees(ctx context.Context, actor domain.Actor) (dto.P
 	return out, nil
 }
 
-// Precheck — POST /transfers/precheck: มีดีลที่ยังไม่จบกับเจ้าของบัญชีปลายทาง → เตือน OFF_DEAL_PAYMENT
 func (s *TransferService) Precheck(ctx context.Context, actor domain.Actor, rawTo string) (dto.TransferPrecheckDTO, error) {
 	to, err := uuid.Parse(rawTo)
 	if err != nil {
@@ -60,10 +58,9 @@ type TransferInput struct {
 	ToAccountID  string
 	AmountSatang int64
 	Memo         string
-	Action       string // CONFIRM = โอน · CANCEL = กด "ยกเลิกการโอน" หลังเห็นคำเตือน
+	Action       string // CONFIRM or CANCEL after the warning.
 }
 
-// Create — POST /transfers: บันทึกทุกครั้ง (รวมที่ยกเลิก) เพื่อนับว่าผู้ใช้ยกเลิกหลังเห็นคำเตือนกี่ %
 func (s *TransferService) Create(ctx context.Context, actor domain.Actor, idem IdemRequest, in TransferInput) (Response, error) {
 	to, err := uuid.Parse(in.ToAccountID)
 	if err != nil {
@@ -98,7 +95,6 @@ func (s *TransferService) Create(ctx context.Context, actor domain.Actor, idem I
 		} else if err != nil {
 			return nil, fmt.Errorf("get payee account: %w", err)
 		}
-		// server ตัดสินเองว่าผู้ใช้เห็นคำเตือนหรือไม่ — ไม่เชื่อค่าจาก client
 		w, err := s.warning(ctx, q, actor, to)
 		if err != nil {
 			return nil, err
@@ -125,7 +121,6 @@ func (s *TransferService) Create(ctx context.Context, actor domain.Actor, idem I
 	})
 }
 
-// move ย้ายยอดจำลองระหว่างสองบัญชี — ล็อกเรียงตาม id และใช้ได้เฉพาะยอดที่ไม่ได้ถูกกันไว้
 func (s *TransferService) move(ctx context.Context, q *db.Queries, from, to uuid.UUID, amount int64, now time.Time) error {
 	accs, err := q.GetAccountsForUpdate(ctx, []uuid.UUID{from, to})
 	if err != nil {

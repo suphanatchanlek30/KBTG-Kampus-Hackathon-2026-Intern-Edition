@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/Badge";
 import { brand } from "@/config/brand";
 import { ShieldHouseBaht } from "./ShieldHouseBaht";
 
-/** แบนเนอร์ K Sure บน L1 (Figma: 353×166 · r28 · grad-request · ขอบ neon/35) */
 export function PromoBanner({ href }: { href: string }) {
   const [before] = brand.tagline.split(brand.taglineHighlight);
   return (

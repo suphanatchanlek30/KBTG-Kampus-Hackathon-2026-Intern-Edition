@@ -9,7 +9,6 @@ import (
 	"github.com/suphanatchanlek30/ksure/backend/internal/domain"
 )
 
-// PerUserRateLimit จำกัดจำนวนครั้งต่อผู้ใช้ (ต้องวางหลัง Auth) — ใช้กับ GET /invites กันการสุ่มเดารหัสดีล
 func PerUserRateLimit(max int, window time.Duration) fiber.Handler {
 	return limiter.New(limiter.Config{
 		Max:          max,

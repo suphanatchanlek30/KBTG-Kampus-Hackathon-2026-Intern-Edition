@@ -14,7 +14,7 @@ import { CHECKLISTS, ConfirmReleaseView, type ReleaseKind } from "./ConfirmRelea
 
 const REQUIRED_STATE = { viewing: "FUNDS_LOCKED", "move-in": "BOOKING_FEE_RELEASED" } as const;
 
-/** /deals/[id]/confirm-viewing (T5 + D4) · /deals/[id]/confirm-move-in (T6 + D5) */
+/** Handles viewing and move-in release routes. */
 export function ConfirmReleaseScreen({ kind }: { kind: ReleaseKind }) {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -27,8 +27,6 @@ export function ConfirmReleaseScreen({ kind }: { kind: ReleaseKind }) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const { reset: resetMutation } = mutation;
 
-  // หน้านี้ค้างอยู่ใน <Activity> หลังออกไป — ตอนถูกซ่อน (cleanup) ล้าง state ของการเข้าหน้ารอบนี้
-  // เพื่อให้รอบถัดไปเริ่มใหม่: เช็กลิสต์ว่าง, sheet ปิด, mutation ไม่ค้าง isSuccess
   useEffect(
     () => () => {
       setChecked(CHECKLISTS[kind].map(() => false));
@@ -38,8 +36,6 @@ export function ConfirmReleaseScreen({ kind }: { kind: ReleaseKind }) {
     [kind, resetMutation],
   );
 
-  // เปิดหน้าผิด state (เช่น ปล่อยค่าจองไปแล้ว) → กลับหน้าสถานะดีล (docs/01-user-flow.md §8 Guard)
-  // ระหว่าง/หลังกดยืนยันในรอบนี้ไม่ต้อง redirect เพราะ onSuccess พาไปหน้าถัดไปเอง
   const wrongState = deal && deal.state !== REQUIRED_STATE[kind] && mutation.isIdle;
   useEffect(() => {
     if (wrongState) router.replace(`/deals/${id}`);
@@ -74,7 +70,6 @@ export function ConfirmReleaseScreen({ kind }: { kind: ReleaseKind }) {
         onNotReady={() => setSheetOpen(true)}
       />
 
-      {/* D4 / D5 — ตามคำอธิบายใน docs/01-user-flow.md §7 (⚠️ รออนุมัติดีไซน์) */}
       <BottomSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}

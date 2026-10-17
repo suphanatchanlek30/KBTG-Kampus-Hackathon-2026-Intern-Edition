@@ -13,25 +13,18 @@ type SuccessHeroProps = {
   size: 84 | 92;
 };
 
-/** ⌀ ไอคอน / ความหนาเส้น (หน่วย viewBox 24) — ตรงกับ lucide ที่ใช้ใน Phase 2 */
 const ICON: Record<HeroIcon, { size: number; stroke: number }> = {
   check: { size: 44, stroke: 3 },
   lock: { size: 36, stroke: 2.4 },
   shield: { size: 38, stroke: 2.2 },
 };
 
-/** เวลาที่ไอคอนวาดเสร็จ → วงกลมเด้ง 1 → 1.08 → 1 */
 const BUMP_AT: Record<HeroIcon, number> = { check: 0.8, lock: 0.7, shield: 0.8 };
 
-/**
- * วงกลม hero ของหน้า success (§5.1) — L6/T7 ✓ วาดเส้น · T4 🔒 ห่วงล็อกลง · T3 🛡 วาดถูกในโล่
- * วงแหวน/ประกาย/ripple/glow breathing อยู่ใน ScreenBackground (hero) เพื่อไม่ถูก <main> ตัดขอบ
- */
 export function SuccessHero({ icon, size }: SuccessHeroProps) {
   const mode = useMotionMode();
   const full = mode === "full";
   const bumpAt = BUMP_AT[icon];
-  // haptic เฉพาะ "ได้รับเงินครบ" (L6/T7) ตามสเปก
   useHaptic(icon === "check" ? [12, 40, 18] : null, bumpAt * 1000);
 
   return (
@@ -40,7 +33,6 @@ export function SuccessHero({ icon, size }: SuccessHeroProps) {
         animate={full ? { scale: [1, 1.08, 1] } : undefined}
         transition={{ duration: 0.25, delay: bumpAt, ease: "easeOut" }}
       >
-        {/* glow อยู่ใน ScreenBackground hero — ถ้าใส่ที่ตัววงกลม ขอบบนจะถูกพื้นที่เลื่อนตัด */}
         <HeroCircle size={size} glow={false}>
           <HeroGlyph icon={icon} mode={mode} />
         </HeroCircle>
@@ -63,7 +55,6 @@ function HeroGlyph({ icon, mode }: { icon: HeroIcon; mode: MotionMode }) {
   const draw = full ? { initial: { pathLength: 0 }, animate: { pathLength: 1 }, transition: DRAW } : {};
 
   if (icon === "lock") {
-    // ห่วงกุญแจ "ล็อกลง" y −6 → 0 ที่ t=0.4
     return (
       <LockGlyph
         size={size}

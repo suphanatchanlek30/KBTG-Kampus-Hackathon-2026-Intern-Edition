@@ -11,7 +11,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-// path ใน log ต้องเป็น pattern — invite token ใน path ห้ามหลุดลง log
 func TestRequestLoggerHidesPathParams(t *testing.T) {
 	var buf bytes.Buffer
 	app := fiber.New()

@@ -7,7 +7,6 @@ import { ScreenSkeleton } from "@/components/layout/ScreenSkeleton";
 import { useDeal } from "@/features/deals/hooks";
 import { ResultView } from "./ResultView";
 
-/** /deals/[id]/result — D3 · ดีลยังไม่จบแบบไม่สำเร็จ → กลับหน้าสถานะ */
 export function ResultScreen() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();

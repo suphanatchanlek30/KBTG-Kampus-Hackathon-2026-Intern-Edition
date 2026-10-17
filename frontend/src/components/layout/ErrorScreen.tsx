@@ -6,10 +6,6 @@ import { Button } from "@/components/ui/Button";
 import { errorMessage } from "@/lib/api/errors";
 import { AppShell } from "./AppShell";
 
-/**
- * หน้าโหลดไม่สำเร็จ (ไม่พบดีล / ไม่ใช่คู่ดีล / หมดอายุ / เน็ตหลุด) — แทนการค้างเป็น skeleton
- * D6 placeholder จนกว่าจะอนุมัติดีไซน์ (docs/01-user-flow.md §7)
- */
 export function ErrorScreen({ error, title = "เปิดรายการนี้ไม่ได้" }: { error: unknown; title?: string }) {
   const router = useRouter();
   return (

@@ -8,7 +8,6 @@ import { cn } from "@/lib/cn";
 type BottomSheetProps = {
   open: boolean;
   onClose: () => void;
-  /** light = T8 (พื้นขาว) · dark = D4/D5/D11 */
   tone?: "light" | "dark";
   title?: ReactNode;
   children: ReactNode;
@@ -19,19 +18,9 @@ const SPRING = { type: "spring", stiffness: 380, damping: 34 } as const;
 const CLOSE_OFFSET = 120;
 const CLOSE_VELOCITY = 500;
 
-/**
- * Bottom sheet (docs/02-ui-spec.md §5.8): backdrop ดำ 60% + blur 2px · sheet เด้งขึ้นด้วย spring
- * ลากลงเกิน 120px หรือเร็วกว่า 500px/s = ปิด · กด Esc หรือแตะ backdrop = ปิด
- *
- * แสดงผ่าน portal ที่ชั้นบนสุดของกรอบแอป (PhoneFrame `[data-phone-overlay]`) — ถ้าวางไว้ใน <main> ของ AppShell
- * sheet จะติดอยู่ใต้แถบปุ่มด้านล่าง (main มี transform จากอนิเมชันเปลี่ยนหน้า = stacking context แยก)
- * แล้วการแตะปุ่มใน sheet จะไปโดนปุ่ม footer แทน
- */
 export function BottomSheet({ open, onClose, tone = "dark", title, children, className }: BottomSheetProps) {
   const reduce = useReducedMotion();
   const titleId = useId();
-  // หาปลายทาง portal หลัง mount (ฝั่ง client เท่านั้น — กัน hydration ไม่ตรง)
-  // cleanup ทำงานเมื่อหน้าถูกซ่อนใน <Activity> ด้วย → เอา sheet ออก ไม่ค้างทับหน้าอื่น
   const marker = useRef<HTMLSpanElement>(null);
   const [host, setHost] = useState<HTMLElement | null>(null);
   useLayoutEffect(() => {

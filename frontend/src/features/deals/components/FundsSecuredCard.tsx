@@ -12,16 +12,10 @@ import { formatBaht } from "@/lib/format/money";
 import type { DealDTO } from "@/types/api";
 import { isFundsSecured, trancheStatusLabel } from "../state";
 
-/**
- * การ์ด Funds Secured L5 (Figma: 353×222 r20 grad-mint · pad 16 · ไอคอนล็อก 44 r22 · กล่องย่อย r14 ขาว/45)
- * pending = D1 ก่อนผู้เช่ากันเงิน — การ์ดสีเทา (⚠️ D1 ยังรออนุมัติดีไซน์: docs/01-user-flow.md §7)
- * เปลี่ยนเป็น secured ระหว่างเปิดหน้าอยู่ (§5.5): เทา → มิ้นต์ · แสงกวาดครั้งเดียว · ห่วงล็อกเด้งลง · ยอด count-up
- */
 export function FundsSecuredCard({ deal }: { deal: DealDTO }) {
   const secured = isFundsSecured(deal.state);
   const tenantSide = deal.myRole === "TENANT";
   const full = useMotionMode() === "full";
-  // ต่างจากครั้งก่อนที่เห็น = เปลี่ยนระหว่างที่หน้ายังเปิด/ค้างอยู่ใน Activity
   const seenSecured = useLastSeen(secured);
   const seenState = useLastSeen(deal.state);
   const justSecured = full && secured && !seenSecured;
@@ -61,7 +55,6 @@ export function FundsSecuredCard({ deal }: { deal: DealDTO }) {
             animate={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
           />
-          {/* shimmer sweep: แถบขาว 30% เฉียง 20° วิ่งครั้งเดียว */}
           <motion.span
             aria-hidden
             className="absolute inset-0 bg-linear-110 from-transparent from-40% via-white/30 via-50% to-transparent to-60%"
@@ -122,7 +115,6 @@ export function FundsSecuredCard({ deal }: { deal: DealDTO }) {
             <span className={cn("text-amount-row tabular-nums", secured ? "text-ink" : "text-white")}>
               {formatBaht(b.amount)}
             </span>
-            {/* สถานะกล่องย่อยเปลี่ยน → flip ข้อความ y 8 → 0 */}
             <motion.span
               key={trancheStatusLabel(deal, b.key)}
               className="text-badge font-medium"

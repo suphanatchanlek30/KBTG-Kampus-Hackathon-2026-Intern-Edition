@@ -1,4 +1,3 @@
-# sqlc generate → internal/repository/db (ห้ามแก้ไฟล์ที่ generate มือ) · schema อ่านจาก migrations ของ goose
 version: "2"
 sql:
   - engine: postgresql

@@ -6,7 +6,6 @@ test.describe("393×852 visual regression against Figma overlays", () => {
   for (const screen of screens) {
     test(`${screen} stays aligned with its reference screen`, async ({ page }) => {
       await page.goto(`/dev/overlay?screen=${screen}&opacity=0.5&controls=0`);
-      // รอ hydration ของ input/control ที่ใช้ในหน้าจอ static ให้เสร็จก่อนจับภาพ
       await page.waitForTimeout(600);
       await expect(page).toHaveScreenshot(`${screen}.png`, {
         animations: "disabled",

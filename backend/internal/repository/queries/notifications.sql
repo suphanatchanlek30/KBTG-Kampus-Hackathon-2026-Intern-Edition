@@ -5,7 +5,6 @@ SELECT count(*) FROM notifications WHERE user_id = $1 AND read_at IS NULL;
 SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC, id LIMIT $2;
 
 -- name: MarkNotificationsRead :exec
--- อ่านเฉพาะของตัวเอง — id ของคนอื่นถูกข้ามเงียบๆ
 UPDATE notifications SET read_at = @read_at
  WHERE user_id = @user_id AND id = ANY(@ids::uuid[]) AND read_at IS NULL;
 

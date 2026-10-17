@@ -1,4 +1,3 @@
-// Package repository ห่อโค้ดที่ sqlc generate (./db) และให้ service รันหลาย query ใน transaction เดียว
 package repository
 
 import (
@@ -21,8 +20,6 @@ func New(pool *pgxpool.Pool) *Repository {
 	return &Repository{pool: pool, Queries: db.New(pool)}
 }
 
-// WithTx รัน fn ใน transaction เดียว — fn คืน error = rollback ทั้งหมด, คืน nil = commit
-// ทุก action ที่เปลี่ยนเงินหรือ state ต้องผ่านที่นี่ (docs/03-architecture.md §3.4)
 func (r *Repository) WithTx(ctx context.Context, fn func(q *db.Queries) error) (err error) {
 	tx, err := r.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
@@ -49,7 +46,6 @@ func (r *Repository) WithTx(ctx context.Context, fn func(q *db.Queries) error) (
 	return nil
 }
 
-// IsNotFound บอกว่า query :one ไม่เจอแถว
 func IsNotFound(err error) bool {
 	return errors.Is(err, pgx.ErrNoRows)
 }

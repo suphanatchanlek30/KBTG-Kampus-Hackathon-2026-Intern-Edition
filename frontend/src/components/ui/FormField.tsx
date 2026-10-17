@@ -6,15 +6,12 @@ type FormFieldProps = {
   icon?: ReactNode;
   children: ReactNode;
   suffix?: ReactNode;
-  /** ช่องที่กำลังแก้ (ขอบ neon) */
   active?: boolean;
-  /** ช่องยอดเงินสูง 56 (ปกติ 48) */
   large?: boolean;
   className?: string;
   htmlFor?: string;
 };
 
-/** label + กล่องกรอก (Figma L2: label 12 muted · gap 6 · กล่อง r14 bg #0A0A0B ขอบ line · pad 0/14 · gap 10) */
 export function FormField({ label, icon, children, suffix, active, large, className, htmlFor }: FormFieldProps) {
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>

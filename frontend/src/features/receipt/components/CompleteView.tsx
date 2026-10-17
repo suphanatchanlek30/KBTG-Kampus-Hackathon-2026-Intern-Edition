@@ -27,7 +27,6 @@ type CompleteViewProps = {
   onSaveProof?: () => void;
 };
 
-/** L6 ได้รับเงินครบแล้ว (ผู้ให้เช่า) · T7 ปล่อยเงินเรียบร้อยแล้ว (ผู้เช่า) */
 export function CompleteView({ deal, account, onClose, onShare, onDone, onSaveProof }: CompleteViewProps) {
   const enter = useEnter();
   const tenantSide = deal.myRole === "TENANT";

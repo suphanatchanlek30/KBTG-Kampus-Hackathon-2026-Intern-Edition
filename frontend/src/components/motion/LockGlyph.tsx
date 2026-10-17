@@ -5,14 +5,11 @@ import { motion, type Transition } from "motion/react";
 type LockGlyphProps = {
   size: number;
   strokeWidth: number;
-  /** ห่วงกุญแจ "ล็อกลง" จากสูงกว่าเดิมกี่ px (ไม่ระบุ = นิ่ง) */
   dropPx?: number;
   transition?: Transition;
 };
 
-/** ไอคอน Lock (lucide) ที่แยกห่วงออกมาให้ขยับได้ — T4 hero และการ์ด Funds Secured L5 */
 export function LockGlyph({ size, strokeWidth, dropPx, transition }: LockGlyphProps) {
-  // แปลง px บนจอ → หน่วย viewBox 24
   const dropUnits = dropPx ? (dropPx * 24) / size : 0;
   return (
     <svg

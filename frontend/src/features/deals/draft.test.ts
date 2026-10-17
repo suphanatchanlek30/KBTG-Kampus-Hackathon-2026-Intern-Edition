@@ -16,7 +16,6 @@ describe("defaultDraftDates", () => {
   });
 
   it("uses Thai time near midnight UTC", () => {
-    // 17:30 UTC เสาร์ = 00:30 วันอาทิตย์ที่ไทย → อาทิตย์หน้า
     expect(defaultDraftDates(at("2026-10-17T17:30:00Z")).viewingAt).toBe("2026-10-25T14:00:00+07:00");
   });
 

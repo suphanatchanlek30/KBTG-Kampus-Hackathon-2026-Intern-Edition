@@ -20,10 +20,6 @@ export type ScreenId = (typeof SCREEN_IDS)[number];
 const invited = (role: "LANDLORD" | "TENANT") => makeDeal("WAITING_ACCEPT", role);
 const tenantLocked = makeDeal("FUNDS_LOCKED", "TENANT");
 
-/**
- * หน้าจอจริงที่วางใต้ mockup — render ชั้นแสดงผลด้วย fixture ตรงๆ (ไม่ผ่าน mock DB)
- * จึงแสดงได้ทุก state/role พร้อมกัน (docs/01-user-flow.md §2)
- */
 export const SCREENS: Partial<Record<ScreenId, ComponentType>> = {
   L1: () => <LandlordHomeView home={makeHome("LANDLORD", null)} />,
   L2: () => <CreateDealView draft={MOCKUP_DRAFT} property={DEMO_PROPERTY} />,

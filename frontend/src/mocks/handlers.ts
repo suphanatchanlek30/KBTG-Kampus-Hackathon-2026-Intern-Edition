@@ -1,5 +1,3 @@
-// Mock API ที่ "ขยับ state ได้" ในหน่วยความจำ (Phase 2) — สัญญาเดียวกับ docs/05-api.md
-// เก็บใน sessionStorage ให้รีเฟรชหน้าแล้วยังอยู่ · อ่าน storage เฉพาะตอนถูกเรียก (ไม่ใช่ตอนโหลด module)
 
 import { ApiError } from "@/lib/api/errors";
 import type {
@@ -23,11 +21,8 @@ type MockDb = {
   dealState: DealState | null;
   inviteSent: boolean;
   input: CreateDealInput | null;
-  /** D11 — ฝ่ายที่ขอยกเลิกไว้ (รออีกฝ่ายยินยอม) */
   cancelBy?: Role | null;
-  /** D4 — แจ้งปัญหาห้องไม่ตรงแล้ว */
   issue?: boolean;
-  /** state ก่อนจบแบบคืนเงิน/หมดอายุ — ใช้คำนวณยอดที่คืน */
   endedFrom?: DealState | null;
   notificationsRead?: boolean;
 };
@@ -51,7 +46,6 @@ function load(): MockDb {
     const raw = sessionStorage.getItem(STORAGE_KEY);
     if (raw) db = JSON.parse(raw) as MockDb;
   } catch {
-    // sessionStorage ใช้ไม่ได้ (private mode) → เริ่มใหม่
   }
   db ??= { role: "LANDLORD", ...SCENARIOS.invited };
   return db;
@@ -62,7 +56,6 @@ function save(next: MockDb) {
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   } catch {
-    // ไม่เป็นไร — state ยังอยู่ในหน่วยความจำ
   }
 }
 
@@ -74,7 +67,6 @@ const other = (role: Role): Role => (role === "LANDLORD" ? "TENANT" : "LANDLORD"
 function currentDeal(state = load()): DealDTO | null {
   if (!state.dealState) return null;
   const ended = state.dealState === "REFUNDED" || state.dealState === "EXPIRED";
-  // ดีลที่จบแบบคืนเงิน: สร้างจาก state ก่อนจบ แล้วปรับยอด (ค่าจองที่ปล่อยแล้วไม่คืน)
   const deal = makeDeal(
     ended ? (state.endedFrom ?? "WAITING_ACCEPT") : state.dealState,
     state.role,
@@ -139,7 +131,6 @@ export const mockApi = {
 
   getDeal: async (id: string): Promise<DealDTO> => delay(requireDeal(id)),
 
-  /** T2 — รับรหัสดีล `KS-8F4Q21` หรือ id */
   getInvite: async (code: string): Promise<DealDTO> => {
     const deal = currentDeal();
     const normalized = decodeURIComponent(code).trim().toUpperCase();
@@ -172,7 +163,6 @@ export const mockApi = {
   confirmViewing: (id: string) => transition(id, "TENANT", "FUNDS_LOCKED", "BOOKING_FEE_RELEASED"),
   confirmMoveIn: (id: string) => transition(id, "TENANT", "BOOKING_FEE_RELEASED", "RELEASED"),
 
-  /** D11 — ฝ่ายแรกขอ · อีกฝ่ายยินยอม = ยกเลิก + คืนเงิน (สลับ role ใน Demo tools เพื่อเล่นอีกฝั่ง) */
   cancelDeal: async (id: string): Promise<DealDTO> => {
     const state = load();
     const deal = requireDeal(id);
@@ -214,7 +204,6 @@ export const mockApi = {
     return delay({ shortName: DEMO_USERS.TENANT.user.shortName });
   },
 
-  /** D7 — แจ้งเตือนสร้างจากไทม์ไลน์ของดีล (ฝั่งที่ต้องรู้) */
   getNotifications: async (): Promise<NotificationsDTO> => {
     const state = load();
     const deal = currentDeal(state);
@@ -255,7 +244,6 @@ export const mockApi = {
     return delay({ unreadCount: 0 });
   },
 
-  /** T8 — โอนหาคู่ดีลที่ยังไม่จบ → เตือน */
   precheckTransfer: async (toAccountId: string): Promise<TransferPrecheckDTO> => {
     const deal = currentDeal();
     const open = deal && ["FUNDS_LOCKED", "BOOKING_FEE_RELEASED"].includes(deal.state);

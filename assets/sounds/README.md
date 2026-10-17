@@ -1,6 +1,5 @@
-# assets/sounds (ทางเลือก)
+# Sounds
 
-- [ ] `success.mp3` ⚪ (< 1 วิ) — L6/T7
-- [ ] `warning.mp3` ⚪ — T8
+Store optional sound source files and licensing information here.
 
-ใช้เสียงที่มีสิทธิ์ใช้ (ทำเอง / CC0) เท่านั้น — ดู [docs/07-assets.md §8](../../docs/07-assets.md#8-เสียง--assetssounds-ทางเลือก)
+Interactions must remain fully usable when sound is unavailable or muted.

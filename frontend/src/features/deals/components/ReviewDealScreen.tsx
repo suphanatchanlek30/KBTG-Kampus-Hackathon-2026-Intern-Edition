@@ -6,7 +6,6 @@ import { useCreateDeal, useMe, useProperty } from "../hooks";
 import { useDealDraft } from "../store";
 import { ReviewDealView } from "./ReviewDealView";
 
-/** /deals/new/review — L3 → สร้างดีล (WAITING_ACCEPT) → L4 */
 export function ReviewDealScreen() {
   const router = useRouter();
   const { draft, reset } = useDealDraft();

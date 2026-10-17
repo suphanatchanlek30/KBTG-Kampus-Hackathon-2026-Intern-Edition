@@ -1,5 +1,4 @@
 -- name: ListPendingInvites :many
--- คำขอที่ส่งเข้าแอปผู้เช่าแล้วและยังรอตอบ (T1 การ์ด "คำขอ K Sure ใหม่")
 SELECT DISTINCT ON (d.id)
        d.id AS deal_id, l.short_name AS from_short_name, n.created_at AS sent_at,
        p.project_name, p.unit_no, d.viewing_at, d.total_satang, d.share_code
@@ -16,7 +15,6 @@ SELECT DISTINCT ON (d.id)
  ORDER BY d.id, n.created_at DESC;
 
 -- name: ListActiveDeals :many
--- ดีลที่ยังไม่จบ — ผู้ให้เช่าเห็นตั้งแต่สร้างคำขอ · ผู้เช่าเห็นหลังกันเงินแล้ว (ก่อนหน้านั้นอยู่ใน pending invites)
 SELECT d.id AS deal_id, d.state, p.project_name, p.unit_no, d.total_satang
   FROM deals d
   JOIN properties p ON p.id = d.property_id

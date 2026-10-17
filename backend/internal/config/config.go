@@ -1,4 +1,3 @@
-// Package config อ่านค่าจาก environment (ดู .env.example และ docs/03-architecture.md §3.6)
 package config
 
 import (
@@ -14,27 +13,20 @@ type Config struct {
 	DatabaseURL string
 	Port        int
 	JWTSecret   string
-	// เวลาที่แสดงผล/คำนวณวันที่ (ref no, วันหมดอายุ) — DB เก็บเป็น timestamptz เสมอ
 	Location         *time.Location
 	InviteTTL        time.Duration
 	ExpiryTick       time.Duration
 	DemoToolsEnabled bool
-	// รัน goose up ตอน start (docker compose up แล้วได้ตารางพร้อม seed ทันที)
 	MigrateOnStart bool
 	LogLevel       string
-	// อายุ cookie ks_session (JWT)
 	SessionTTL time.Duration
-	// ส่ง cookie เฉพาะ HTTPS — เปิดเมื่อเดโมผ่าน https (tunnel / --experimental-https)
 	CookieSecure bool
-	// DEMO_FROZEN_NOW: ให้นาฬิกาของระบบเริ่มที่เวลานี้แล้วเดินต่อ (nil = เวลาจริง)
 	DemoFrozenNow *time.Time
-	// URL ของหน้าเว็บ (frontend) — ใช้สร้างลิงก์ใน QR: <APP_BASE_URL>/invites/<token>
 	AppBaseURL string
 }
 
 const minJWTSecretLen = 32
 
-// Load อ่าน env ทั้งหมด ค่าที่ไม่ได้ตั้งใช้ค่าเริ่มต้น · DATABASE_URL และ JWT_SECRET ต้องมี
 func Load() (Config, error) {
 	var errs []error
 	cfg := Config{
