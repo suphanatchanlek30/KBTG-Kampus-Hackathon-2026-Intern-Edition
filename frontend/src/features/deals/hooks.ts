@@ -11,6 +11,7 @@ import * as dealsApi from "./api";
 export const queryKeys = {
   me: ["me"] as const,
   home: ["home"] as const,
+  deals: ["deals"] as const,
   deal: (id: string) => ["deal", id] as const,
   invite: (code: string) => ["invite", code] as const,
   properties: ["properties"] as const,
@@ -24,6 +25,8 @@ const poll = (ms: number) => (env.useMock ? false : ms);
 export const useMe = () => useQuery({ queryKey: queryKeys.me, queryFn: dealsApi.getMe, refetchInterval: poll(10_000) });
 export const useHome = () =>
   useQuery({ queryKey: queryKeys.home, queryFn: dealsApi.getHome, refetchInterval: poll(5_000) });
+export const useDeals = () =>
+  useQuery({ queryKey: queryKeys.deals, queryFn: dealsApi.getDeals, refetchInterval: poll(10_000) });
 export const useDeal = (id: string) =>
   useQuery({
     queryKey: queryKeys.deal(id),

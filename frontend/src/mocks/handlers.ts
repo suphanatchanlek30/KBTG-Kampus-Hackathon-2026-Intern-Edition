@@ -1,8 +1,10 @@
-
 import { ApiError } from "@/lib/api/errors";
+import { brand } from "@/config/brand";
+import { formatBaht } from "@/lib/format/money";
 import type {
   CreateDealInput,
   DealDTO,
+  DealSummaryDTO,
   InviteSentDTO,
   DealState,
   HomeDTO,
@@ -45,8 +47,7 @@ function load(): MockDb {
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY);
     if (raw) db = JSON.parse(raw) as MockDb;
-  } catch {
-  }
+  } catch {}
   db ??= { role: "LANDLORD", ...SCENARIOS.invited };
   return db;
 }
@@ -55,8 +56,7 @@ function save(next: MockDb) {
   db = next;
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  } catch {
-  }
+  } catch {}
 }
 
 const delay = <T>(value: T) => new Promise<T>((resolve) => setTimeout(() => resolve(value), LATENCY_MS));
@@ -130,6 +130,25 @@ export const mockApi = {
   },
 
   getDeal: async (id: string): Promise<DealDTO> => delay(requireDeal(id)),
+
+  listDeals: async (): Promise<DealSummaryDTO[]> => {
+    const state = load();
+    const deal = currentDeal(state);
+    // The tenant only sees a deal after accepting it, same as the backend.
+    if (!deal || (state.role === "TENANT" && deal.state === "WAITING_ACCEPT")) return delay([]);
+    return delay([
+      {
+        id: deal.id,
+        refNo: deal.refNo,
+        state: deal.state,
+        projectName: deal.property.projectName,
+        unitNo: deal.property.unitNo,
+        totalSatang: deal.amounts.totalSatang,
+        myRole: deal.myRole,
+        createdAt: deal.createdAt,
+      },
+    ]);
+  },
 
   getInvite: async (code: string): Promise<DealDTO> => {
     const deal = currentDeal();
@@ -218,16 +237,53 @@ export const mockApi = {
         readAt: state.notificationsRead ? at : null,
         createdAt: at,
       });
-    for (const e of deal?.timeline ?? []) {
-      if (state.role === "TENANT" && e.type === "INVITE_SENT")
-        push("DEAL_INVITE", "คำขอ K Sure ใหม่", "จากคุณสมชาย ใ.", e.at);
-      if (state.role === "LANDLORD" && e.type === "FUNDS_LOCKED")
-        push("FUNDS_LOCKED", "เงินถูกกันไว้แล้ว", "ณัฐธิดา ศ. กันเงิน 6,500 สำหรับห้อง A1203", e.at);
-      if (state.role === "LANDLORD" && e.type === "BOOKING_FEE_RELEASED")
-        push("BOOKING_FEE_RELEASED", "ได้รับค่าจอง 1,000", "ณัฐธิดา ศ. ยืนยันดูห้อง A1203 แล้ว", e.at);
-      if (state.role === "LANDLORD" && e.type === "MAIN_DEPOSIT_RELEASED")
-        push("MAIN_DEPOSIT_RELEASED", "ได้รับเงินครบแล้ว 6,500", "ณัฐธิดา ศ. ยืนยันเข้าอยู่ห้อง A1203 แล้ว", e.at);
-      if (e.type === "FUNDS_REFUNDED") push("DEAL_REFUNDED", "คืนเงินแล้ว", "คืนเงินที่ยังกันไว้ให้ผู้เช่าแล้ว", e.at);
+    if (deal) {
+      // Build the copy from the deal itself, mirroring backend/internal/service/notification_text.go.
+      const landlord = deal.landlord.shortName;
+      const tenant = deal.tenant?.shortName ?? "-";
+      const unit = deal.property.unitNo;
+      const total = formatBaht(deal.amounts.totalSatang);
+      const fee = formatBaht(deal.amounts.bookingFeeSatang);
+      const main = formatBaht(deal.amounts.mainDepositSatang);
+      const copy: Partial<Record<string, [NotificationDTO["type"], string, string]>> =
+        state.role === "LANDLORD"
+          ? {
+              FUNDS_LOCKED: ["FUNDS_LOCKED", "เงินถูกกันไว้แล้ว", `${tenant} กันเงิน ${total} สำหรับห้อง ${unit}`],
+              BOOKING_FEE_RELEASED: [
+                "BOOKING_FEE_RELEASED",
+                `ได้รับค่าจอง ${fee}`,
+                `${tenant} ยืนยันดูห้อง ${unit} แล้ว`,
+              ],
+              MAIN_DEPOSIT_RELEASED: [
+                "MAIN_DEPOSIT_RELEASED",
+                `ได้รับเงินครบแล้ว ${total}`,
+                `${tenant} ยืนยันเข้าอยู่ห้อง ${unit} แล้ว`,
+              ],
+            }
+          : {
+              INVITE_SENT: ["DEAL_INVITE", `คำขอ ${brand.name} ใหม่`, `จากคุณ${landlord}`],
+              FUNDS_LOCKED: [
+                "FUNDS_LOCKED",
+                "กันเงินเรียบร้อย",
+                `กันเงิน ${total} สำหรับห้อง ${unit} · เงินยังเป็นของคุณจนกว่าจะเข้าอยู่`,
+              ],
+              BOOKING_FEE_RELEASED: [
+                "BOOKING_FEE_RELEASED",
+                `ปล่อยค่าจองแล้ว ${fee}`,
+                `โอนให้ ${landlord} สำหรับห้อง ${unit} · มัดจำหลักยังกันไว้`,
+              ],
+              MAIN_DEPOSIT_RELEASED: [
+                "MAIN_DEPOSIT_RELEASED",
+                `ดีลเสร็จสมบูรณ์ · ปล่อยครบ ${total}`,
+                `ปล่อยมัดจำหลัก ${main} ให้ ${landlord} แล้ว · ดูหลักฐานได้`,
+              ],
+            };
+      for (const e of deal.timeline) {
+        const c = copy[e.type];
+        if (c) push(c[0], c[1], c[2], e.at);
+        if (e.type === "FUNDS_REFUNDED")
+          push("DEAL_REFUNDED", "คืนเงินแล้ว", "คืนเงินที่ยังกันไว้ให้ผู้เช่าแล้ว", e.at);
+      }
     }
     if (state.cancelBy && state.cancelBy !== state.role)
       push(

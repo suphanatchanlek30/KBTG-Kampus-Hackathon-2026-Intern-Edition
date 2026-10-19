@@ -203,6 +203,16 @@ func (s *DemoService) buildDeal(ctx context.Context, q *db.Queries, stage int) (
 		return uuid.Nil, fmt.Errorf("insert invite: %w", err)
 	}
 
+	landlordUser, err := q.GetUserByID(ctx, demoLandlordID)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("get demo landlord: %w", err)
+	}
+	tenantUser, err := q.GetUserByID(ctx, demoTenantID)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("get demo tenant: %w", err)
+	}
+	ll, tn, unit := landlordUser.ShortName, tenantUser.ShortName, prop.UnitNo
+
 	w := seedWriter{ctx: ctx, q: q, dealID: dealID}
 	landlord := uuid.NullUUID{UUID: demoLandlordID, Valid: true}
 	tenant := uuid.NullUUID{UUID: demoTenantID, Valid: true}
@@ -211,30 +221,36 @@ func (s *DemoService) buildDeal(ctx context.Context, q *db.Queries, stage int) (
 
 	w.event(db.DealEventTypeDEALCREATED, landlord, "", db.DealStateWAITINGACCEPT, 0, t.Created)
 	w.event(db.DealEventTypeINVITESENT, landlord, db.DealStateWAITINGACCEPT, db.DealStateWAITINGACCEPT, 0, t.InviteSent)
-	w.notify(demoTenantID, db.NotificationTypeDEALINVITE, "คำขอ "+brandName+" ใหม่", "จากคุณสมชาย ใ.", t.InviteSent, stage >= 2, t.Accepted)
+	w.notify(demoTenantID, db.NotificationTypeDEALINVITE, inviteMsg(ll), t.InviteSent, stage >= 2, t.Accepted)
 
 	if stage >= 2 {
 		w.event(db.DealEventTypeDEALACCEPTED, tenant, db.DealStateWAITINGACCEPT, db.DealStateWAITINGACCEPT, 0, t.Accepted)
 		w.event(db.DealEventTypeFUNDSLOCKED, tenant, db.DealStateWAITINGACCEPT, db.DealStateFUNDSLOCKED, demoTotal, t.Accepted)
 		w.ledger(db.LedgerEventTypeHOLD, demoTotal, tenantAcc, uuid.NullUUID{}, tenant, t.Accepted)
-		w.notify(demoLandlordID, db.NotificationTypeFUNDSLOCKED, "เงินถูกกันไว้แล้ว",
-			"ณัฐธิดา ศ. กันเงิน 6,500 สำหรับห้อง "+prop.UnitNo, t.Accepted, stage >= 3, t.ViewingConfirmed)
+		w.notify(demoLandlordID, db.NotificationTypeFUNDSLOCKED,
+			lockedLandlordMsg(deal.TotalSatang, tn, unit), t.Accepted, stage >= 3, t.ViewingConfirmed)
+		w.notify(demoTenantID, db.NotificationTypeFUNDSLOCKED,
+			lockedTenantMsg(deal.TotalSatang, unit), t.Accepted, stage >= 3, t.ViewingConfirmed)
 	}
 
 	if stage >= 3 {
 		w.event(db.DealEventTypeVIEWINGCONFIRMED, tenant, db.DealStateFUNDSLOCKED, db.DealStateVIEWINGCONFIRMED, 0, t.ViewingConfirmed)
 		w.event(db.DealEventTypeBOOKINGFEERELEASED, tenant, db.DealStateVIEWINGCONFIRMED, db.DealStateBOOKINGFEERELEASED, demoBookingFee, t.ViewingConfirmed)
 		w.ledger(db.LedgerEventTypeRELEASEBOOKINGFEE, demoBookingFee, tenantAcc, landlordAcc, tenant, t.ViewingConfirmed)
-		w.notify(demoLandlordID, db.NotificationTypeBOOKINGFEERELEASED, "ได้รับค่าจอง 1,000",
-			"ณัฐธิดา ศ. ยืนยันดูห้อง "+prop.UnitNo+" แล้ว", t.ViewingConfirmed, stage >= 4, t.MoveInConfirmed)
+		w.notify(demoLandlordID, db.NotificationTypeBOOKINGFEERELEASED,
+			bookingLandlordMsg(deal.BookingFeeSatang, tn, unit), t.ViewingConfirmed, stage >= 4, t.MoveInConfirmed)
+		w.notify(demoTenantID, db.NotificationTypeBOOKINGFEERELEASED,
+			bookingTenantMsg(deal.BookingFeeSatang, ll, unit), t.ViewingConfirmed, stage >= 4, t.MoveInConfirmed)
 	}
 
 	if stage >= 4 {
 		w.event(db.DealEventTypeMOVEINCONFIRMED, tenant, db.DealStateBOOKINGFEERELEASED, db.DealStateMOVEINCONFIRMED, 0, t.MoveInConfirmed)
 		w.event(db.DealEventTypeMAINDEPOSITRELEASED, tenant, db.DealStateMOVEINCONFIRMED, db.DealStateRELEASED, demoMainDeposit, t.MoveInConfirmed)
 		w.ledger(db.LedgerEventTypeRELEASEMAINDEPOSIT, demoMainDeposit, tenantAcc, landlordAcc, tenant, t.MoveInConfirmed)
-		w.notify(demoLandlordID, db.NotificationTypeMAINDEPOSITRELEASED, "ได้รับเงินครบแล้ว 6,500",
-			"ณัฐธิดา ศ. ยืนยันเข้าอยู่ห้อง "+prop.UnitNo+" แล้ว", t.MoveInConfirmed, false, time.Time{})
+		w.notify(demoLandlordID, db.NotificationTypeMAINDEPOSITRELEASED,
+			releasedLandlordMsg(deal.TotalSatang, tn, unit), t.MoveInConfirmed, false, time.Time{})
+		w.notify(demoTenantID, db.NotificationTypeMAINDEPOSITRELEASED,
+			releasedTenantMsg(deal.TotalSatang, deal.MainDepositSatang, ll, unit), t.MoveInConfirmed, false, time.Time{})
 	}
 
 	if w.err != nil {
@@ -277,7 +293,7 @@ func (w *seedWriter) ledger(typ db.LedgerEventType, amount int64, from, to, acto
 	}
 }
 
-func (w *seedWriter) notify(user uuid.UUID, typ db.NotificationType, title, body string, at time.Time, read bool, readAt time.Time) {
+func (w *seedWriter) notify(user uuid.UUID, typ db.NotificationType, m message, at time.Time, read bool, readAt time.Time) {
 	if w.err != nil {
 		return
 	}
@@ -287,7 +303,7 @@ func (w *seedWriter) notify(user uuid.UUID, typ db.NotificationType, title, body
 	}
 	if err := w.q.InsertNotification(w.ctx, db.InsertNotificationParams{
 		UserID: user, Type: typ, DealID: uuid.NullUUID{UUID: w.dealID, Valid: true},
-		Title: title, Body: body, ReadAt: r, CreatedAt: at,
+		Title: m.title, Body: m.body, ReadAt: r, CreatedAt: at,
 	}); err != nil {
 		w.err = fmt.Errorf("insert notification %s: %w", typ, err)
 	}

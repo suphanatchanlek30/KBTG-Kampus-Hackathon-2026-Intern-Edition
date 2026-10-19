@@ -14,7 +14,11 @@ import { formatDayMonthTimeCompact } from "@/lib/format/date";
 import { cn } from "@/lib/cn";
 import type { NotificationDTO } from "@/types/api";
 
-const hrefOf = (n: NotificationDTO) => (n.type === "DEAL_INVITE" || !n.dealId ? "/home" : `/deals/${n.dealId}`);
+const hrefOf = (n: NotificationDTO) => {
+  if (n.type === "DEAL_INVITE" || !n.dealId) return "/home";
+  // The final release links straight to the deal's proof.
+  return n.type === "MAIN_DEPOSIT_RELEASED" ? `/deals/${n.dealId}/complete` : `/deals/${n.dealId}`;
+};
 
 export function NotificationsScreen() {
   const router = useRouter();

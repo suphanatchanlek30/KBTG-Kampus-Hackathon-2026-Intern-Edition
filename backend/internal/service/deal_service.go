@@ -272,8 +272,7 @@ func (s *DealService) SendInvite(ctx context.Context, actor domain.Actor, idem I
 		if err := addEvent(ctx, q, d.ID, db.DealEventTypeINVITESENT, actor.UserID, db.DealStateWAITINGACCEPT, db.DealStateWAITINGACCEPT, 0, now); err != nil {
 			return nil, err
 		}
-		if err := notify(ctx, q, target.ID, db.NotificationTypeDEALINVITE, d.ID,
-			"คำขอ "+brandName+" ใหม่", "จากคุณ"+landlord.ShortName, now); err != nil {
+		if err := notifyMsg(ctx, q, target.ID, db.NotificationTypeDEALINVITE, d.ID, inviteMsg(landlord.ShortName), now); err != nil {
 			return nil, err
 		}
 		var out dto.InviteSentDTO
@@ -389,8 +388,12 @@ func (s *DealService) Lock(ctx context.Context, actor domain.Actor, idem IdemReq
 		if err != nil {
 			return nil, err
 		}
-		if err := notify(ctx, q, d.LandlordID, db.NotificationTypeFUNDSLOCKED, d.ID, "เงินถูกกันไว้แล้ว",
-			fmt.Sprintf("%s กันเงิน %s สำหรับห้อง %s", tenant.ShortName, bahtText(d.TotalSatang), prop.UnitNo), now); err != nil {
+		if err := notifyMsg(ctx, q, d.LandlordID, db.NotificationTypeFUNDSLOCKED, d.ID,
+			lockedLandlordMsg(d.TotalSatang, tenant.ShortName, prop.UnitNo), now); err != nil {
+			return nil, err
+		}
+		if err := notifyMsg(ctx, q, actor.UserID, db.NotificationTypeFUNDSLOCKED, d.ID,
+			lockedTenantMsg(d.TotalSatang, prop.UnitNo), now); err != nil {
 			return nil, err
 		}
 
@@ -418,9 +421,11 @@ func (s *DealService) ConfirmViewing(ctx context.Context, actor domain.Actor, id
 		ledger: db.LedgerEventTypeRELEASEBOOKINGFEE, confirmEvent: db.DealEventTypeVIEWINGCONFIRMED,
 		releaseEvent: db.DealEventTypeBOOKINGFEERELEASED, notification: db.NotificationTypeBOOKINGFEERELEASED,
 		amount: func(d db.Deal) int64 { return d.BookingFeeSatang },
-		title:  func(d db.Deal) string { return "ได้รับค่าจอง " + bahtText(d.BookingFeeSatang) },
-		body: func(tenant, unit string) string {
-			return tenant + " ยืนยันดูห้อง " + unit + " แล้ว"
+		landlordMsg: func(d db.Deal, tenant, unit string) message {
+			return bookingLandlordMsg(d.BookingFeeSatang, tenant, unit)
+		},
+		tenantMsg: func(d db.Deal, landlord, unit string) message {
+			return bookingTenantMsg(d.BookingFeeSatang, landlord, unit)
 		},
 	})
 }
@@ -431,11 +436,11 @@ func (s *DealService) ConfirmMoveIn(ctx context.Context, actor domain.Actor, ide
 		ledger: db.LedgerEventTypeRELEASEMAINDEPOSIT, confirmEvent: db.DealEventTypeMOVEINCONFIRMED,
 		releaseEvent: db.DealEventTypeMAINDEPOSITRELEASED, notification: db.NotificationTypeMAINDEPOSITRELEASED,
 		amount: func(d db.Deal) int64 { return d.MainDepositSatang },
-		title: func(d db.Deal) string {
-			return "ได้รับเงินครบแล้ว " + bahtText(d.TotalSatang)
+		landlordMsg: func(d db.Deal, tenant, unit string) message {
+			return releasedLandlordMsg(d.TotalSatang, tenant, unit)
 		},
-		body: func(tenant, unit string) string {
-			return tenant + " ยืนยันเข้าอยู่ห้อง " + unit + " แล้ว"
+		tenantMsg: func(d db.Deal, landlord, unit string) message {
+			return releasedTenantMsg(d.TotalSatang, d.MainDepositSatang, landlord, unit)
 		},
 	})
 }
@@ -448,8 +453,9 @@ type releaseSpec struct {
 	releaseEvent db.DealEventType
 	notification db.NotificationType
 	amount       func(db.Deal) int64
-	title        func(db.Deal) string
-	body         func(tenant, unit string) string
+	landlordMsg  func(d db.Deal, tenant, unit string) message
+	// The tenant gets their own copy so they can find the deal again later.
+	tenantMsg func(d db.Deal, landlord, unit string) message
 }
 
 func (s *DealService) release(ctx context.Context, actor domain.Actor, idem IdemRequest, rawID string, in ConfirmInput, spec releaseSpec) (Response, error) {
@@ -499,7 +505,14 @@ func (s *DealService) release(ctx context.Context, actor domain.Actor, idem Idem
 		if err != nil {
 			return nil, err
 		}
-		if err := notify(ctx, q, d.LandlordID, spec.notification, d.ID, spec.title(d), spec.body(tenant.ShortName, prop.UnitNo), now); err != nil {
+		if err := notifyMsg(ctx, q, d.LandlordID, spec.notification, d.ID, spec.landlordMsg(d, tenant.ShortName, prop.UnitNo), now); err != nil {
+			return nil, err
+		}
+		landlord, err := q.GetUserByID(ctx, d.LandlordID)
+		if err != nil {
+			return nil, fmt.Errorf("get landlord: %w", err)
+		}
+		if err := notifyMsg(ctx, q, actor.UserID, spec.notification, d.ID, spec.tenantMsg(d, landlord.ShortName, prop.UnitNo), now); err != nil {
 			return nil, err
 		}
 		return s.reload(ctx, q, d.ID, domain.RoleTenant)
@@ -743,6 +756,10 @@ func addLedger(ctx context.Context, q *db.Queries, dealID uuid.UUID, typ db.Ledg
 		return fmt.Errorf("insert ledger %s: %w", typ, err)
 	}
 	return nil
+}
+
+func notifyMsg(ctx context.Context, q *db.Queries, user uuid.UUID, typ db.NotificationType, dealID uuid.UUID, m message, at time.Time) error {
+	return notify(ctx, q, user, typ, dealID, m.title, m.body, at)
 }
 
 func notify(ctx context.Context, q *db.Queries, user uuid.UUID, typ db.NotificationType, dealID uuid.UUID, title, body string, at time.Time) error {
