@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 	"sync"
 	"testing"
@@ -189,6 +190,34 @@ func TestFullDealFlow(t *testing.T) {
 	want := "DEAL_CREATED INVITE_SENT DEAL_ACCEPTED FUNDS_LOCKED VIEWING_CONFIRMED BOOKING_FEE_RELEASED MOVE_IN_CONFIRMED MAIN_DEPOSIT_RELEASED"
 	if strings.Join(types, " ") != want {
 		t.Errorf("timeline = %v", types)
+	}
+
+	// Both sides get a notification for the lock and each release, built from the deal's own rows.
+	wantNotes := map[string]struct {
+		c     *client
+		types string
+		body  string
+	}{
+		"landlord": {landlord, "BOOKING_FEE_RELEASED FUNDS_LOCKED MAIN_DEPOSIT_RELEASED", "ณัฐธิดา ศ."},
+		"tenant":   {tenant, "BOOKING_FEE_RELEASED DEAL_INVITE FUNDS_LOCKED MAIN_DEPOSIT_RELEASED", "สมชาย ใ."},
+	}
+	for name, w := range wantNotes {
+		_, list := w.c.do(http.MethodGet, "/notifications", "")
+		var got []string
+		for _, n := range list["items"].([]any) {
+			m := n.(map[string]any)
+			if m["dealId"] != id {
+				continue
+			}
+			got = append(got, m["type"].(string))
+			if m["type"] == "MAIN_DEPOSIT_RELEASED" && !strings.Contains(m["body"].(string), w.body) {
+				t.Errorf("%s release body = %q, want counterparty %q", name, m["body"], w.body)
+			}
+		}
+		sort.Strings(got)
+		if s := strings.Join(got, " "); s != w.types {
+			t.Errorf("%s notifications = %v, want %s", name, got, w.types)
+		}
 	}
 }
 
