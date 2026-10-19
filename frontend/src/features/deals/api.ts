@@ -6,6 +6,7 @@ import { mockApi } from "@/mocks/handlers";
 import type {
   CreateDealInput,
   DealDTO,
+  DealSummaryDTO,
   HomeDTO,
   InviteSentDTO,
   MeDTO,
@@ -24,6 +25,9 @@ export const getHome = (): Promise<HomeDTO> => (env.useMock ? mockApi.getHome() 
 
 export const getDeal = (id: string): Promise<DealDTO> =>
   env.useMock ? mockApi.getDeal(id) : data(api.get<DealDTO>(`/deals/${id}`));
+
+export const getDeals = (): Promise<DealSummaryDTO[]> =>
+  env.useMock ? mockApi.listDeals() : api.get<{ items: DealSummaryDTO[] }>("/deals").then((r) => r.data.items);
 
 export const getInvite = (code: string): Promise<DealDTO> =>
   env.useMock ? mockApi.getInvite(code) : data(api.get<DealDTO>(`/invites/${encodeURIComponent(code)}`));

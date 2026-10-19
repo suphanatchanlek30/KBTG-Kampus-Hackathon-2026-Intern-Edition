@@ -108,6 +108,17 @@ export type HomeDTO = {
   activeDeals: { dealId: string; state: DealState; projectName: string; unitNo: string; totalSatang: number }[];
 };
 
+export type DealSummaryDTO = {
+  id: string;
+  refNo: string;
+  state: DealState;
+  projectName: string;
+  unitNo: string;
+  totalSatang: number;
+  myRole: Role;
+  createdAt: string;
+};
+
 export type CreateDealInput = {
   propertyId: string;
   totalSatang: number;

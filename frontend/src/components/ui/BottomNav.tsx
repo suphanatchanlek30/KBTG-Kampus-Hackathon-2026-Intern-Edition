@@ -7,7 +7,7 @@ export type NavTab = "home" | "transactions" | "notifications" | "account";
 
 const TABS: { id: NavTab; label: string; icon: LucideIcon; href?: string }[] = [
   { id: "home", label: "หน้าหลัก", icon: House, href: "/home" },
-  { id: "transactions", label: "ธุรกรรม", icon: ReceiptText },
+  { id: "transactions", label: "ธุรกรรม", icon: ReceiptText, href: "/transactions" },
   { id: "notifications", label: "แจ้งเตือน", icon: Bell, href: "/notifications" },
   { id: "account", label: "บัญชี", icon: User },
 ];
