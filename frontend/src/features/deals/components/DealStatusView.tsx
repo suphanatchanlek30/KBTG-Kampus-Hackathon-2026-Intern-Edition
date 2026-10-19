@@ -33,6 +33,7 @@ type DealStatusViewProps = {
   onShare?: () => void;
   onAction?: (action: DealStatusAction) => void;
   onCancel?: () => void;
+  onViewSlip?: () => void;
 };
 
 function primaryAction(deal: DealDTO): { action: DealStatusAction; label: string; icon: ReactNode } | null {
@@ -61,7 +62,7 @@ function primaryAction(deal: DealDTO): { action: DealStatusAction; label: string
   }
 }
 
-export function DealStatusView({ deal, onBack, onShare, onAction, onCancel }: DealStatusViewProps) {
+export function DealStatusView({ deal, onBack, onShare, onAction, onCancel, onViewSlip }: DealStatusViewProps) {
   const badge = stateBadge(deal.state);
   const counterparty =
     deal.myRole === "TENANT"
@@ -78,6 +79,7 @@ export function DealStatusView({ deal, onBack, onShare, onAction, onCancel }: De
     deal.myRole === "TENANT" ? deal.cancel.landlordRequestedAt : deal.cancel.tenantRequestedAt,
   );
   const canCancel = deal.allowedActions.includes("CANCEL");
+  const hasSlip = deal.myRole === "TENANT" && deal.timeline.some((e) => e.type === "FUNDS_LOCKED");
   const toConfirm = primary?.action === "confirm-viewing" || primary?.action === "confirm-move-in";
 
   return (
@@ -130,6 +132,17 @@ export function DealStatusView({ deal, onBack, onShare, onAction, onCancel }: De
       )}
 
       <FundsSecuredCard deal={deal} />
+
+      {onViewSlip && hasSlip && (
+        <Button
+          variant="secondary"
+          onClick={onViewSlip}
+          iconLeft={<ReceiptText size={18} strokeWidth={1.65} />}
+          iconRight={<ChevronRight size={17} strokeWidth={1.77} />}
+        >
+          ดูสลิปกันเงิน
+        </Button>
+      )}
 
       <Timeline title="ไทม์ไลน์ดีล" items={timelineSteps(deal)} />
 
