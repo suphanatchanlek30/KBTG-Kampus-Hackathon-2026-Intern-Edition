@@ -3,6 +3,7 @@ import { ApiError } from "@/lib/api/errors";
 import type {
   CreateDealInput,
   DealDTO,
+  DealSummaryDTO,
   InviteSentDTO,
   DealState,
   HomeDTO,
@@ -130,6 +131,25 @@ export const mockApi = {
   },
 
   getDeal: async (id: string): Promise<DealDTO> => delay(requireDeal(id)),
+
+  listDeals: async (): Promise<DealSummaryDTO[]> => {
+    const state = load();
+    const deal = currentDeal(state);
+    // The tenant only sees a deal after accepting it, same as the backend.
+    if (!deal || (state.role === "TENANT" && deal.state === "WAITING_ACCEPT")) return delay([]);
+    return delay([
+      {
+        id: deal.id,
+        refNo: deal.refNo,
+        state: deal.state,
+        projectName: deal.property.projectName,
+        unitNo: deal.property.unitNo,
+        totalSatang: deal.amounts.totalSatang,
+        myRole: deal.myRole,
+        createdAt: deal.createdAt,
+      },
+    ]);
+  },
 
   getInvite: async (code: string): Promise<DealDTO> => {
     const deal = currentDeal();
