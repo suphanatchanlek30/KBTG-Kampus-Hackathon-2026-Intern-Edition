@@ -93,7 +93,6 @@ export function DealStatusScreen() {
         onShare={onShare}
         onAction={onAction}
         onCancel={() => setCancelOpen(true)}
-        onViewSlip={() => router.push(`/deals/${deal.id}/slip`)}
       />
       <BottomSheet
         open={cancelOpen}
