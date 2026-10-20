@@ -53,7 +53,7 @@ func registerRoutes(app *fiber.App, deps Deps) {
 	v1.Post("/deals/:id/report-issue", authed, tenantOnly, idem, deals.ReportIssue)
 	v1.Get("/deals/:id/calendar.ics", authed, deals.Calendar)
 	v1.Get("/users/lookup", authed, landlordOnly, deals.LookupUser)
-	v1.Get("/invites/:code", authed, tenantOnly, middleware.PerUserRateLimit(30, time.Minute), deals.PreviewInvite)
+	v1.Get("/invites/:code", authed, tenantOnly, middleware.PerSessionRateLimit(30, time.Minute), deals.PreviewInvite)
 
 	transfers := handler.NewTransferHandler(deps.Transfers)
 	v1.Get("/transfers/payees", authed, transfers.Payees)
@@ -61,8 +61,11 @@ func registerRoutes(app *fiber.App, deps Deps) {
 	v1.Post("/transfers", authed, idem, transfers.Create)
 
 	if deps.Demo != nil {
-		demo := handler.NewDemoHandler(deps.Demo)
+		demo := handler.NewDemoHandler(deps.Demo, auth)
 		v1.Post("/demo/reset", authed, demo.Reset)
+		if deps.SandboxEnabled {
+			v1.Post("/demo/sandbox", middleware.GlobalRateLimit(100, time.Second), demo.StartSandbox)
+		}
 		v1.Post("/demo/deals/:id/expire-now", authed, deals.ExpireNow)
 	}
 }

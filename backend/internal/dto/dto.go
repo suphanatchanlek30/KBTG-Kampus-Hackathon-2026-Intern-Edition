@@ -5,6 +5,8 @@ type UserDTO struct {
 	Role        string `json:"role"`
 	DisplayName string `json:"displayName"`
 	ShortName   string `json:"shortName"`
+	// Sandbox is true for a visitor's private demo sandbox; omitted for the shared accounts.
+	Sandbox bool `json:"sandbox,omitempty"`
 }
 
 type AccountDTO struct {
@@ -84,6 +86,13 @@ type UnreadCountDTO struct {
 	UnreadCount int64 `json:"unreadCount"`
 }
 
+type SandboxDTO struct {
+	SandboxID string  `json:"sandboxId"`
+	Scenario  string  `json:"scenario"`
+	DealID    *string `json:"dealId"`
+	ShareCode *string `json:"shareCode"`
+}
+
 type DemoResetDTO struct {
 	Scenario string  `json:"scenario"`
 	DealID   *string `json:"dealId"`
@@ -126,9 +135,9 @@ type TrancheDTO struct {
 }
 
 type InviteDTO struct {
-	ExpiresAt string `json:"expiresAt"`
-	QrURL  string  `json:"qrUrl,omitempty"`
-	SentAt *string `json:"sentAt"`
+	ExpiresAt string  `json:"expiresAt"`
+	QrURL     string  `json:"qrUrl,omitempty"`
+	SentAt    *string `json:"sentAt"`
 }
 
 type CancelDTO struct {

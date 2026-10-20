@@ -45,7 +45,7 @@ func NewDealService(repo *repository.Repository, c clock.Clock, loc *time.Locati
 
 
 func (s *DealService) Get(ctx context.Context, actor domain.Actor, rawID string) (dto.DealDTO, error) {
-	d, err := s.findDeal(ctx, s.repo.Queries, rawID, false)
+	d, err := s.findDeal(ctx, s.repo.Queries, actor, rawID, false)
 	if err != nil {
 		return dto.DealDTO{}, err
 	}
@@ -123,6 +123,9 @@ func (s *DealService) PreviewInvite(ctx context.Context, actor domain.Actor, cod
 		}
 	}
 
+	if !actor.SameSandbox(d.SandboxID) {
+		return dto.DealDTO{}, errNotFound()
+	}
 	if d.TenantID.Valid && d.TenantID.UUID == actor.UserID {
 		return s.buildDealDTO(ctx, q, d, domain.RoleTenant, viewOpts{})
 	}
@@ -135,8 +138,8 @@ func (s *DealService) PreviewInvite(ctx context.Context, actor domain.Actor, cod
 	return s.buildDealDTO(ctx, q, d, domain.RoleTenant, viewOpts{invitePreview: true})
 }
 
-func (s *DealService) LookupTenant(ctx context.Context, phone string) (dto.UserLookupDTO, error) {
-	u, err := s.findTenantByPhone(ctx, s.repo.Queries, phone)
+func (s *DealService) LookupTenant(ctx context.Context, actor domain.Actor, phone string) (dto.UserLookupDTO, error) {
+	u, err := s.findTenantByPhone(ctx, s.repo.Queries, actor.SandboxID, phone)
 	if err != nil {
 		return dto.UserLookupDTO{}, err
 	}
@@ -187,7 +190,7 @@ func (s *DealService) Create(ctx context.Context, actor domain.Actor, idem IdemR
 			TotalSatang: in.TotalSatang, BookingFeeSatang: in.BookingFeeSatang, MainDepositSatang: in.TotalSatang - in.BookingFeeSatang,
 			ViewingAt: viewingAt, MoveInDate: pgtype.Date{Time: moveIn, Valid: true},
 			ExpiresAt: time.Date(my, mm, md+expiryDaysAfterMoveIn, 23, 59, 59, 0, s.loc),
-			State:     db.DealStateWAITINGACCEPT, Version: 1, CreatedAt: now,
+			State:     db.DealStateWAITINGACCEPT, Version: 1, CreatedAt: now, SandboxID: actor.SandboxID,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("insert deal: %w", err)
@@ -248,11 +251,11 @@ func (s *DealService) SendInvite(ctx context.Context, actor domain.Actor, idem I
 		var target db.User
 		switch {
 		case channel == db.InviteChannelPHONE:
-			target, err = s.findTenantByPhone(ctx, q, in.Phone)
+			target, err = s.findTenantByPhone(ctx, q, actor.SandboxID, in.Phone)
 		case d.TenantID.Valid:
 			target, err = q.GetUserByID(ctx, d.TenantID.UUID)
 		default:
-			target, err = q.GetDefaultTenant(ctx)
+			target, err = q.GetDefaultTenant(ctx, actor.SandboxID)
 		}
 		if err != nil {
 			return nil, err
@@ -286,7 +289,7 @@ func (s *DealService) SendInvite(ctx context.Context, actor domain.Actor, idem I
 func (s *DealService) Reject(ctx context.Context, actor domain.Actor, idem IdemRequest, rawID string, version int32) (Response, error) {
 	now := s.clock.Now()
 	return runIdempotent(ctx, s.repo, actor, idem, now, http.StatusOK, func(q *db.Queries) (any, error) {
-		d, err := s.findDeal(ctx, q, rawID, true)
+		d, err := s.findDeal(ctx, q, actor, rawID, true)
 		if err != nil {
 			return nil, err
 		}
@@ -341,7 +344,7 @@ func (s *DealService) Lock(ctx context.Context, actor domain.Actor, idem IdemReq
 	}
 	now := s.clock.Now()
 	return runIdempotent(ctx, s.repo, actor, idem, now, http.StatusOK, func(q *db.Queries) (any, error) {
-		d, err := s.findDeal(ctx, q, rawID, true)
+		d, err := s.findDeal(ctx, q, actor, rawID, true)
 		if err != nil {
 			return nil, err
 		}
@@ -464,7 +467,7 @@ func (s *DealService) release(ctx context.Context, actor domain.Actor, idem Idem
 	}
 	now := s.clock.Now()
 	return runIdempotent(ctx, s.repo, actor, idem, now, http.StatusOK, func(q *db.Queries) (any, error) {
-		d, err := s.findDeal(ctx, q, rawID, true)
+		d, err := s.findDeal(ctx, q, actor, rawID, true)
 		if err != nil {
 			return nil, err
 		}
@@ -521,7 +524,8 @@ func (s *DealService) release(ctx context.Context, actor domain.Actor, idem Idem
 
 // ---- helpers ----
 
-func (s *DealService) findDeal(ctx context.Context, q *db.Queries, rawID string, forUpdate bool) (db.Deal, error) {
+// findDeal loads a deal the actor may see. Deals in another sandbox look like they do not exist.
+func (s *DealService) findDeal(ctx context.Context, q *db.Queries, actor domain.Actor, rawID string, forUpdate bool) (db.Deal, error) {
 	id, err := uuid.Parse(rawID)
 	if err != nil {
 		return db.Deal{}, errNotFound()
@@ -537,6 +541,9 @@ func (s *DealService) findDeal(ctx context.Context, q *db.Queries, rawID string,
 	}
 	if err != nil {
 		return db.Deal{}, fmt.Errorf("get deal: %w", err)
+	}
+	if !actor.SameSandbox(d.SandboxID) {
+		return db.Deal{}, errNotFound()
 	}
 	return d, nil
 }
@@ -578,7 +585,7 @@ func (s *DealService) reload(ctx context.Context, q *db.Queries, id uuid.UUID, r
 }
 
 func (s *DealService) landlordWaitingDeal(ctx context.Context, q *db.Queries, actor domain.Actor, rawID string, now time.Time) (db.Deal, error) {
-	d, err := s.findDeal(ctx, q, rawID, true)
+	d, err := s.findDeal(ctx, q, actor, rawID, true)
 	if err != nil {
 		return db.Deal{}, err
 	}
@@ -654,7 +661,7 @@ func (s *DealService) newShareCode(ctx context.Context, q *db.Queries) (string, 
 	return "", errors.New("could not find a free share code")
 }
 
-func (s *DealService) findTenantByPhone(ctx context.Context, q *db.Queries, phone string) (db.User, error) {
+func (s *DealService) findTenantByPhone(ctx context.Context, q *db.Queries, sandbox uuid.NullUUID, phone string) (db.User, error) {
 	digits := strings.Map(func(r rune) rune {
 		if r >= '0' && r <= '9' {
 			return r
@@ -664,7 +671,7 @@ func (s *DealService) findTenantByPhone(ctx context.Context, q *db.Queries, phon
 	if len(digits) != 10 {
 		return db.User{}, invalid("phone", "10 digits", "เบอร์มือถือไม่ถูกต้อง")
 	}
-	u, err := q.GetUserByPhone(ctx, pgtype.Text{String: digits, Valid: true})
+	u, err := q.GetUserByPhone(ctx, db.GetUserByPhoneParams{SandboxID: sandbox, Phone: pgtype.Text{String: digits, Valid: true}})
 	if repository.IsNotFound(err) || (err == nil && u.Role != db.UserRoleTENANT) {
 		return db.User{}, domain.NewError(domain.CodeNotFound, "ไม่พบผู้เช่าที่ใช้เบอร์นี้")
 	}

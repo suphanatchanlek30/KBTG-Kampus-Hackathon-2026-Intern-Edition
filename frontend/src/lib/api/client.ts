@@ -22,9 +22,20 @@ api.interceptors.response.use(
 
     const { status, data } = err.response;
     const e = data?.error;
-    if (status === 401 && !err.config?.url?.startsWith("/auth/") && window.location.pathname !== "/login") {
-      window.location.replace("/login");
+    // /play is signing this browser in; a 401 from other calls on that page is expected.
+    if (status === 401 && !err.config?.url?.startsWith("/auth/") && window.location.pathname !== "/play") {
+      // A visitor whose sandbox expired gets a fresh one instead of the shared login.
+      const target = sandboxFlagSet() ? "/play" : "/login";
+      if (window.location.pathname !== target) window.location.replace(target);
     }
     return Promise.reject(new ApiError(e?.code ?? "UNKNOWN", status, e?.message, e?.requestId));
   },
 );
+
+function sandboxFlagSet(): boolean {
+  try {
+    return localStorage.getItem("ksure.sandbox") === "1";
+  } catch {
+    return false;
+  }
+}

@@ -16,7 +16,7 @@ import (
 func (s *DealService) Cancel(ctx context.Context, actor domain.Actor, idem IdemRequest, rawID string, version int32) (Response, error) {
 	now := s.clock.Now()
 	return runIdempotent(ctx, s.repo, actor, idem, now, http.StatusOK, func(q *db.Queries) (any, error) {
-		d, err := s.findDeal(ctx, q, rawID, true)
+		d, err := s.findDeal(ctx, q, actor, rawID, true)
 		if err != nil {
 			return nil, err
 		}
@@ -88,7 +88,7 @@ func (s *DealService) Cancel(ctx context.Context, actor domain.Actor, idem IdemR
 func (s *DealService) ReportIssue(ctx context.Context, actor domain.Actor, idem IdemRequest, rawID string, version int32) (Response, error) {
 	now := s.clock.Now()
 	return runIdempotent(ctx, s.repo, actor, idem, now, http.StatusOK, func(q *db.Queries) (any, error) {
-		d, err := s.findDeal(ctx, q, rawID, true)
+		d, err := s.findDeal(ctx, q, actor, rawID, true)
 		if err != nil {
 			return nil, err
 		}

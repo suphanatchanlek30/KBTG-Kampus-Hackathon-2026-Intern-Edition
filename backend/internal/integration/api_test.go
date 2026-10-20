@@ -28,6 +28,7 @@ var (
 	app   *fiber.App
 	pool  *pgxpool.Pool
 	deals *service.DealService
+	demo  *service.DemoService
 )
 
 const outsiderSQL = `
@@ -47,7 +48,7 @@ func TestMain(m *testing.M) {
 	log := slog.New(slog.NewJSONHandler(io.Discard, nil))
 
 	var err error
-	pool, err = database.Connect(ctx, url)
+	pool, err = database.Connect(ctx, url, database.PoolSize{})
 	if err != nil {
 		slog.Error("connect test db", "error", err)
 		os.Exit(1)
@@ -66,15 +67,17 @@ func TestMain(m *testing.M) {
 	clk := clock.System{}
 	repo := repository.New(pool)
 	deals = service.NewDealService(repo, clk, bkk, 24*time.Hour, "http://app.test")
+	demo = service.NewDemoService(repo, clk, bkk, 24*time.Hour)
 	app = server.New(server.Deps{
-		Log:           log,
-		DB:            pool,
-		Sessions:      session.NewManager("integration-test-secret-0123456789abcdef", time.Hour, clk),
-		Users:         service.NewUserService(repo, clk, bkk),
-		Notifications: service.NewNotificationService(repo, clk, bkk),
-		Demo:          service.NewDemoService(repo, clk, bkk, 24*time.Hour),
-		Deals:         deals,
-		Transfers:     service.NewTransferService(repo, clk),
+		Log:            log,
+		DB:             pool,
+		Sessions:       session.NewManager("integration-test-secret-0123456789abcdef", time.Hour, clk),
+		Users:          service.NewUserService(repo, clk, bkk),
+		Notifications:  service.NewNotificationService(repo, clk, bkk),
+		Demo:           demo,
+		SandboxEnabled: true,
+		Deals:          deals,
+		Transfers:      service.NewTransferService(repo, clk),
 	})
 
 	code := m.Run()

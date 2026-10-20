@@ -31,6 +31,7 @@ services:
       DEMO_TOOLS_ENABLED: "true"
       MIGRATE_ON_START: "true"
       LOG_LEVEL: info
+      DB_MAX_CONNS: ${DB_MAX_CONNS:-20}
     depends_on:
       db:
         condition: service_healthy

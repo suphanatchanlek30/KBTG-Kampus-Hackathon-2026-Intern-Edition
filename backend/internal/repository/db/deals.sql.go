@@ -42,7 +42,7 @@ func (q *Queries) GetActiveInvite(ctx context.Context, arg GetActiveInviteParams
 }
 
 const getDeal = `-- name: GetDeal :one
-SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at FROM deals WHERE id = $1
+SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at, sandbox_id FROM deals WHERE id = $1
 `
 
 func (q *Queries) GetDeal(ctx context.Context, id uuid.UUID) (Deal, error) {
@@ -73,12 +73,13 @@ func (q *Queries) GetDeal(ctx context.Context, id uuid.UUID) (Deal, error) {
 		&i.HasOpenIssue,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SandboxID,
 	)
 	return i, err
 }
 
 const getDealByShareCode = `-- name: GetDealByShareCode :one
-SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at FROM deals WHERE share_code = $1
+SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at, sandbox_id FROM deals WHERE share_code = $1
 `
 
 func (q *Queries) GetDealByShareCode(ctx context.Context, shareCode string) (Deal, error) {
@@ -109,12 +110,13 @@ func (q *Queries) GetDealByShareCode(ctx context.Context, shareCode string) (Dea
 		&i.HasOpenIssue,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SandboxID,
 	)
 	return i, err
 }
 
 const getDealForUpdate = `-- name: GetDealForUpdate :one
-SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at FROM deals WHERE id = $1 FOR UPDATE
+SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at, sandbox_id FROM deals WHERE id = $1 FOR UPDATE
 `
 
 func (q *Queries) GetDealForUpdate(ctx context.Context, id uuid.UUID) (Deal, error) {
@@ -145,12 +147,13 @@ func (q *Queries) GetDealForUpdate(ctx context.Context, id uuid.UUID) (Deal, err
 		&i.HasOpenIssue,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SandboxID,
 	)
 	return i, err
 }
 
 const getDealForUpdateSkipLocked = `-- name: GetDealForUpdateSkipLocked :one
-SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at FROM deals WHERE id = $1 FOR UPDATE SKIP LOCKED
+SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at, sandbox_id FROM deals WHERE id = $1 FOR UPDATE SKIP LOCKED
 `
 
 func (q *Queries) GetDealForUpdateSkipLocked(ctx context.Context, id uuid.UUID) (Deal, error) {
@@ -181,6 +184,81 @@ func (q *Queries) GetDealForUpdateSkipLocked(ctx context.Context, id uuid.UUID) 
 		&i.HasOpenIssue,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SandboxID,
+	)
+	return i, err
+}
+
+const getDealParties = `-- name: GetDealParties :one
+SELECT p.id, p.landlord_id, p.property_type, p.project_name, p.unit_no, p.detail_label, p.nearby_label, p.created_at,
+       l.display_name AS landlord_display_name, l.short_name AS landlord_short_name,
+       la.bank_name AS landlord_bank_name, la.account_no_masked AS landlord_account_no_masked,
+       t.display_name AS tenant_display_name, t.short_name AS tenant_short_name,
+       ta.bank_name AS tenant_bank_name, ta.account_no_masked AS tenant_account_no_masked,
+       -- Empty when the deal has no invite yet.
+       ARRAY(SELECT i.expires_at FROM deal_invites i
+              WHERE i.deal_id = $1
+              ORDER BY i.created_at DESC, i.id DESC
+              LIMIT 1)::timestamptz[] AS latest_invite_expires_at
+  FROM properties p
+  JOIN users l          ON l.id = $2
+  JOIN demo_accounts la ON la.id = $3
+  LEFT JOIN users t          ON t.id = $4
+  LEFT JOIN demo_accounts ta ON ta.id = $5
+ WHERE p.id = $6
+`
+
+type GetDealPartiesParams struct {
+	DealID            uuid.UUID
+	LandlordID        uuid.UUID
+	LandlordAccountID uuid.UUID
+	TenantID          uuid.NullUUID
+	TenantAccountID   uuid.NullUUID
+	PropertyID        uuid.UUID
+}
+
+type GetDealPartiesRow struct {
+	Property                Property
+	LandlordDisplayName     string
+	LandlordShortName       string
+	LandlordBankName        string
+	LandlordAccountNoMasked string
+	TenantDisplayName       pgtype.Text
+	TenantShortName         pgtype.Text
+	TenantBankName          pgtype.Text
+	TenantAccountNoMasked   pgtype.Text
+	LatestInviteExpiresAt   []time.Time
+}
+
+// Everything buildDealDTO needs besides the history, in one round trip.
+func (q *Queries) GetDealParties(ctx context.Context, arg GetDealPartiesParams) (GetDealPartiesRow, error) {
+	row := q.db.QueryRow(ctx, getDealParties,
+		arg.DealID,
+		arg.LandlordID,
+		arg.LandlordAccountID,
+		arg.TenantID,
+		arg.TenantAccountID,
+		arg.PropertyID,
+	)
+	var i GetDealPartiesRow
+	err := row.Scan(
+		&i.Property.ID,
+		&i.Property.LandlordID,
+		&i.Property.PropertyType,
+		&i.Property.ProjectName,
+		&i.Property.UnitNo,
+		&i.Property.DetailLabel,
+		&i.Property.NearbyLabel,
+		&i.Property.CreatedAt,
+		&i.LandlordDisplayName,
+		&i.LandlordShortName,
+		&i.LandlordBankName,
+		&i.LandlordAccountNoMasked,
+		&i.TenantDisplayName,
+		&i.TenantShortName,
+		&i.TenantBankName,
+		&i.TenantAccountNoMasked,
+		&i.LatestInviteExpiresAt,
 	)
 	return i, err
 }
@@ -191,26 +269,6 @@ SELECT id, deal_id, token_hash, channel, target_user_id, expires_at, revoked_at,
 
 func (q *Queries) GetInviteByTokenHash(ctx context.Context, tokenHash []byte) (DealInvite, error) {
 	row := q.db.QueryRow(ctx, getInviteByTokenHash, tokenHash)
-	var i DealInvite
-	err := row.Scan(
-		&i.ID,
-		&i.DealID,
-		&i.TokenHash,
-		&i.Channel,
-		&i.TargetUserID,
-		&i.ExpiresAt,
-		&i.RevokedAt,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
-const getLatestInvite = `-- name: GetLatestInvite :one
-SELECT id, deal_id, token_hash, channel, target_user_id, expires_at, revoked_at, created_at FROM deal_invites WHERE deal_id = $1 ORDER BY created_at DESC, id DESC LIMIT 1
-`
-
-func (q *Queries) GetLatestInvite(ctx context.Context, dealID uuid.UUID) (DealInvite, error) {
-	row := q.db.QueryRow(ctx, getLatestInvite, dealID)
 	var i DealInvite
 	err := row.Scan(
 		&i.ID,
@@ -241,29 +299,38 @@ func (q *Queries) HasActiveInvite(ctx context.Context, arg HasActiveInviteParams
 	return exists, err
 }
 
-const listDealEvents = `-- name: ListDealEvents :many
-SELECT id, deal_id, event_type, actor_id, from_state, to_state, amount_satang, request_id, metadata, created_at FROM deal_events WHERE deal_id = $1 ORDER BY id
+const listDealHistory = `-- name: ListDealHistory :many
+SELECT 'E'::text AS kind, e.id, e.event_type::text AS event_type, e.amount_satang, e.created_at
+  FROM deal_events e WHERE e.deal_id = $1
+UNION ALL
+SELECT 'L'::text AS kind, l.id, l.event_type::text AS event_type, l.amount_satang, l.created_at
+  FROM ledger_events l WHERE l.deal_id = $1
+ ORDER BY kind, id
 `
 
-func (q *Queries) ListDealEvents(ctx context.Context, dealID uuid.UUID) ([]DealEvent, error) {
-	rows, err := q.db.Query(ctx, listDealEvents, dealID)
+type ListDealHistoryRow struct {
+	Kind         string
+	ID           int64
+	EventType    string
+	AmountSatang pgtype.Int8
+	CreatedAt    time.Time
+}
+
+// Deal events (kind 'E') and ledger events (kind 'L') for one deal, each in id order.
+func (q *Queries) ListDealHistory(ctx context.Context, dealID uuid.UUID) ([]ListDealHistoryRow, error) {
+	rows, err := q.db.Query(ctx, listDealHistory, dealID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []DealEvent{}
+	items := []ListDealHistoryRow{}
 	for rows.Next() {
-		var i DealEvent
+		var i ListDealHistoryRow
 		if err := rows.Scan(
+			&i.Kind,
 			&i.ID,
-			&i.DealID,
 			&i.EventType,
-			&i.ActorID,
-			&i.FromState,
-			&i.ToState,
 			&i.AmountSatang,
-			&i.RequestID,
-			&i.Metadata,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -347,41 +414,6 @@ func (q *Queries) ListDueDeals(ctx context.Context, now time.Time) ([]uuid.UUID,
 			return nil, err
 		}
 		items = append(items, id)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listLedgerEvents = `-- name: ListLedgerEvents :many
-SELECT id, deal_id, event_type, amount_satang, from_account_id, to_account_id, actor_id, idempotency_key, metadata, created_at FROM ledger_events WHERE deal_id = $1 ORDER BY id
-`
-
-func (q *Queries) ListLedgerEvents(ctx context.Context, dealID uuid.UUID) ([]LedgerEvent, error) {
-	rows, err := q.db.Query(ctx, listLedgerEvents, dealID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []LedgerEvent{}
-	for rows.Next() {
-		var i LedgerEvent
-		if err := rows.Scan(
-			&i.ID,
-			&i.DealID,
-			&i.EventType,
-			&i.AmountSatang,
-			&i.FromAccountID,
-			&i.ToAccountID,
-			&i.ActorID,
-			&i.IdempotencyKey,
-			&i.Metadata,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

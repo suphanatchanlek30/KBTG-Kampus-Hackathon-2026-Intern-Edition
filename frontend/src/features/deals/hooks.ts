@@ -23,8 +23,19 @@ const FINISHED: DealState[] = ["RELEASED", "REJECTED", "EXPIRED", "REFUNDED"];
 const poll = (ms: number) => (env.useMock ? false : ms);
 
 export const useMe = () => useQuery({ queryKey: queryKeys.me, queryFn: dealsApi.getMe, refetchInterval: poll(10_000) });
-export const useHome = () =>
-  useQuery({ queryKey: queryKeys.home, queryFn: dealsApi.getHome, refetchInterval: poll(5_000) });
+export const useHome = () => {
+  const qc = useQueryClient();
+  return useQuery({
+    queryKey: queryKeys.home,
+    // /home already includes /me; sharing it also resets the /me poll timer, so no duplicate request.
+    queryFn: () =>
+      dealsApi.getHome().then((home) => {
+        qc.setQueryData(queryKeys.me, home.me);
+        return home;
+      }),
+    refetchInterval: poll(5_000),
+  });
+};
 export const useDeals = () =>
   useQuery({ queryKey: queryKeys.deals, queryFn: dealsApi.getDeals, refetchInterval: poll(10_000) });
 export const useDeal = (id: string) =>
@@ -41,15 +52,26 @@ export const usePayees = () => useQuery({ queryKey: queryKeys.payees, queryFn: d
 
 const isNetwork = (err: unknown) => err instanceof ApiError && err.isNetwork;
 
-function useAction<TVars, TData>(scope: (vars: TVars) => string, fn: (vars: TVars, key: string) => Promise<TData>) {
+function useAction<TVars, TData>(
+  scope: (vars: TVars) => string,
+  fn: (vars: TVars, key: string) => Promise<TData>,
+  cachesDeal = false,
+) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (vars: TVars) => fn(vars, idempotencyKey(scope(vars))),
     retry: (count, err) => isNetwork(err) && count < 2,
     retryDelay: 800,
-    onSuccess: (_data, vars) => {
+    onSuccess: (data, vars) => {
       releaseIdempotencyKey(scope(vars));
-      return qc.invalidateQueries();
+      if (!cachesDeal) return qc.invalidateQueries();
+      // The response is the updated deal: store it and skip refetching that one query.
+      const deal = data as DealDTO;
+      const key = queryKeys.deal(deal.id);
+      qc.setQueryData(key, deal);
+      return qc.invalidateQueries({
+        predicate: (q) => q.queryKey[0] !== key[0] || q.queryKey[1] !== key[1],
+      });
     },
     onError: (err, vars) => {
       if (!isNetwork(err)) releaseIdempotencyKey(scope(vars));
@@ -60,21 +82,24 @@ function useAction<TVars, TData>(scope: (vars: TVars) => string, fn: (vars: TVar
 }
 
 const dealScope = (action: string) => (deal: DealDTO) => `${action}:${deal.id}:v${deal.version}`;
+const useDealAction = (action: string, fn: (deal: DealDTO, key: string) => Promise<DealDTO>) =>
+  useAction(dealScope(action), fn, true);
 
 export const useCreateDeal = () =>
   useAction((input: CreateDealInput) => `create-deal:${JSON.stringify(input)}`, dealsApi.createDeal);
 export const useSendInvite = () =>
   useAction((v: dealsApi.SendInviteInput) => `send-invite:${v.id}:${v.phone ?? "app"}`, dealsApi.sendInvite);
-export const useRejectDeal = () => useAction(dealScope("reject"), dealsApi.rejectDeal);
+export const useRejectDeal = () => useDealAction("reject", dealsApi.rejectDeal);
 export const useLockDeal = () =>
   useAction(
     (v: { deal: DealDTO; method: "FACE_ID" | "PIN" }) => `lock:${v.deal.id}:v${v.deal.version}`,
     (v, key) => dealsApi.lockDeal(v.deal, key, v.method),
+    true,
   );
-export const useConfirmViewing = () => useAction(dealScope("confirm-viewing"), dealsApi.confirmViewing);
-export const useConfirmMoveIn = () => useAction(dealScope("confirm-move-in"), dealsApi.confirmMoveIn);
-export const useCancelDeal = () => useAction(dealScope("cancel"), dealsApi.cancelDeal);
-export const useReportIssue = () => useAction(dealScope("report-issue"), dealsApi.reportIssue);
+export const useConfirmViewing = () => useDealAction("confirm-viewing", dealsApi.confirmViewing);
+export const useConfirmMoveIn = () => useDealAction("confirm-move-in", dealsApi.confirmMoveIn);
+export const useCancelDeal = () => useDealAction("cancel", dealsApi.cancelDeal);
+export const useReportIssue = () => useDealAction("report-issue", dealsApi.reportIssue);
 
 export const useExpireNow = () => {
   const qc = useQueryClient();

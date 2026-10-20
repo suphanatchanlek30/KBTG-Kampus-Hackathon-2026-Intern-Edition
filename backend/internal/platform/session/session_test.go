@@ -38,6 +38,20 @@ func TestIssueAndParse(t *testing.T) {
 	}
 }
 
+func TestIssueAndParseSandbox(t *testing.T) {
+	m := NewManager(secret, time.Hour, clock.Fixed{T: start})
+	sb := actor
+	sb.SandboxID = uuid.NullUUID{UUID: uuid.MustParse("11111111-1111-1111-1111-111111111111"), Valid: true}
+	tok, _, err := m.Issue(sb)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := m.Parse(tok)
+	if err != nil || got != sb {
+		t.Errorf("Parse = %+v, %v; want %+v", got, err, sb)
+	}
+}
+
 func TestParseRejects(t *testing.T) {
 	m := NewManager(secret, time.Hour, clock.Fixed{T: start})
 	tok, _, _ := m.Issue(actor)

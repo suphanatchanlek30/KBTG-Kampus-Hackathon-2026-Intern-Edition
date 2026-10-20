@@ -498,10 +498,45 @@ paths:
       tags: [demo]
       responses:
         "200": { $ref: "#/components/responses/Deal" }
+        "404": { $ref: "#/components/responses/Error" }
         "409": { $ref: "#/components/responses/Error" }
+  /demo/sandbox:
+    post:
+      summary: Create a private demo sandbox and sign in as its tenant
+      description: >
+        Clones the demo landlord, tenant, accounts and property into a new sandbox, seeds the
+        scenario and sets the session cookie. Deals in other sandboxes are invisible to it.
+        Needs DEMO_TOOLS_ENABLED and SANDBOX_ENABLED. Rate-limited to 100 creations per second
+        across all callers and 2,000 live sandboxes; sandboxes idle for 24 hours are removed.
+      operationId: demoCreateSandbox
+      tags: [demo]
+      security: []
+      parameters:
+        - name: scenario
+          in: query
+          schema:
+            type: string
+            enum: [fresh, waiting_accept, funds_locked, booking_released, released]
+            default: waiting_accept
+      responses:
+        "201":
+          description: Created; Set-Cookie carries the sandbox tenant's session.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sandboxId, scenario, dealId, shareCode]
+                properties:
+                  sandboxId: { type: string, format: uuid }
+                  scenario: { type: string }
+                  dealId: { type: [string, "null"], format: uuid }
+                  shareCode: { type: [string, "null"] }
+        "400": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
   /demo/reset:
     post:
       summary: Reset demo data for a scenario when demo tools are enabled
+      description: Only the caller's scope is reset; the shared accounts or the caller's own sandbox.
       operationId: demoReset
       tags: [demo]
       parameters:

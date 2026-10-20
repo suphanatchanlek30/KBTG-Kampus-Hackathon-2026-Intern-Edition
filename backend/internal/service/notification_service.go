@@ -27,16 +27,17 @@ func NewNotificationService(repo *repository.Repository, c clock.Clock, loc *tim
 }
 
 func (s *NotificationService) List(ctx context.Context, actor domain.Actor) (dto.NotificationsDTO, error) {
-	rows, err := s.repo.ListNotifications(ctx, db.ListNotificationsParams{UserID: actor.UserID, Limit: notificationPageSize})
+	rows, err := s.repo.ListNotificationsWithUnread(ctx, db.ListNotificationsWithUnreadParams{UserID: actor.UserID, RowLimit: notificationPageSize})
 	if err != nil {
 		return dto.NotificationsDTO{}, fmt.Errorf("list notifications: %w", err)
 	}
-	unread, err := s.repo.CountUnreadNotifications(ctx, actor.UserID)
-	if err != nil {
-		return dto.NotificationsDTO{}, fmt.Errorf("count unread: %w", err)
+	var unread int64 // No rows means no notifications, so nothing is unread.
+	if len(rows) > 0 {
+		unread = rows[0].UnreadCount
 	}
 	out := dto.NotificationsDTO{Items: make([]dto.NotificationDTO, 0, len(rows)), UnreadCount: unread}
-	for _, n := range rows {
+	for _, r := range rows {
+		n := r.Notification
 		out.Items = append(out.Items, dto.NotificationDTO{
 			ID: n.ID.String(), Type: string(n.Type), DealID: nullUUIDPtr(n.DealID), Title: n.Title, Body: n.Body,
 			ReadAt: isoPtr(n.ReadAt, s.loc), CreatedAt: iso(n.CreatedAt, s.loc),

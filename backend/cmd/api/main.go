@@ -43,7 +43,7 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	pool, err := database.Connect(ctx, cfg.DatabaseURL)
+	pool, err := database.Connect(ctx, cfg.DatabaseURL, database.PoolSize{MaxConns: int32(cfg.DBMaxConns), MinConns: int32(cfg.DBMinConns)})
 	if err != nil {
 		return err
 	}
@@ -74,10 +74,14 @@ func run() error {
 	}
 	if cfg.DemoToolsEnabled {
 		deps.Demo = service.NewDemoService(repo, clk, cfg.Location, cfg.InviteTTL)
+		deps.SandboxEnabled = cfg.SandboxEnabled
 	}
 	app := server.New(deps)
 
 	go deps.Deals.RunExpiryWorker(ctx, cfg.ExpiryTick, log)
+	if deps.Demo != nil {
+		go deps.Demo.RunJanitor(ctx, 10*time.Minute, service.SandboxIdleTTL, log)
+	}
 
 	errCh := make(chan error, 1)
 	go func() {

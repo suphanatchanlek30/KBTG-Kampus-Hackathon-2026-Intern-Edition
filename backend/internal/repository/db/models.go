@@ -534,6 +534,7 @@ type Deal struct {
 	HasOpenIssue              bool
 	CreatedAt                 time.Time
 	UpdatedAt                 time.Time
+	SandboxID                 uuid.NullUUID
 }
 
 type DealEvent struct {
@@ -571,6 +572,12 @@ type DemoAccount struct {
 	IsPrimary       bool
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+}
+
+type DemoSandbox struct {
+	ID         uuid.UUID
+	CreatedAt  time.Time
+	LastSeenAt time.Time
 }
 
 type IdempotencyKey struct {
@@ -643,4 +650,5 @@ type User struct {
 	ShortName   string
 	Phone       pgtype.Text
 	CreatedAt   time.Time
+	SandboxID   uuid.NullUUID
 }
