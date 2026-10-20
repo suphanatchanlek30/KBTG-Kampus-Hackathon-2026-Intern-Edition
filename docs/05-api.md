@@ -26,7 +26,7 @@ The canonical API contract is [`backend/api/openapi.yaml`](../backend/api/openap
 | Invites | `GET /invites/{codeOrToken}` |
 | Notifications | List and mark notifications as read. |
 | Transfers | Payee lookup, precheck, and simulated transfer endpoints. |
-| Demo tools | Reset and expiry endpoints, enabled only when configured. |
+| Demo tools | Reset and expiry endpoints, plus `POST /demo/sandbox` for a private per-visitor sandbox (the `/play` page). Enabled only when configured; reset affects only the caller's own scope. |
 
 ## Mutation rules
 
