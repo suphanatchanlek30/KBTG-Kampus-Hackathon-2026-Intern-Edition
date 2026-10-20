@@ -19,6 +19,7 @@ type Config struct {
 	InviteTTL        time.Duration
 	ExpiryTick       time.Duration
 	DemoToolsEnabled bool
+	SandboxEnabled   bool
 	MigrateOnStart   bool
 	LogLevel         string
 	SessionTTL       time.Duration
@@ -40,6 +41,7 @@ func Load() (Config, error) {
 		InviteTTL:        durationEnv("INVITE_TTL", 24*time.Hour, &errs),
 		ExpiryTick:       durationEnv("EXPIRY_TICK", 30*time.Second, &errs),
 		DemoToolsEnabled: boolEnv("DEMO_TOOLS_ENABLED", false, &errs),
+		SandboxEnabled:   boolEnv("SANDBOX_ENABLED", true, &errs),
 		MigrateOnStart:   boolEnv("MIGRATE_ON_START", true, &errs),
 		LogLevel:         stringEnv("LOG_LEVEL", "info"),
 		SessionTTL:       durationEnv("SESSION_TTL", 12*time.Hour, &errs),

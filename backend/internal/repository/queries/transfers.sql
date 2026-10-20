@@ -2,7 +2,12 @@
 SELECT a.id AS account_id, u.display_name, a.bank_name, a.account_no_masked
   FROM demo_accounts a JOIN users u ON u.id = a.user_id
  WHERE a.is_primary AND a.user_id <> @user_id
+   AND u.sandbox_id IS NOT DISTINCT FROM sqlc.narg(sandbox_id)::uuid
  ORDER BY u.role, u.username;
+
+-- name: GetAccountSandbox :one
+-- The sandbox of an account's owner; used to keep transfers inside one sandbox.
+SELECT u.sandbox_id FROM demo_accounts a JOIN users u ON u.id = a.user_id WHERE a.id = $1;
 
 -- name: FindOpenDealWithPayee :one
 SELECT d.id, d.ref_no, p.unit_no

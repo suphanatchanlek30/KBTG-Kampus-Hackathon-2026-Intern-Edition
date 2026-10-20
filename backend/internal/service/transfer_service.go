@@ -29,7 +29,7 @@ func NewTransferService(repo *repository.Repository, c clock.Clock) *TransferSer
 
 // Payees — GET /transfers/payees
 func (s *TransferService) Payees(ctx context.Context, actor domain.Actor) (dto.PayeesDTO, error) {
-	rows, err := s.repo.ListPayees(ctx, actor.UserID)
+	rows, err := s.repo.ListPayees(ctx, db.ListPayeesParams{UserID: actor.UserID, SandboxID: actor.SandboxID})
 	if err != nil {
 		return dto.PayeesDTO{}, fmt.Errorf("list payees: %w", err)
 	}
@@ -46,6 +46,9 @@ func (s *TransferService) Precheck(ctx context.Context, actor domain.Actor, rawT
 	to, err := uuid.Parse(rawTo)
 	if err != nil {
 		return dto.TransferPrecheckDTO{}, invalid("toAccountId", "must be a UUID", "บัญชีปลายทางไม่ถูกต้อง")
+	}
+	if err := s.checkPayeeSandbox(ctx, s.repo.Queries, actor, to); err != nil {
+		return dto.TransferPrecheckDTO{}, err
 	}
 	w, err := s.warning(ctx, s.repo.Queries, actor, to)
 	if err != nil {
@@ -94,6 +97,9 @@ func (s *TransferService) Create(ctx context.Context, actor domain.Actor, idem I
 			return nil, domain.NewError(domain.CodeNotFound, "ไม่พบบัญชีปลายทาง")
 		} else if err != nil {
 			return nil, fmt.Errorf("get payee account: %w", err)
+		}
+		if err := s.checkPayeeSandbox(ctx, q, actor, to); err != nil {
+			return nil, err
 		}
 		w, err := s.warning(ctx, q, actor, to)
 		if err != nil {
@@ -152,4 +158,20 @@ func (s *TransferService) warning(ctx context.Context, q *db.Queries, actor doma
 		Code: "OFF_DEAL_PAYMENT", DealID: d.ID.String(), UnitNo: d.UnitNo,
 		Message: fmt.Sprintf("บัญชีนี้เป็นคู่ดีล %s ของคุณ (ห้อง %s) ที่ยังไม่จบ", brandName, d.UnitNo),
 	}, nil
+}
+
+// checkPayeeSandbox rejects accounts from another sandbox as if they did not exist.
+// Unknown accounts pass through so each caller keeps its existing behavior.
+func (s *TransferService) checkPayeeSandbox(ctx context.Context, q *db.Queries, actor domain.Actor, to uuid.UUID) error {
+	sandbox, err := q.GetAccountSandbox(ctx, to)
+	if repository.IsNotFound(err) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("get payee sandbox: %w", err)
+	}
+	if !actor.SameSandbox(sandbox) {
+		return domain.NewError(domain.CodeNotFound, "ไม่พบบัญชีปลายทาง")
+	}
+	return nil
 }

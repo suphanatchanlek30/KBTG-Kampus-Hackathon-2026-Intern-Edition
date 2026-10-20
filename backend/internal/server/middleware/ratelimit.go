@@ -27,3 +27,16 @@ func PerSessionRateLimit(max int, window time.Duration) fiber.Handler {
 		},
 	})
 }
+
+// GlobalRateLimit caps a route for all callers together. Visitors at an event usually share
+// one Wi-Fi IP, so a per-IP limit would block them.
+func GlobalRateLimit(max int, window time.Duration) fiber.Handler {
+	return limiter.New(limiter.Config{
+		Max:          max,
+		Expiration:   window,
+		KeyGenerator: func(fiber.Ctx) string { return "global" },
+		LimitReached: func(fiber.Ctx) error {
+			return domain.NewError(domain.CodeRateLimited, "มีคนเข้าพร้อมกันเยอะ กรุณาลองใหม่อีกครั้ง")
+		},
+	})
+}

@@ -13,11 +13,13 @@ import (
 )
 
 const getDefaultTenant = `-- name: GetDefaultTenant :one
-SELECT id, username, role, display_name, short_name, phone, created_at FROM users WHERE role = 'TENANT' ORDER BY username = 'tenant' DESC, created_at LIMIT 1
+SELECT id, username, role, display_name, short_name, phone, created_at, sandbox_id FROM users
+ WHERE role = 'TENANT' AND sandbox_id IS NOT DISTINCT FROM $1::uuid
+ ORDER BY username = 'tenant' DESC, created_at LIMIT 1
 `
 
-func (q *Queries) GetDefaultTenant(ctx context.Context) (User, error) {
-	row := q.db.QueryRow(ctx, getDefaultTenant)
+func (q *Queries) GetDefaultTenant(ctx context.Context, sandboxID uuid.NullUUID) (User, error) {
+	row := q.db.QueryRow(ctx, getDefaultTenant, sandboxID)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -27,12 +29,13 @@ func (q *Queries) GetDefaultTenant(ctx context.Context) (User, error) {
 		&i.ShortName,
 		&i.Phone,
 		&i.CreatedAt,
+		&i.SandboxID,
 	)
 	return i, err
 }
 
 const getMe = `-- name: GetMe :one
-SELECT u.id, u.username, u.role, u.display_name, u.short_name, u.phone, u.created_at, a.id, a.user_id, a.bank_name, a.account_type, a.account_no_masked, a.balance_satang, a.held_satang, a.is_primary, a.created_at, a.updated_at,
+SELECT u.id, u.username, u.role, u.display_name, u.short_name, u.phone, u.created_at, u.sandbox_id, a.id, a.user_id, a.bank_name, a.account_type, a.account_no_masked, a.balance_satang, a.held_satang, a.is_primary, a.created_at, a.updated_at,
        (SELECT count(*) FROM notifications n WHERE n.user_id = u.id AND n.read_at IS NULL) AS unread_count
   FROM users u
   JOIN demo_accounts a ON a.user_id = u.id AND a.is_primary
@@ -56,6 +59,7 @@ func (q *Queries) GetMe(ctx context.Context, id uuid.UUID) (GetMeRow, error) {
 		&i.User.ShortName,
 		&i.User.Phone,
 		&i.User.CreatedAt,
+		&i.User.SandboxID,
 		&i.DemoAccount.ID,
 		&i.DemoAccount.UserID,
 		&i.DemoAccount.BankName,
@@ -72,7 +76,7 @@ func (q *Queries) GetMe(ctx context.Context, id uuid.UUID) (GetMeRow, error) {
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, username, role, display_name, short_name, phone, created_at FROM users WHERE id = $1
+SELECT id, username, role, display_name, short_name, phone, created_at, sandbox_id FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
@@ -86,16 +90,24 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.ShortName,
 		&i.Phone,
 		&i.CreatedAt,
+		&i.SandboxID,
 	)
 	return i, err
 }
 
 const getUserByPhone = `-- name: GetUserByPhone :one
-SELECT id, username, role, display_name, short_name, phone, created_at FROM users WHERE phone = $1
+SELECT id, username, role, display_name, short_name, phone, created_at, sandbox_id FROM users
+ WHERE COALESCE(sandbox_id, '00000000-0000-0000-0000-000000000000'::uuid) = COALESCE($1::uuid, '00000000-0000-0000-0000-000000000000'::uuid)
+   AND phone = $2
 `
 
-func (q *Queries) GetUserByPhone(ctx context.Context, phone pgtype.Text) (User, error) {
-	row := q.db.QueryRow(ctx, getUserByPhone, phone)
+type GetUserByPhoneParams struct {
+	SandboxID uuid.NullUUID
+	Phone     pgtype.Text
+}
+
+func (q *Queries) GetUserByPhone(ctx context.Context, arg GetUserByPhoneParams) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByPhone, arg.SandboxID, arg.Phone)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -105,16 +117,25 @@ func (q *Queries) GetUserByPhone(ctx context.Context, phone pgtype.Text) (User, 
 		&i.ShortName,
 		&i.Phone,
 		&i.CreatedAt,
+		&i.SandboxID,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, username, role, display_name, short_name, phone, created_at FROM users WHERE username = $1
+SELECT id, username, role, display_name, short_name, phone, created_at, sandbox_id FROM users
+ WHERE COALESCE(sandbox_id, '00000000-0000-0000-0000-000000000000'::uuid) = COALESCE($1::uuid, '00000000-0000-0000-0000-000000000000'::uuid)
+   AND username = $2
 `
 
-func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
-	row := q.db.QueryRow(ctx, getUserByUsername, username)
+type GetUserByUsernameParams struct {
+	SandboxID uuid.NullUUID
+	Username  string
+}
+
+// A NULL sandbox_id means the shared demo accounts. The COALESCE matches users_scope_username_key.
+func (q *Queries) GetUserByUsername(ctx context.Context, arg GetUserByUsernameParams) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByUsername, arg.SandboxID, arg.Username)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -124,6 +145,7 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.ShortName,
 		&i.Phone,
 		&i.CreatedAt,
+		&i.SandboxID,
 	)
 	return i, err
 }

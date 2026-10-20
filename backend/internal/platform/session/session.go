@@ -20,7 +20,8 @@ const (
 var ErrInvalid = errors.New("invalid session")
 
 type claims struct {
-	Role domain.Role `json:"role"`
+	Role    domain.Role `json:"role"`
+	Sandbox string      `json:"sbx,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -39,8 +40,13 @@ func (m *Manager) TTL() time.Duration { return m.ttl }
 func (m *Manager) Issue(actor domain.Actor) (token string, expiresAt time.Time, err error) {
 	now := m.clock.Now()
 	expiresAt = now.Add(m.ttl)
+	var sandbox string
+	if actor.SandboxID.Valid {
+		sandbox = actor.SandboxID.UUID.String()
+	}
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, claims{
-		Role: actor.Role,
+		Role:    actor.Role,
+		Sandbox: sandbox,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.NewString(), // Unique per login, so shared demo accounts get separate sessions.
 			Subject:   actor.UserID.String(),
@@ -71,5 +77,13 @@ func (m *Manager) Parse(token string) (domain.Actor, error) {
 	if err != nil || !c.Role.Valid() {
 		return domain.Actor{}, ErrInvalid
 	}
-	return domain.Actor{UserID: id, Role: c.Role}, nil
+	actor := domain.Actor{UserID: id, Role: c.Role}
+	if c.Sandbox != "" {
+		sb, err := uuid.Parse(c.Sandbox)
+		if err != nil {
+			return domain.Actor{}, ErrInvalid
+		}
+		actor.SandboxID = uuid.NullUUID{UUID: sb, Valid: true}
+	}
+	return actor, nil
 }

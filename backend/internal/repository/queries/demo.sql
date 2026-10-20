@@ -1,12 +1,8 @@
--- name: TruncateDemoData :exec
-TRUNCATE ledger_events, deal_events, deal_invites, notifications, transfers, idempotency_keys, deals, ref_counters
-  RESTART IDENTITY CASCADE;
-
 -- name: InsertDeal :one
 INSERT INTO deals (ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id,
                    total_satang, booking_fee_satang, main_deposit_satang, viewing_at, move_in_date, expires_at,
-                   state, version, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $16)
+                   state, version, created_at, updated_at, sandbox_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $16, sqlc.narg(sandbox_id))
 RETURNING id;
 
 -- name: InsertDealInvite :exec

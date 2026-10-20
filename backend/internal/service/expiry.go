@@ -53,12 +53,12 @@ func (s *DealService) ExpireDue(ctx context.Context) (int, error) {
 	return expired, errors.Join(errs...)
 }
 
-func (s *DealService) ExpireNow(ctx context.Context, rawID string) error {
-	id, err := uuid.Parse(rawID)
+func (s *DealService) ExpireNow(ctx context.Context, actor domain.Actor, rawID string) error {
+	d, err := s.findDeal(ctx, s.repo.Queries, actor, rawID, false)
 	if err != nil {
-		return errNotFound()
+		return err
 	}
-	ok, err := s.expireOne(ctx, id, true)
+	ok, err := s.expireOne(ctx, d.ID, true)
 	if err != nil {
 		return err
 	}

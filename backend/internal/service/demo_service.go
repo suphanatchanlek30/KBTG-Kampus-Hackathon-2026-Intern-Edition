@@ -113,54 +113,22 @@ func NewDemoService(repo *repository.Repository, c clock.Clock, loc *time.Locati
 	return &DemoService{repo: repo, clock: c, loc: loc, inviteTTL: inviteTTL}
 }
 
-func (s *DemoService) Reset(ctx context.Context, sc Scenario) (dto.DemoResetDTO, error) {
-	stage, ok := scenarioStage[sc]
-	if !ok {
-		return dto.DemoResetDTO{}, &domain.AppError{
-			Code: domain.CodeValidationFailed, Message: "ไม่รู้จัก scenario นี้",
-			Details: []domain.FieldError{{Field: "scenario", Message: "fresh | waiting_accept | funds_locked | booking_released | released"}},
-		}
+func (s *DemoService) Reset(ctx context.Context, actor domain.Actor, sc Scenario) (dto.DemoResetDTO, error) {
+	stage, err := scenarioStageOf(sc)
+	if err != nil {
+		return dto.DemoResetDTO{}, err
 	}
-
 	out := dto.DemoResetDTO{Scenario: string(sc)}
-	err := s.repo.WithTx(ctx, func(q *db.Queries) error {
-		if err := q.TruncateDemoData(ctx); err != nil {
-			return fmt.Errorf("truncate: %w", err)
+	err = s.repo.WithTx(ctx, func(q *db.Queries) error {
+		cast, err := s.castFor(ctx, q, actor.SandboxID)
+		if err != nil {
+			return err
 		}
-		landlordBal, tenantBal, tenantHeld := int64(demoLandlordBalance), int64(demoTenantBalance), int64(0)
-
-		if stage > 0 {
-			dealID, err := s.buildDeal(ctx, q, stage)
-			if err != nil {
-				return err
-			}
-			id := dealID.String()
-			out.DealID = &id
-
-			if stage >= 2 {
-				tenantHeld += demoTotal
-			}
-			if stage >= 3 {
-				tenantBal -= demoBookingFee
-				tenantHeld -= demoBookingFee
-				landlordBal += demoBookingFee
-			}
-			if stage >= 4 {
-				tenantBal -= demoMainDeposit
-				tenantHeld -= demoMainDeposit
-				landlordBal += demoMainDeposit
-			}
+		if err := purgeScope(ctx, q, cast.sandbox); err != nil {
+			return err
 		}
-
-		if err := q.SetAccountBalance(ctx, db.SetAccountBalanceParams{ID: demoLandlordAccountID, BalanceSatang: landlordBal}); err != nil {
-			return fmt.Errorf("reset landlord balance: %w", err)
-		}
-		if err := q.SetAccountBalance(ctx, db.SetAccountBalanceParams{
-			ID: demoTenantAccountID, BalanceSatang: tenantBal, HeldSatang: tenantHeld,
-		}); err != nil {
-			return fmt.Errorf("reset tenant balance: %w", err)
-		}
-		return nil
+		out.DealID, err = s.seedScenario(ctx, q, cast, stage)
+		return err
 	})
 	if err != nil {
 		return dto.DemoResetDTO{}, err
@@ -168,8 +136,112 @@ func (s *DemoService) Reset(ctx context.Context, sc Scenario) (dto.DemoResetDTO,
 	return out, nil
 }
 
-func (s *DemoService) buildDeal(ctx context.Context, q *db.Queries, stage int) (uuid.UUID, error) {
-	props, err := q.ListPropertiesByLandlord(ctx, demoLandlordID)
+func scenarioStageOf(sc Scenario) (int, error) {
+	stage, ok := scenarioStage[sc]
+	if !ok {
+		return 0, &domain.AppError{
+			Code: domain.CodeValidationFailed, Message: "ไม่รู้จัก scenario นี้",
+			Details: []domain.FieldError{{Field: "scenario", Message: "fresh | waiting_accept | funds_locked | booking_released | released"}},
+		}
+	}
+	return stage, nil
+}
+
+// demoCast is the landlord and tenant one demo scope plays with: the shared accounts
+// (sandbox invalid) or one visitor's sandbox.
+type demoCast struct {
+	sandbox                            uuid.NullUUID
+	landlordID, tenantID               uuid.UUID
+	landlordAccountID, tenantAccountID uuid.UUID
+}
+
+var sharedCast = demoCast{
+	landlordID: demoLandlordID, tenantID: demoTenantID,
+	landlordAccountID: demoLandlordAccountID, tenantAccountID: demoTenantAccountID,
+}
+
+func (s *DemoService) castFor(ctx context.Context, q *db.Queries, sandbox uuid.NullUUID) (demoCast, error) {
+	if !sandbox.Valid {
+		return sharedCast, nil
+	}
+	cast := demoCast{sandbox: sandbox}
+	for _, p := range []struct {
+		username      string
+		user, account *uuid.UUID
+	}{{"landlord", &cast.landlordID, &cast.landlordAccountID}, {"tenant", &cast.tenantID, &cast.tenantAccountID}} {
+		u, err := q.GetUserByUsername(ctx, db.GetUserByUsernameParams{SandboxID: sandbox, Username: p.username})
+		if err != nil {
+			return demoCast{}, fmt.Errorf("get sandbox %s: %w", p.username, err)
+		}
+		acc, err := q.GetPrimaryAccount(ctx, u.ID)
+		if err != nil {
+			return demoCast{}, fmt.Errorf("get sandbox %s account: %w", p.username, err)
+		}
+		*p.user, *p.account = u.ID, acc.ID
+	}
+	return cast, nil
+}
+
+// purgeScope deletes all deal activity in one scope: the shared accounts or one sandbox.
+func purgeScope(ctx context.Context, q *db.Queries, sandbox uuid.NullUUID) error {
+	steps := []struct {
+		name string
+		run  func(context.Context, uuid.NullUUID) error
+	}{
+		{"ledger", q.PurgeScopeLedger}, {"deal events", q.PurgeScopeDealEvents}, {"invites", q.PurgeScopeInvites},
+		{"notifications", q.PurgeScopeNotifications}, {"transfers", q.PurgeScopeTransfers},
+		{"idempotency keys", q.PurgeScopeIdempotency}, {"deals", q.PurgeScopeDeals},
+	}
+	if err := q.EnablePurge(ctx); err != nil {
+		return fmt.Errorf("enable purge: %w", err)
+	}
+	for _, st := range steps {
+		if err := st.run(ctx, sandbox); err != nil {
+			return fmt.Errorf("purge %s: %w", st.name, err)
+		}
+	}
+	return nil
+}
+
+// seedScenario resets the cast's balances and builds the scenario's deal, if any.
+func (s *DemoService) seedScenario(ctx context.Context, q *db.Queries, cast demoCast, stage int) (*string, error) {
+	var out *string
+	landlordBal, tenantBal, tenantHeld := int64(demoLandlordBalance), int64(demoTenantBalance), int64(0)
+	if stage > 0 {
+		dealID, err := s.buildDeal(ctx, q, cast, stage)
+		if err != nil {
+			return nil, err
+		}
+		id := dealID.String()
+		out = &id
+
+		if stage >= 2 {
+			tenantHeld += demoTotal
+		}
+		if stage >= 3 {
+			tenantBal -= demoBookingFee
+			tenantHeld -= demoBookingFee
+			landlordBal += demoBookingFee
+		}
+		if stage >= 4 {
+			tenantBal -= demoMainDeposit
+			tenantHeld -= demoMainDeposit
+			landlordBal += demoMainDeposit
+		}
+	}
+	if err := q.SetAccountBalance(ctx, db.SetAccountBalanceParams{ID: cast.landlordAccountID, BalanceSatang: landlordBal}); err != nil {
+		return nil, fmt.Errorf("reset landlord balance: %w", err)
+	}
+	if err := q.SetAccountBalance(ctx, db.SetAccountBalanceParams{
+		ID: cast.tenantAccountID, BalanceSatang: tenantBal, HeldSatang: tenantHeld,
+	}); err != nil {
+		return nil, fmt.Errorf("reset tenant balance: %w", err)
+	}
+	return out, nil
+}
+
+func (s *DemoService) buildDeal(ctx context.Context, q *db.Queries, cast demoCast, stage int) (uuid.UUID, error) {
+	props, err := q.ListPropertiesByLandlord(ctx, cast.landlordID)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("list properties: %w", err)
 	}
@@ -180,16 +252,22 @@ func (s *DemoService) buildDeal(ctx context.Context, q *db.Queries, stage int) (
 	t := ComputeDemoTimes(s.clock.Now(), s.loc, s.inviteTTL)
 
 	states := []db.DealState{"", db.DealStateWAITINGACCEPT, db.DealStateFUNDSLOCKED, db.DealStateBOOKINGFEERELEASED, db.DealStateRELEASED}
+	refNo, shareCode := demoRefNo, demoShareCode
+	if cast.sandbox.Valid {
+		if refNo, shareCode, err = s.newSandboxCodes(ctx, q); err != nil {
+			return uuid.Nil, err
+		}
+	}
 	deal := db.InsertDealParams{
-		RefNo: demoRefNo, ShareCode: demoShareCode,
-		LandlordID: demoLandlordID, LandlordAccountID: demoLandlordAccountID, PropertyID: prop.ID,
+		RefNo: refNo, ShareCode: shareCode, SandboxID: cast.sandbox,
+		LandlordID: cast.landlordID, LandlordAccountID: cast.landlordAccountID, PropertyID: prop.ID,
 		TotalSatang: demoTotal, BookingFeeSatang: demoBookingFee, MainDepositSatang: demoMainDeposit,
 		ViewingAt: t.ViewingAt, MoveInDate: pgtype.Date{Time: t.MoveInDate, Valid: true}, ExpiresAt: t.ExpiresAt,
 		State: states[stage], Version: int32(stage), CreatedAt: t.Created,
 	}
 	if stage >= 2 {
-		deal.TenantID = uuid.NullUUID{UUID: demoTenantID, Valid: true}
-		deal.TenantAccountID = uuid.NullUUID{UUID: demoTenantAccountID, Valid: true}
+		deal.TenantID = uuid.NullUUID{UUID: cast.tenantID, Valid: true}
+		deal.TenantAccountID = uuid.NullUUID{UUID: cast.tenantAccountID, Valid: true}
 	}
 	dealID, err := q.InsertDeal(ctx, deal)
 	if err != nil {
@@ -203,33 +281,33 @@ func (s *DemoService) buildDeal(ctx context.Context, q *db.Queries, stage int) (
 		return uuid.Nil, fmt.Errorf("insert invite: %w", err)
 	}
 
-	landlordUser, err := q.GetUserByID(ctx, demoLandlordID)
+	landlordUser, err := q.GetUserByID(ctx, cast.landlordID)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("get demo landlord: %w", err)
 	}
-	tenantUser, err := q.GetUserByID(ctx, demoTenantID)
+	tenantUser, err := q.GetUserByID(ctx, cast.tenantID)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("get demo tenant: %w", err)
 	}
 	ll, tn, unit := landlordUser.ShortName, tenantUser.ShortName, prop.UnitNo
 
 	w := seedWriter{ctx: ctx, q: q, dealID: dealID}
-	landlord := uuid.NullUUID{UUID: demoLandlordID, Valid: true}
-	tenant := uuid.NullUUID{UUID: demoTenantID, Valid: true}
-	tenantAcc := uuid.NullUUID{UUID: demoTenantAccountID, Valid: true}
-	landlordAcc := uuid.NullUUID{UUID: demoLandlordAccountID, Valid: true}
+	landlord := uuid.NullUUID{UUID: cast.landlordID, Valid: true}
+	tenant := uuid.NullUUID{UUID: cast.tenantID, Valid: true}
+	tenantAcc := uuid.NullUUID{UUID: cast.tenantAccountID, Valid: true}
+	landlordAcc := uuid.NullUUID{UUID: cast.landlordAccountID, Valid: true}
 
 	w.event(db.DealEventTypeDEALCREATED, landlord, "", db.DealStateWAITINGACCEPT, 0, t.Created)
 	w.event(db.DealEventTypeINVITESENT, landlord, db.DealStateWAITINGACCEPT, db.DealStateWAITINGACCEPT, 0, t.InviteSent)
-	w.notify(demoTenantID, db.NotificationTypeDEALINVITE, inviteMsg(ll), t.InviteSent, stage >= 2, t.Accepted)
+	w.notify(cast.tenantID, db.NotificationTypeDEALINVITE, inviteMsg(ll), t.InviteSent, stage >= 2, t.Accepted)
 
 	if stage >= 2 {
 		w.event(db.DealEventTypeDEALACCEPTED, tenant, db.DealStateWAITINGACCEPT, db.DealStateWAITINGACCEPT, 0, t.Accepted)
 		w.event(db.DealEventTypeFUNDSLOCKED, tenant, db.DealStateWAITINGACCEPT, db.DealStateFUNDSLOCKED, demoTotal, t.Accepted)
 		w.ledger(db.LedgerEventTypeHOLD, demoTotal, tenantAcc, uuid.NullUUID{}, tenant, t.Accepted)
-		w.notify(demoLandlordID, db.NotificationTypeFUNDSLOCKED,
+		w.notify(cast.landlordID, db.NotificationTypeFUNDSLOCKED,
 			lockedLandlordMsg(deal.TotalSatang, tn, unit), t.Accepted, stage >= 3, t.ViewingConfirmed)
-		w.notify(demoTenantID, db.NotificationTypeFUNDSLOCKED,
+		w.notify(cast.tenantID, db.NotificationTypeFUNDSLOCKED,
 			lockedTenantMsg(deal.TotalSatang, unit), t.Accepted, stage >= 3, t.ViewingConfirmed)
 	}
 
@@ -237,9 +315,9 @@ func (s *DemoService) buildDeal(ctx context.Context, q *db.Queries, stage int) (
 		w.event(db.DealEventTypeVIEWINGCONFIRMED, tenant, db.DealStateFUNDSLOCKED, db.DealStateVIEWINGCONFIRMED, 0, t.ViewingConfirmed)
 		w.event(db.DealEventTypeBOOKINGFEERELEASED, tenant, db.DealStateVIEWINGCONFIRMED, db.DealStateBOOKINGFEERELEASED, demoBookingFee, t.ViewingConfirmed)
 		w.ledger(db.LedgerEventTypeRELEASEBOOKINGFEE, demoBookingFee, tenantAcc, landlordAcc, tenant, t.ViewingConfirmed)
-		w.notify(demoLandlordID, db.NotificationTypeBOOKINGFEERELEASED,
+		w.notify(cast.landlordID, db.NotificationTypeBOOKINGFEERELEASED,
 			bookingLandlordMsg(deal.BookingFeeSatang, tn, unit), t.ViewingConfirmed, stage >= 4, t.MoveInConfirmed)
-		w.notify(demoTenantID, db.NotificationTypeBOOKINGFEERELEASED,
+		w.notify(cast.tenantID, db.NotificationTypeBOOKINGFEERELEASED,
 			bookingTenantMsg(deal.BookingFeeSatang, ll, unit), t.ViewingConfirmed, stage >= 4, t.MoveInConfirmed)
 	}
 
@@ -247,9 +325,9 @@ func (s *DemoService) buildDeal(ctx context.Context, q *db.Queries, stage int) (
 		w.event(db.DealEventTypeMOVEINCONFIRMED, tenant, db.DealStateBOOKINGFEERELEASED, db.DealStateMOVEINCONFIRMED, 0, t.MoveInConfirmed)
 		w.event(db.DealEventTypeMAINDEPOSITRELEASED, tenant, db.DealStateMOVEINCONFIRMED, db.DealStateRELEASED, demoMainDeposit, t.MoveInConfirmed)
 		w.ledger(db.LedgerEventTypeRELEASEMAINDEPOSIT, demoMainDeposit, tenantAcc, landlordAcc, tenant, t.MoveInConfirmed)
-		w.notify(demoLandlordID, db.NotificationTypeMAINDEPOSITRELEASED,
+		w.notify(cast.landlordID, db.NotificationTypeMAINDEPOSITRELEASED,
 			releasedLandlordMsg(deal.TotalSatang, tn, unit), t.MoveInConfirmed, false, time.Time{})
-		w.notify(demoTenantID, db.NotificationTypeMAINDEPOSITRELEASED,
+		w.notify(cast.tenantID, db.NotificationTypeMAINDEPOSITRELEASED,
 			releasedTenantMsg(deal.TotalSatang, deal.MainDepositSatang, ll, unit), t.MoveInConfirmed, false, time.Time{})
 	}
 

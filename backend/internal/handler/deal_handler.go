@@ -42,7 +42,7 @@ func (h *DealHandler) PreviewInvite(c fiber.Ctx) error {
 }
 
 func (h *DealHandler) LookupUser(c fiber.Ctx) error {
-	out, err := h.deals.LookupTenant(c.Context(), c.Query("phone"))
+	out, err := h.deals.LookupTenant(c.Context(), middleware.ActorFrom(c), c.Query("phone"))
 	if err != nil {
 		return err
 	}
@@ -164,7 +164,7 @@ func (h *DealHandler) Calendar(c fiber.Ctx) error {
 
 // ExpireNow — POST /demo/deals/{id}/expire-now (Demo tools)
 func (h *DealHandler) ExpireNow(c fiber.Ctx) error {
-	if err := h.deals.ExpireNow(c.Context(), c.Params("id")); err != nil {
+	if err := h.deals.ExpireNow(c.Context(), middleware.ActorFrom(c), c.Params("id")); err != nil {
 		return err
 	}
 	return h.Get(c)

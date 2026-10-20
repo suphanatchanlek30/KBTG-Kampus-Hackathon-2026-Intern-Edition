@@ -41,6 +41,18 @@ func (q *Queries) FindOpenDealWithPayee(ctx context.Context, arg FindOpenDealWit
 	return i, err
 }
 
+const getAccountSandbox = `-- name: GetAccountSandbox :one
+SELECT u.sandbox_id FROM demo_accounts a JOIN users u ON u.id = a.user_id WHERE a.id = $1
+`
+
+// The sandbox of an account's owner; used to keep transfers inside one sandbox.
+func (q *Queries) GetAccountSandbox(ctx context.Context, id uuid.UUID) (uuid.NullUUID, error) {
+	row := q.db.QueryRow(ctx, getAccountSandbox, id)
+	var sandbox_id uuid.NullUUID
+	err := row.Scan(&sandbox_id)
+	return sandbox_id, err
+}
+
 const insertTransfer = `-- name: InsertTransfer :one
 INSERT INTO transfers (from_account_id, to_account_id, amount_satang, memo, status, warning_shown, related_deal_id, created_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -78,8 +90,14 @@ const listPayees = `-- name: ListPayees :many
 SELECT a.id AS account_id, u.display_name, a.bank_name, a.account_no_masked
   FROM demo_accounts a JOIN users u ON u.id = a.user_id
  WHERE a.is_primary AND a.user_id <> $1
+   AND u.sandbox_id IS NOT DISTINCT FROM $2::uuid
  ORDER BY u.role, u.username
 `
+
+type ListPayeesParams struct {
+	UserID    uuid.UUID
+	SandboxID uuid.NullUUID
+}
 
 type ListPayeesRow struct {
 	AccountID       uuid.UUID
@@ -88,8 +106,8 @@ type ListPayeesRow struct {
 	AccountNoMasked string
 }
 
-func (q *Queries) ListPayees(ctx context.Context, userID uuid.UUID) ([]ListPayeesRow, error) {
-	rows, err := q.db.Query(ctx, listPayees, userID)
+func (q *Queries) ListPayees(ctx context.Context, arg ListPayeesParams) ([]ListPayeesRow, error) {
+	rows, err := q.db.Query(ctx, listPayees, arg.UserID, arg.SandboxID)
 	if err != nil {
 		return nil, err
 	}

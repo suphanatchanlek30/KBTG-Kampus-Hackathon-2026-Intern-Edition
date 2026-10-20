@@ -1,4 +1,3 @@
-
 export type Role = "LANDLORD" | "TENANT";
 
 export type DealState =
@@ -86,7 +85,8 @@ export type AccountDTO = {
 };
 
 export type MeDTO = {
-  user: { id: string; role: Role; displayName: string; shortName: string };
+  // sandbox is true when signed in to a visitor's private demo sandbox.
+  user: { id: string; role: Role; displayName: string; shortName: string; sandbox?: boolean };
   account: AccountDTO;
   unreadNotifications: number;
 };
@@ -170,3 +170,10 @@ export type NotificationDTO = {
 };
 
 export type NotificationsDTO = { items: NotificationDTO[]; unreadCount: number };
+
+export type SandboxDTO = {
+  sandboxId: string;
+  scenario: DemoScenario;
+  dealId: string | null;
+  shareCode: string | null;
+};

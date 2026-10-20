@@ -17,15 +17,16 @@ import (
 )
 
 type Deps struct {
-	Log           *slog.Logger
-	DB            handler.Pinger
-	Sessions      *session.Manager
-	CookieSecure  bool
-	Users         *service.UserService
-	Notifications *service.NotificationService
-	Deals         *service.DealService
-	Transfers     *service.TransferService
-	Demo *service.DemoService
+	Log            *slog.Logger
+	DB             handler.Pinger
+	Sessions       *session.Manager
+	CookieSecure   bool
+	Users          *service.UserService
+	Notifications  *service.NotificationService
+	Deals          *service.DealService
+	Transfers      *service.TransferService
+	Demo           *service.DemoService
+	SandboxEnabled bool
 }
 
 func New(deps Deps) *fiber.App {

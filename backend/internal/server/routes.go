@@ -61,8 +61,11 @@ func registerRoutes(app *fiber.App, deps Deps) {
 	v1.Post("/transfers", authed, idem, transfers.Create)
 
 	if deps.Demo != nil {
-		demo := handler.NewDemoHandler(deps.Demo)
+		demo := handler.NewDemoHandler(deps.Demo, auth)
 		v1.Post("/demo/reset", authed, demo.Reset)
+		if deps.SandboxEnabled {
+			v1.Post("/demo/sandbox", middleware.GlobalRateLimit(100, time.Second), demo.StartSandbox)
+		}
 		v1.Post("/demo/deals/:id/expire-now", authed, deals.ExpireNow)
 	}
 }

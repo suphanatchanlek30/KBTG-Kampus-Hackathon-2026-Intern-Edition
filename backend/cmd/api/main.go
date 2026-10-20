@@ -74,10 +74,14 @@ func run() error {
 	}
 	if cfg.DemoToolsEnabled {
 		deps.Demo = service.NewDemoService(repo, clk, cfg.Location, cfg.InviteTTL)
+		deps.SandboxEnabled = cfg.SandboxEnabled
 	}
 	app := server.New(deps)
 
 	go deps.Deals.RunExpiryWorker(ctx, cfg.ExpiryTick, log)
+	if deps.Demo != nil {
+		go deps.Demo.RunJanitor(ctx, 10*time.Minute, service.SandboxIdleTTL, log)
+	}
 
 	errCh := make(chan error, 1)
 	go func() {
