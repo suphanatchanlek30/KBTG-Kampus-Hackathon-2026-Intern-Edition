@@ -43,7 +43,7 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	pool, err := database.Connect(ctx, cfg.DatabaseURL)
+	pool, err := database.Connect(ctx, cfg.DatabaseURL, database.PoolSize{MaxConns: int32(cfg.DBMaxConns), MinConns: int32(cfg.DBMinConns)})
 	if err != nil {
 		return err
 	}

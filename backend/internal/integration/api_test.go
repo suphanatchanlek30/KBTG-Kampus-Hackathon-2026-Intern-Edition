@@ -47,7 +47,7 @@ func TestMain(m *testing.M) {
 	log := slog.New(slog.NewJSONHandler(io.Discard, nil))
 
 	var err error
-	pool, err = database.Connect(ctx, url)
+	pool, err = database.Connect(ctx, url, database.PoolSize{})
 	if err != nil {
 		slog.Error("connect test db", "error", err)
 		os.Exit(1)

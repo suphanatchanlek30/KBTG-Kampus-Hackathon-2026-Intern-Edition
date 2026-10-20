@@ -19,6 +19,9 @@ func RequestLogger(log *slog.Logger) fiber.Handler {
 		}
 
 		status := c.Response().StatusCode()
+		if status < fiber.StatusInternalServerError && isProbe(c.Path()) {
+			return nil // Health probes run constantly; logging them only adds noise and I/O.
+		}
 		level := slog.LevelInfo
 		if status >= fiber.StatusInternalServerError {
 			level = slog.LevelError
@@ -43,4 +46,8 @@ func logPath(c fiber.Ctx) string {
 		return r.Path
 	}
 	return c.Path()
+}
+
+func isProbe(path string) bool {
+	return path == "/api/v1/healthz" || path == "/api/v1/readyz"
 }

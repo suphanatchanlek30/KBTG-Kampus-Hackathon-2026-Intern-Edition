@@ -4,38 +4,51 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+
 	"github.com/suphanatchanlek30/ksure/backend/internal/domain"
 	"github.com/suphanatchanlek30/ksure/backend/internal/dto"
-	"github.com/suphanatchanlek30/ksure/backend/internal/repository"
 	"github.com/suphanatchanlek30/ksure/backend/internal/repository/db"
 )
 
 type viewOpts struct {
-	qrURL string
+	qrURL         string
 	invitePreview bool
 }
 
 func (s *DealService) buildDealDTO(ctx context.Context, q *db.Queries, d db.Deal, role domain.Role, opt viewOpts) (dto.DealDTO, error) {
-	prop, err := q.GetProperty(ctx, d.PropertyID)
-	if err != nil {
-		return dto.DealDTO{}, fmt.Errorf("get property: %w", err)
+	tenantID, tenantAccountID := d.TenantID, d.TenantAccountID
+	if opt.invitePreview || !tenantID.Valid {
+		tenantID, tenantAccountID = uuid.NullUUID{}, uuid.NullUUID{}
 	}
-	landlord, err := q.GetUserByID(ctx, d.LandlordID)
+	pr, err := q.GetDealParties(ctx, db.GetDealPartiesParams{
+		DealID: d.ID, PropertyID: d.PropertyID, LandlordID: d.LandlordID, LandlordAccountID: d.LandlordAccountID,
+		TenantID: tenantID, TenantAccountID: tenantAccountID,
+	})
 	if err != nil {
-		return dto.DealDTO{}, fmt.Errorf("get landlord: %w", err)
+		return dto.DealDTO{}, fmt.Errorf("get deal parties: %w", err)
 	}
-	landlordAcc, err := q.GetAccount(ctx, d.LandlordAccountID)
+	if tenantID.Valid && !pr.TenantDisplayName.Valid {
+		return dto.DealDTO{}, fmt.Errorf("get tenant: %w", pgx.ErrNoRows)
+	}
+	if tenantAccountID.Valid && !pr.TenantBankName.Valid {
+		return dto.DealDTO{}, fmt.Errorf("get tenant account: %w", pgx.ErrNoRows)
+	}
+	history, err := q.ListDealHistory(ctx, d.ID)
 	if err != nil {
-		return dto.DealDTO{}, fmt.Errorf("get landlord account: %w", err)
+		return dto.DealDTO{}, fmt.Errorf("list history: %w", err)
 	}
-	events, err := q.ListDealEvents(ctx, d.ID)
-	if err != nil {
-		return dto.DealDTO{}, fmt.Errorf("list events: %w", err)
+	var events []db.DealEvent
+	var ledger []db.LedgerEvent
+	for _, h := range history {
+		if h.Kind == "E" {
+			events = append(events, db.DealEvent{EventType: db.DealEventType(h.EventType), AmountSatang: h.AmountSatang, CreatedAt: h.CreatedAt})
+		} else {
+			ledger = append(ledger, db.LedgerEvent{EventType: db.LedgerEventType(h.EventType), AmountSatang: h.AmountSatang.Int64, CreatedAt: h.CreatedAt})
+		}
 	}
-	ledger, err := q.ListLedgerEvents(ctx, d.ID)
-	if err != nil {
-		return dto.DealDTO{}, fmt.Errorf("list ledger: %w", err)
-	}
+	prop := pr.Property
 
 	verified := true // Demo accounts are treated as name-verified.
 	out := dto.DealDTO{
@@ -46,8 +59,8 @@ func (s *DealService) buildDealDTO(ctx context.Context, q *db.Queries, d db.Deal
 			UnitNo: prop.UnitNo, DetailLabel: prop.DetailLabel, NearbyLabel: prop.NearbyLabel.String,
 		},
 		Landlord: dto.PartyDTO{
-			DisplayName: landlord.DisplayName, ShortName: landlord.ShortName, BankName: landlordAcc.BankName,
-			AccountNoMasked: landlordAcc.AccountNoMasked, NameVerified: &verified,
+			DisplayName: pr.LandlordDisplayName, ShortName: pr.LandlordShortName, BankName: pr.LandlordBankName,
+			AccountNoMasked: pr.LandlordAccountNoMasked, NameVerified: &verified,
 		},
 		ViewingAt:  iso(d.ViewingAt, s.loc),
 		MoveInDate: d.MoveInDate.Time.Format("2006-01-02"),
@@ -63,18 +76,10 @@ func (s *DealService) buildDealDTO(ctx context.Context, q *db.Queries, d db.Deal
 		CreatedAt:      iso(d.CreatedAt, s.loc),
 	}
 
-	if d.TenantID.Valid && !opt.invitePreview {
-		tenant, err := q.GetUserByID(ctx, d.TenantID.UUID)
-		if err != nil {
-			return dto.DealDTO{}, fmt.Errorf("get tenant: %w", err)
-		}
-		party := dto.PartyDTO{DisplayName: tenant.DisplayName, ShortName: tenant.ShortName}
-		if d.TenantAccountID.Valid {
-			acc, err := q.GetAccount(ctx, d.TenantAccountID.UUID)
-			if err != nil {
-				return dto.DealDTO{}, fmt.Errorf("get tenant account: %w", err)
-			}
-			party.BankName, party.AccountNoMasked = acc.BankName, acc.AccountNoMasked
+	if tenantID.Valid {
+		party := dto.PartyDTO{DisplayName: pr.TenantDisplayName.String, ShortName: pr.TenantShortName.String}
+		if tenantAccountID.Valid {
+			party.BankName, party.AccountNoMasked = pr.TenantBankName.String, pr.TenantAccountNoMasked.String
 		}
 		out.Tenant = &party
 	}
@@ -94,12 +99,8 @@ func (s *DealService) buildDealDTO(ctx context.Context, q *db.Queries, d db.Deal
 		}
 	}
 
-	invite, err := q.GetLatestInvite(ctx, d.ID)
-	switch {
-	case err == nil:
-		out.Invite = &dto.InviteDTO{ExpiresAt: iso(invite.ExpiresAt, s.loc), QrURL: opt.qrURL, SentAt: sentAt}
-	case !repository.IsNotFound(err):
-		return dto.DealDTO{}, fmt.Errorf("get invite: %w", err)
+	if len(pr.LatestInviteExpiresAt) > 0 {
+		out.Invite = &dto.InviteDTO{ExpiresAt: iso(pr.LatestInviteExpiresAt[0], s.loc), QrURL: opt.qrURL, SentAt: sentAt}
 	}
 
 	state := domain.DealState(d.State)

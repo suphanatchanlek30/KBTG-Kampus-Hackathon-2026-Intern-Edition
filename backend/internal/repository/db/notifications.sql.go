@@ -51,33 +51,44 @@ func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotification
 	return err
 }
 
-const listNotifications = `-- name: ListNotifications :many
-SELECT id, user_id, type, deal_id, title, body, read_at, created_at FROM notifications WHERE user_id = $1 ORDER BY created_at DESC, id LIMIT $2
+const listNotificationsWithUnread = `-- name: ListNotificationsWithUnread :many
+SELECT n.id, n.user_id, n.type, n.deal_id, n.title, n.body, n.read_at, n.created_at,
+       (SELECT count(*) FROM notifications c WHERE c.user_id = $1 AND c.read_at IS NULL) AS unread_count
+  FROM notifications n
+ WHERE n.user_id = $1
+ ORDER BY n.created_at DESC, n.id
+ LIMIT $2
 `
 
-type ListNotificationsParams struct {
-	UserID uuid.UUID
-	Limit  int32
+type ListNotificationsWithUnreadParams struct {
+	UserID   uuid.UUID
+	RowLimit int32
 }
 
-func (q *Queries) ListNotifications(ctx context.Context, arg ListNotificationsParams) ([]Notification, error) {
-	rows, err := q.db.Query(ctx, listNotifications, arg.UserID, arg.Limit)
+type ListNotificationsWithUnreadRow struct {
+	Notification Notification
+	UnreadCount  int64
+}
+
+func (q *Queries) ListNotificationsWithUnread(ctx context.Context, arg ListNotificationsWithUnreadParams) ([]ListNotificationsWithUnreadRow, error) {
+	rows, err := q.db.Query(ctx, listNotificationsWithUnread, arg.UserID, arg.RowLimit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Notification{}
+	items := []ListNotificationsWithUnreadRow{}
 	for rows.Next() {
-		var i Notification
+		var i ListNotificationsWithUnreadRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.Type,
-			&i.DealID,
-			&i.Title,
-			&i.Body,
-			&i.ReadAt,
-			&i.CreatedAt,
+			&i.Notification.ID,
+			&i.Notification.UserID,
+			&i.Notification.Type,
+			&i.Notification.DealID,
+			&i.Notification.Title,
+			&i.Notification.Body,
+			&i.Notification.ReadAt,
+			&i.Notification.CreatedAt,
+			&i.UnreadCount,
 		); err != nil {
 			return nil, err
 		}
