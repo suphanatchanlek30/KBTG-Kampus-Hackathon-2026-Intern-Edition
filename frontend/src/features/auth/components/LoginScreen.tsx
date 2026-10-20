@@ -10,7 +10,7 @@ import { brand } from "@/config/brand";
 import { errorMessage } from "@/lib/api/errors";
 import { cn } from "@/lib/cn";
 import type { Role } from "@/types/api";
-import { demoLogin, hardNavigate } from "../api";
+import { demoLogin, hardNavigate, setSandboxFlag } from "../api";
 
 const ACCOUNTS: { role: Role; title: string; name: string; icon: typeof House }[] = [
   { role: "LANDLORD", title: "ผู้ให้เช่า", name: "สมชาย ใจดี", icon: House },
@@ -24,6 +24,7 @@ export function LoginScreen() {
     setPending(role);
     try {
       await demoLogin(role);
+      setSandboxFlag(false);
       hardNavigate("/home");
     } catch (err) {
       toast.error(errorMessage(err));

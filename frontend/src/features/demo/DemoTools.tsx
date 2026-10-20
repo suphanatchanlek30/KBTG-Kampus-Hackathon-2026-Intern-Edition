@@ -33,6 +33,7 @@ function DemoControls({ large = false, onDone }: { large?: boolean; onDone?: () 
   );
   const me = useMe().data;
   const role = hydrated ? me?.user.role : undefined;
+  const inSandbox = hydrated && me?.user.sandbox === true;
   const expire = useExpireNow();
 
   const expireNow = async () => {
@@ -70,11 +71,19 @@ function DemoControls({ large = false, onDone }: { large?: boolean; onDone?: () 
 
   const signOut = async () => {
     await logout().catch(() => undefined);
-    hardNavigate("/login");
+    // A sandbox visitor starts a fresh sandbox; everyone else returns to the shared login.
+    hardNavigate(inSandbox ? "/play" : "/login");
   };
 
   return (
     <>
+      {inSandbox && (
+        <p
+          className={cn("rounded-lg bg-neon/9 text-neon", large ? "px-3 py-2 text-caption" : "px-2 py-1.5 text-micro")}
+        >
+          ห้องเล่นส่วนตัวของคุณ · รีเซ็ตหรือลองอะไรก็ได้ ไม่กระทบคนอื่น
+        </p>
+      )}
       <div className="grid grid-cols-2 gap-1.5 rounded-xl bg-card2 p-1">
         {(["LANDLORD", "TENANT"] as const).map((r) => (
           <button
@@ -129,7 +138,7 @@ function DemoControls({ large = false, onDone }: { large?: boolean; onDone?: () 
           )}
         >
           <LogOut size={large ? 16 : 13} strokeWidth={1.5} />
-          ออกจากระบบ
+          {inSandbox ? "เริ่มห้องเล่นใหม่" : "ออกจากระบบ"}
         </button>
       )}
     </>
