@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
@@ -76,7 +77,8 @@ func (s *UserService) meSlow(ctx context.Context, actor domain.Actor) (dto.MeDTO
 
 func (s *UserService) Home(ctx context.Context, actor domain.Actor) (dto.HomeDTO, error) {
 	if err := s.touchSandbox(ctx, actor); err != nil {
-		return dto.HomeDTO{}, fmt.Errorf("touch sandbox: %w", err)
+		// Only the janitor's idle timer depends on this; never fail the home screen over it.
+		slog.WarnContext(ctx, "touch sandbox", "error", err.Error())
 	}
 	me, err := s.Me(ctx, actor)
 	if err != nil {

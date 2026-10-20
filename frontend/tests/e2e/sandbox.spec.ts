@@ -47,4 +47,20 @@ test.describe("private sandboxes", () => {
       await Promise.all(contexts.map((c) => c.close()));
     }
   });
+
+  test("a slow network still lands on the invitation, not the login screen", async ({ browser }) => {
+    const context = await browser.newContext();
+    try {
+      const page = await context.newPage();
+      // Phones on event Wi-Fi are slow: hold the sandbox request so other calls finish first.
+      await page.route("**/api/v1/demo/sandbox*", async (route) => {
+        await new Promise((r) => setTimeout(r, 1_500));
+        await route.continue();
+      });
+      await page.goto("/play");
+      await expect(page).toHaveURL(/\/invites\//, { timeout: 15_000 });
+    } finally {
+      await context.close();
+    }
+  });
 });

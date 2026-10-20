@@ -57,10 +57,10 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Creates a private demo sandbox and signs in as its tenant. Retries while the server is busy. */
 export async function startSandbox(scenario: DemoScenario = "waiting_accept"): Promise<SandboxDTO> {
+  setSandboxFlag(true); // Set first, so a 401 elsewhere during setup also leads back to /play.
   for (let attempt = 0; ; attempt++) {
     try {
       const res = await api.post<SandboxDTO>("/demo/sandbox", null, { params: { scenario } });
-      setSandboxFlag(true);
       return res.data;
     } catch (err) {
       const busy = err instanceof ApiError && (err.status === 429 || err.isNetwork);

@@ -22,7 +22,8 @@ api.interceptors.response.use(
 
     const { status, data } = err.response;
     const e = data?.error;
-    if (status === 401 && !err.config?.url?.startsWith("/auth/")) {
+    // /play is signing this browser in; a 401 from other calls on that page is expected.
+    if (status === 401 && !err.config?.url?.startsWith("/auth/") && window.location.pathname !== "/play") {
       // A visitor whose sandbox expired gets a fresh one instead of the shared login.
       const target = sandboxFlagSet() ? "/play" : "/login";
       if (window.location.pathname !== target) window.location.replace(target);
