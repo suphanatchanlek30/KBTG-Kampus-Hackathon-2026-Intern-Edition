@@ -2,10 +2,13 @@ import { expect, test, type Page } from "@playwright/test";
 
 import { assertLiveApi, getDeal, liveE2E } from "./helpers";
 
-/** One visitor: open /play, accept the invitation and finish the whole deal as the tenant. */
+/** One visitor: pick the tenant on /play, open the request from home and finish the whole deal. */
 async function playFullDeal(page: Page) {
   await page.goto("/play");
-  await expect(page).toHaveURL(/\/invites\//, { timeout: 15_000 });
+  await page.getByRole("button", { name: /^ผู้เช่า/ }).click();
+  await expect(page).toHaveURL(/\/home/, { timeout: 15_000 });
+  await page.getByRole("link", { name: /ตรวจสอบคำขอ/ }).click();
+  await expect(page).toHaveURL(/\/invites\//);
   await page.getByRole("button", { name: /ยอมรับและกันเงิน/ }).click();
   await expect(page).toHaveURL(/\/deals\/[^/]+\/lock/);
   const dealId = page.url().match(/\/deals\/([^/]+)\/lock/)![1];
@@ -48,7 +51,24 @@ test.describe("private sandboxes", () => {
     }
   });
 
-  test("a slow network still lands on the invitation, not the login screen", async ({ browser }) => {
+  test("a landlord starts in their own sandbox with no deal yet", async ({ browser }) => {
+    const context = await browser.newContext();
+    try {
+      const page = await context.newPage();
+      await page.goto("/play");
+      await page.getByRole("button", { name: /^ผู้ให้เช่า/ }).click();
+      await expect(page).toHaveURL(/\/home/, { timeout: 15_000 });
+      const me = await (await page.request.get("/api/v1/me")).json();
+      expect(me.user.role).toBe("LANDLORD");
+      expect(me.user.sandbox).toBe(true);
+      const home = await (await page.request.get("/api/v1/home")).json();
+      expect(home.activeDeals).toHaveLength(0);
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("a slow network still lands on home, not the login screen", async ({ browser }) => {
     const context = await browser.newContext();
     try {
       const page = await context.newPage();
@@ -58,7 +78,9 @@ test.describe("private sandboxes", () => {
         await route.continue();
       });
       await page.goto("/play");
-      await expect(page).toHaveURL(/\/invites\//, { timeout: 15_000 });
+      await page.getByRole("button", { name: /^ผู้เช่า/ }).click();
+      await expect(page).toHaveURL(/\/home/, { timeout: 15_000 });
+      await expect(page.getByRole("link", { name: /ตรวจสอบคำขอ/ })).toBeVisible();
     } finally {
       await context.close();
     }
