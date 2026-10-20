@@ -29,20 +29,11 @@ SELECT d.id, d.ref_no, d.state, d.total_satang, d.created_at, d.landlord_id, p.p
  ORDER BY d.created_at DESC
  LIMIT 100;
 
--- name: ListDealEvents :many
-SELECT * FROM deal_events WHERE deal_id = $1 ORDER BY id;
-
--- name: ListLedgerEvents :many
-SELECT * FROM ledger_events WHERE deal_id = $1 ORDER BY id;
-
 -- name: GetActiveInvite :one
 SELECT * FROM deal_invites
  WHERE deal_id = $1 AND revoked_at IS NULL AND expires_at > @now
  ORDER BY created_at DESC, id DESC
  LIMIT 1;
-
--- name: GetLatestInvite :one
-SELECT * FROM deal_invites WHERE deal_id = $1 ORDER BY created_at DESC, id DESC LIMIT 1;
 
 -- name: GetInviteByTokenHash :one
 SELECT * FROM deal_invites WHERE token_hash = $1;
@@ -79,3 +70,31 @@ SELECT * FROM deals WHERE id = $1 FOR UPDATE SKIP LOCKED;
 
 -- name: HasActiveInvite :one
 SELECT EXISTS (SELECT 1 FROM deal_invites WHERE deal_id = @deal_id AND revoked_at IS NULL AND expires_at > @now);
+
+-- name: GetDealParties :one
+-- Everything buildDealDTO needs besides the history, in one round trip.
+SELECT sqlc.embed(p),
+       l.display_name AS landlord_display_name, l.short_name AS landlord_short_name,
+       la.bank_name AS landlord_bank_name, la.account_no_masked AS landlord_account_no_masked,
+       t.display_name AS tenant_display_name, t.short_name AS tenant_short_name,
+       ta.bank_name AS tenant_bank_name, ta.account_no_masked AS tenant_account_no_masked,
+       -- Empty when the deal has no invite yet.
+       ARRAY(SELECT i.expires_at FROM deal_invites i
+              WHERE i.deal_id = @deal_id
+              ORDER BY i.created_at DESC, i.id DESC
+              LIMIT 1)::timestamptz[] AS latest_invite_expires_at
+  FROM properties p
+  JOIN users l          ON l.id = @landlord_id
+  JOIN demo_accounts la ON la.id = @landlord_account_id
+  LEFT JOIN users t          ON t.id = sqlc.narg(tenant_id)
+  LEFT JOIN demo_accounts ta ON ta.id = sqlc.narg(tenant_account_id)
+ WHERE p.id = @property_id;
+
+-- name: ListDealHistory :many
+-- Deal events (kind 'E') and ledger events (kind 'L') for one deal, each in id order.
+SELECT 'E'::text AS kind, e.id, e.event_type::text AS event_type, e.amount_satang, e.created_at
+  FROM deal_events e WHERE e.deal_id = @deal_id
+UNION ALL
+SELECT 'L'::text AS kind, l.id, l.event_type::text AS event_type, l.amount_satang, l.created_at
+  FROM ledger_events l WHERE l.deal_id = @deal_id
+ ORDER BY kind, id;

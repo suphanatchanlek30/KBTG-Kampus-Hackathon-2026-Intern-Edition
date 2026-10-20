@@ -31,6 +31,46 @@ func (q *Queries) GetDefaultTenant(ctx context.Context) (User, error) {
 	return i, err
 }
 
+const getMe = `-- name: GetMe :one
+SELECT u.id, u.username, u.role, u.display_name, u.short_name, u.phone, u.created_at, a.id, a.user_id, a.bank_name, a.account_type, a.account_no_masked, a.balance_satang, a.held_satang, a.is_primary, a.created_at, a.updated_at,
+       (SELECT count(*) FROM notifications n WHERE n.user_id = u.id AND n.read_at IS NULL) AS unread_count
+  FROM users u
+  JOIN demo_accounts a ON a.user_id = u.id AND a.is_primary
+ WHERE u.id = $1
+`
+
+type GetMeRow struct {
+	User        User
+	DemoAccount DemoAccount
+	UnreadCount int64
+}
+
+func (q *Queries) GetMe(ctx context.Context, id uuid.UUID) (GetMeRow, error) {
+	row := q.db.QueryRow(ctx, getMe, id)
+	var i GetMeRow
+	err := row.Scan(
+		&i.User.ID,
+		&i.User.Username,
+		&i.User.Role,
+		&i.User.DisplayName,
+		&i.User.ShortName,
+		&i.User.Phone,
+		&i.User.CreatedAt,
+		&i.DemoAccount.ID,
+		&i.DemoAccount.UserID,
+		&i.DemoAccount.BankName,
+		&i.DemoAccount.AccountType,
+		&i.DemoAccount.AccountNoMasked,
+		&i.DemoAccount.BalanceSatang,
+		&i.DemoAccount.HeldSatang,
+		&i.DemoAccount.IsPrimary,
+		&i.DemoAccount.CreatedAt,
+		&i.DemoAccount.UpdatedAt,
+		&i.UnreadCount,
+	)
+	return i, err
+}
+
 const getUserByID = `-- name: GetUserByID :one
 SELECT id, username, role, display_name, short_name, phone, created_at FROM users WHERE id = $1
 `

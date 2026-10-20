@@ -454,6 +454,20 @@ func TestInvitePreviewRateLimited(t *testing.T) {
 	}
 }
 
+func TestInvitePreviewRateLimitIsPerSession(t *testing.T) {
+	first, second := login(t, "outsider"), login(t, "outsider")
+	for range 31 {
+		first.do(http.MethodGet, "/invites/KS-YYYYYY", "")
+	}
+	if res, _ := first.do(http.MethodGet, "/invites/KS-YYYYYY", ""); res.StatusCode != http.StatusTooManyRequests {
+		t.Fatalf("first session: %d, want 429", res.StatusCode)
+	}
+	// Someone else on the same shared demo account is not blocked.
+	if res, _ := second.do(http.MethodGet, "/invites/KS-YYYYYY", ""); res.StatusCode == http.StatusTooManyRequests {
+		t.Errorf("second session was rate limited by the first one")
+	}
+}
+
 func TestConcurrentSameKey(t *testing.T) {
 	landlord, tenant := login(t, "landlord"), login(t, "tenant")
 	id := resetDeal(t, landlord, "funds_locked")

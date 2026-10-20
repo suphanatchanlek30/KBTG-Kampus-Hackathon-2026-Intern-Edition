@@ -53,7 +53,7 @@ func registerRoutes(app *fiber.App, deps Deps) {
 	v1.Post("/deals/:id/report-issue", authed, tenantOnly, idem, deals.ReportIssue)
 	v1.Get("/deals/:id/calendar.ics", authed, deals.Calendar)
 	v1.Get("/users/lookup", authed, landlordOnly, deals.LookupUser)
-	v1.Get("/invites/:code", authed, tenantOnly, middleware.PerUserRateLimit(30, time.Minute), deals.PreviewInvite)
+	v1.Get("/invites/:code", authed, tenantOnly, middleware.PerSessionRateLimit(30, time.Minute), deals.PreviewInvite)
 
 	transfers := handler.NewTransferHandler(deps.Transfers)
 	v1.Get("/transfers/payees", authed, transfers.Payees)

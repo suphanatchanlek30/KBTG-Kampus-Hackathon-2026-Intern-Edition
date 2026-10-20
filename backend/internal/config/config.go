@@ -10,19 +10,21 @@ import (
 )
 
 type Config struct {
-	DatabaseURL string
-	Port        int
-	JWTSecret   string
+	DatabaseURL      string
+	DBMaxConns       int
+	DBMinConns       int
+	Port             int
+	JWTSecret        string
 	Location         *time.Location
 	InviteTTL        time.Duration
 	ExpiryTick       time.Duration
 	DemoToolsEnabled bool
-	MigrateOnStart bool
-	LogLevel       string
-	SessionTTL time.Duration
-	CookieSecure bool
-	DemoFrozenNow *time.Time
-	AppBaseURL string
+	MigrateOnStart   bool
+	LogLevel         string
+	SessionTTL       time.Duration
+	CookieSecure     bool
+	DemoFrozenNow    *time.Time
+	AppBaseURL       string
 }
 
 const minJWTSecretLen = 32
@@ -32,6 +34,8 @@ func Load() (Config, error) {
 	cfg := Config{
 		DatabaseURL:      os.Getenv("DATABASE_URL"),
 		JWTSecret:        os.Getenv("JWT_SECRET"),
+		DBMaxConns:       intEnv("DB_MAX_CONNS", 20, &errs),
+		DBMinConns:       intEnv("DB_MIN_CONNS", 2, &errs),
 		Port:             intEnv("PORT", 8080, &errs),
 		InviteTTL:        durationEnv("INVITE_TTL", 24*time.Hour, &errs),
 		ExpiryTick:       durationEnv("EXPIRY_TICK", 30*time.Second, &errs),
@@ -61,6 +65,9 @@ func Load() (Config, error) {
 
 	if cfg.DatabaseURL == "" {
 		errs = append(errs, errors.New("DATABASE_URL is required"))
+	}
+	if cfg.DBMaxConns < 1 || cfg.DBMinConns < 0 || cfg.DBMinConns > cfg.DBMaxConns {
+		errs = append(errs, fmt.Errorf("DB_MAX_CONNS (%d) must be >= 1 and >= DB_MIN_CONNS (%d)", cfg.DBMaxConns, cfg.DBMinConns))
 	}
 	if len(cfg.JWTSecret) < minJWTSecretLen {
 		errs = append(errs, fmt.Errorf("JWT_SECRET must be at least %d characters", minJWTSecretLen))

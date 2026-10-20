@@ -41,6 +41,18 @@ func (s *UserService) Login(ctx context.Context, username string) (domain.Actor,
 }
 
 func (s *UserService) Me(ctx context.Context, actor domain.Actor) (dto.MeDTO, error) {
+	row, err := s.repo.GetMe(ctx, actor.UserID)
+	if repository.IsNotFound(err) {
+		// Missing user or primary account: take the slow path for the exact error.
+		return s.meSlow(ctx, actor)
+	}
+	if err != nil {
+		return dto.MeDTO{}, fmt.Errorf("get me: %w", err)
+	}
+	return dto.MeDTO{User: userDTO(row.User), Account: accountDTO(row.DemoAccount), UnreadNotifications: row.UnreadCount}, nil
+}
+
+func (s *UserService) meSlow(ctx context.Context, actor domain.Actor) (dto.MeDTO, error) {
 	u, err := s.repo.GetUserByID(ctx, actor.UserID)
 	if repository.IsNotFound(err) {
 		return dto.MeDTO{}, domain.NewError(domain.CodeUnauthenticated, "กรุณาเข้าสู่ระบบอีกครั้ง")
