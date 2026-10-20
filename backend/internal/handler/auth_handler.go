@@ -40,6 +40,13 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if err := h.setSession(c, actor); err != nil {
+		return err
+	}
+	return c.JSON(out)
+}
+
+func (h *AuthHandler) setSession(c fiber.Ctx, actor domain.Actor) error {
 	tok, expiresAt, err := h.sessions.Issue(actor)
 	if err != nil {
 		return err
@@ -48,7 +55,7 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 	ck.Expires = expiresAt
 	ck.MaxAge = int(h.sessions.TTL().Seconds())
 	c.Cookie(ck)
-	return c.JSON(out)
+	return nil
 }
 
 func (h *AuthHandler) Logout(c fiber.Ctx) error {

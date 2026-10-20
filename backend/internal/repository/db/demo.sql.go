@@ -150,13 +150,3 @@ func (q *Queries) InsertLedgerEvent(ctx context.Context, arg InsertLedgerEventPa
 	)
 	return err
 }
-
-const truncateDemoData = `-- name: TruncateDemoData :exec
-TRUNCATE ledger_events, deal_events, deal_invites, notifications, transfers, idempotency_keys, deals, ref_counters
-  RESTART IDENTITY CASCADE
-`
-
-func (q *Queries) TruncateDemoData(ctx context.Context) error {
-	_, err := q.db.Exec(ctx, truncateDemoData)
-	return err
-}

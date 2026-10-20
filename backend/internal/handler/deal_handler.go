@@ -164,7 +164,7 @@ func (h *DealHandler) Calendar(c fiber.Ctx) error {
 
 // ExpireNow — POST /demo/deals/{id}/expire-now (Demo tools)
 func (h *DealHandler) ExpireNow(c fiber.Ctx) error {
-	if err := h.deals.ExpireNow(c.Context(), c.Params("id")); err != nil {
+	if err := h.deals.ExpireNow(c.Context(), middleware.ActorFrom(c), c.Params("id")); err != nil {
 		return err
 	}
 	return h.Get(c)

@@ -75,6 +75,9 @@ func (s *UserService) meSlow(ctx context.Context, actor domain.Actor) (dto.MeDTO
 }
 
 func (s *UserService) Home(ctx context.Context, actor domain.Actor) (dto.HomeDTO, error) {
+	if err := s.touchSandbox(ctx, actor); err != nil {
+		return dto.HomeDTO{}, fmt.Errorf("touch sandbox: %w", err)
+	}
 	me, err := s.Me(ctx, actor)
 	if err != nil {
 		return dto.HomeDTO{}, err
@@ -124,7 +127,7 @@ func (s *UserService) Properties(ctx context.Context, actor domain.Actor) (dto.P
 }
 
 func userDTO(u db.User) dto.UserDTO {
-	return dto.UserDTO{ID: u.ID.String(), Role: string(u.Role), DisplayName: u.DisplayName, ShortName: u.ShortName}
+	return dto.UserDTO{ID: u.ID.String(), Role: string(u.Role), DisplayName: u.DisplayName, ShortName: u.ShortName, Sandbox: u.SandboxID.Valid}
 }
 
 func accountDTO(a db.DemoAccount) dto.AccountDTO {

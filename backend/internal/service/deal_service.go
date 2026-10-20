@@ -45,7 +45,7 @@ func NewDealService(repo *repository.Repository, c clock.Clock, loc *time.Locati
 
 
 func (s *DealService) Get(ctx context.Context, actor domain.Actor, rawID string) (dto.DealDTO, error) {
-	d, err := s.findDeal(ctx, s.repo.Queries, rawID, false)
+	d, err := s.findDeal(ctx, s.repo.Queries, actor, rawID, false)
 	if err != nil {
 		return dto.DealDTO{}, err
 	}
@@ -123,6 +123,9 @@ func (s *DealService) PreviewInvite(ctx context.Context, actor domain.Actor, cod
 		}
 	}
 
+	if !actor.SameSandbox(d.SandboxID) {
+		return dto.DealDTO{}, errNotFound()
+	}
 	if d.TenantID.Valid && d.TenantID.UUID == actor.UserID {
 		return s.buildDealDTO(ctx, q, d, domain.RoleTenant, viewOpts{})
 	}
@@ -286,7 +289,7 @@ func (s *DealService) SendInvite(ctx context.Context, actor domain.Actor, idem I
 func (s *DealService) Reject(ctx context.Context, actor domain.Actor, idem IdemRequest, rawID string, version int32) (Response, error) {
 	now := s.clock.Now()
 	return runIdempotent(ctx, s.repo, actor, idem, now, http.StatusOK, func(q *db.Queries) (any, error) {
-		d, err := s.findDeal(ctx, q, rawID, true)
+		d, err := s.findDeal(ctx, q, actor, rawID, true)
 		if err != nil {
 			return nil, err
 		}
@@ -341,7 +344,7 @@ func (s *DealService) Lock(ctx context.Context, actor domain.Actor, idem IdemReq
 	}
 	now := s.clock.Now()
 	return runIdempotent(ctx, s.repo, actor, idem, now, http.StatusOK, func(q *db.Queries) (any, error) {
-		d, err := s.findDeal(ctx, q, rawID, true)
+		d, err := s.findDeal(ctx, q, actor, rawID, true)
 		if err != nil {
 			return nil, err
 		}
@@ -464,7 +467,7 @@ func (s *DealService) release(ctx context.Context, actor domain.Actor, idem Idem
 	}
 	now := s.clock.Now()
 	return runIdempotent(ctx, s.repo, actor, idem, now, http.StatusOK, func(q *db.Queries) (any, error) {
-		d, err := s.findDeal(ctx, q, rawID, true)
+		d, err := s.findDeal(ctx, q, actor, rawID, true)
 		if err != nil {
 			return nil, err
 		}
@@ -521,7 +524,8 @@ func (s *DealService) release(ctx context.Context, actor domain.Actor, idem Idem
 
 // ---- helpers ----
 
-func (s *DealService) findDeal(ctx context.Context, q *db.Queries, rawID string, forUpdate bool) (db.Deal, error) {
+// findDeal loads a deal the actor may see. Deals in another sandbox look like they do not exist.
+func (s *DealService) findDeal(ctx context.Context, q *db.Queries, actor domain.Actor, rawID string, forUpdate bool) (db.Deal, error) {
 	id, err := uuid.Parse(rawID)
 	if err != nil {
 		return db.Deal{}, errNotFound()
@@ -537,6 +541,9 @@ func (s *DealService) findDeal(ctx context.Context, q *db.Queries, rawID string,
 	}
 	if err != nil {
 		return db.Deal{}, fmt.Errorf("get deal: %w", err)
+	}
+	if !actor.SameSandbox(d.SandboxID) {
+		return db.Deal{}, errNotFound()
 	}
 	return d, nil
 }
@@ -578,7 +585,7 @@ func (s *DealService) reload(ctx context.Context, q *db.Queries, id uuid.UUID, r
 }
 
 func (s *DealService) landlordWaitingDeal(ctx context.Context, q *db.Queries, actor domain.Actor, rawID string, now time.Time) (db.Deal, error) {
-	d, err := s.findDeal(ctx, q, rawID, true)
+	d, err := s.findDeal(ctx, q, actor, rawID, true)
 	if err != nil {
 		return db.Deal{}, err
 	}
