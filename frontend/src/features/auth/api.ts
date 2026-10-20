@@ -35,11 +35,13 @@ export function hardNavigate(path: string) {
 
 const SANDBOX_FLAG = "ksure.sandbox";
 
-/** Remembers that this browser plays in a private sandbox, so an expired session returns to /play. */
+/**
+ * Remembers where this browser signs in again after its session ends.
+ * Off means it picked a shared account on /login; anything else goes to its own sandbox on /play.
+ */
 export function setSandboxFlag(on: boolean) {
   try {
-    if (on) localStorage.setItem(SANDBOX_FLAG, "1");
-    else localStorage.removeItem(SANDBOX_FLAG);
+    localStorage.setItem(SANDBOX_FLAG, on ? "1" : "0");
   } catch {
     // Storage can be unavailable (private mode); the flag is only a convenience.
   }
@@ -47,7 +49,7 @@ export function setSandboxFlag(on: boolean) {
 
 export function hasSandboxFlag(): boolean {
   try {
-    return localStorage.getItem(SANDBOX_FLAG) === "1";
+    return localStorage.getItem(SANDBOX_FLAG) !== "0";
   } catch {
     return false;
   }

@@ -65,6 +65,14 @@ export function LoginScreen() {
             <ChevronRight size={16} strokeWidth={1.47} className="shrink-0 text-muted" />
           </button>
         ))}
+        <button
+          type="button"
+          disabled={pending !== null}
+          onClick={() => hardNavigate("/play")}
+          className="mt-1 rounded-lg px-2 py-2 text-caption text-neon disabled:opacity-50"
+        >
+          ลองเองคนเดียวในห้องเล่นส่วนตัว (ไม่กระทบคนอื่น)
+        </button>
       </section>
     </AppShell>
   );
