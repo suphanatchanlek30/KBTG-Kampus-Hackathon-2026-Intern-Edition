@@ -24,17 +24,17 @@ api.interceptors.response.use(
     const e = data?.error;
     // /play is signing this browser in; a 401 from other calls on that page is expected.
     if (status === 401 && !err.config?.url?.startsWith("/auth/") && window.location.pathname !== "/play") {
-      // A visitor whose sandbox expired gets a fresh one instead of the shared login.
-      const target = sandboxFlagSet() ? "/play" : "/login";
+      // Visitors get their own sandbox. Only a browser that picked a shared account returns to /login.
+      const target = sharedLoginChosen() ? "/login" : "/play";
       if (window.location.pathname !== target) window.location.replace(target);
     }
     return Promise.reject(new ApiError(e?.code ?? "UNKNOWN", status, e?.message, e?.requestId));
   },
 );
 
-function sandboxFlagSet(): boolean {
+function sharedLoginChosen(): boolean {
   try {
-    return localStorage.getItem("ksure.sandbox") === "1";
+    return localStorage.getItem("ksure.sandbox") === "0";
   } catch {
     return false;
   }
