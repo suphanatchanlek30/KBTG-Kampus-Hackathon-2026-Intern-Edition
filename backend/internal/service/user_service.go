@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/suphanatchanlek30/ksure/backend/internal/domain"
 	"github.com/suphanatchanlek30/ksure/backend/internal/dto"
 	"github.com/suphanatchanlek30/ksure/backend/internal/platform/clock"
@@ -22,21 +24,22 @@ func NewUserService(repo *repository.Repository, c clock.Clock, loc *time.Locati
 	return &UserService{repo: repo, clock: c, loc: loc}
 }
 
-func (s *UserService) Login(ctx context.Context, username string) (domain.Actor, dto.LoginDTO, error) {
+// Login signs in as a demo persona. Inside a sandbox, the same usernames select that sandbox's users.
+func (s *UserService) Login(ctx context.Context, username string, sandbox uuid.NullUUID) (domain.Actor, dto.LoginDTO, error) {
 	if username == "" {
 		return domain.Actor{}, dto.LoginDTO{}, &domain.AppError{
 			Code: domain.CodeValidationFailed, Message: "กรุณาเลือกบัญชีเดโม",
 			Details: []domain.FieldError{{Field: "username", Message: "required"}},
 		}
 	}
-	u, err := s.repo.GetUserByUsername(ctx, username)
+	u, err := s.repo.GetUserByUsername(ctx, db.GetUserByUsernameParams{SandboxID: sandbox, Username: username})
 	if repository.IsNotFound(err) {
 		return domain.Actor{}, dto.LoginDTO{}, domain.NewError(domain.CodeUnauthenticated, "ไม่พบบัญชีเดโมนี้")
 	}
 	if err != nil {
 		return domain.Actor{}, dto.LoginDTO{}, fmt.Errorf("get user: %w", err)
 	}
-	actor := domain.Actor{UserID: u.ID, Role: domain.Role(u.Role)}
+	actor := domain.Actor{UserID: u.ID, Role: domain.Role(u.Role), SandboxID: u.SandboxID}
 	return actor, dto.LoginDTO{User: userDTO(u)}, nil
 }
 

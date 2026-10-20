@@ -42,7 +42,7 @@ func (q *Queries) GetActiveInvite(ctx context.Context, arg GetActiveInviteParams
 }
 
 const getDeal = `-- name: GetDeal :one
-SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at FROM deals WHERE id = $1
+SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at, sandbox_id FROM deals WHERE id = $1
 `
 
 func (q *Queries) GetDeal(ctx context.Context, id uuid.UUID) (Deal, error) {
@@ -73,12 +73,13 @@ func (q *Queries) GetDeal(ctx context.Context, id uuid.UUID) (Deal, error) {
 		&i.HasOpenIssue,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SandboxID,
 	)
 	return i, err
 }
 
 const getDealByShareCode = `-- name: GetDealByShareCode :one
-SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at FROM deals WHERE share_code = $1
+SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at, sandbox_id FROM deals WHERE share_code = $1
 `
 
 func (q *Queries) GetDealByShareCode(ctx context.Context, shareCode string) (Deal, error) {
@@ -109,12 +110,13 @@ func (q *Queries) GetDealByShareCode(ctx context.Context, shareCode string) (Dea
 		&i.HasOpenIssue,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SandboxID,
 	)
 	return i, err
 }
 
 const getDealForUpdate = `-- name: GetDealForUpdate :one
-SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at FROM deals WHERE id = $1 FOR UPDATE
+SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at, sandbox_id FROM deals WHERE id = $1 FOR UPDATE
 `
 
 func (q *Queries) GetDealForUpdate(ctx context.Context, id uuid.UUID) (Deal, error) {
@@ -145,12 +147,13 @@ func (q *Queries) GetDealForUpdate(ctx context.Context, id uuid.UUID) (Deal, err
 		&i.HasOpenIssue,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SandboxID,
 	)
 	return i, err
 }
 
 const getDealForUpdateSkipLocked = `-- name: GetDealForUpdateSkipLocked :one
-SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at FROM deals WHERE id = $1 FOR UPDATE SKIP LOCKED
+SELECT id, ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id, deal_type, currency, total_satang, booking_fee_satang, main_deposit_satang, fee_satang, viewing_at, move_in_date, expires_at, state, version, landlord_cancel_requested_at, tenant_cancel_requested_at, has_open_issue, created_at, updated_at, sandbox_id FROM deals WHERE id = $1 FOR UPDATE SKIP LOCKED
 `
 
 func (q *Queries) GetDealForUpdateSkipLocked(ctx context.Context, id uuid.UUID) (Deal, error) {
@@ -181,6 +184,7 @@ func (q *Queries) GetDealForUpdateSkipLocked(ctx context.Context, id uuid.UUID) 
 		&i.HasOpenIssue,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SandboxID,
 	)
 	return i, err
 }

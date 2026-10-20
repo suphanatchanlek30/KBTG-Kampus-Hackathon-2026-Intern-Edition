@@ -29,7 +29,7 @@ func NewTransferService(repo *repository.Repository, c clock.Clock) *TransferSer
 
 // Payees — GET /transfers/payees
 func (s *TransferService) Payees(ctx context.Context, actor domain.Actor) (dto.PayeesDTO, error) {
-	rows, err := s.repo.ListPayees(ctx, actor.UserID)
+	rows, err := s.repo.ListPayees(ctx, db.ListPayeesParams{UserID: actor.UserID, SandboxID: actor.SandboxID})
 	if err != nil {
 		return dto.PayeesDTO{}, fmt.Errorf("list payees: %w", err)
 	}

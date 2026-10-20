@@ -42,7 +42,7 @@ func (h *DealHandler) PreviewInvite(c fiber.Ctx) error {
 }
 
 func (h *DealHandler) LookupUser(c fiber.Ctx) error {
-	out, err := h.deals.LookupTenant(c.Context(), c.Query("phone"))
+	out, err := h.deals.LookupTenant(c.Context(), middleware.ActorFrom(c), c.Query("phone"))
 	if err != nil {
 		return err
 	}

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 
 	"github.com/suphanatchanlek30/ksure/backend/internal/domain"
 	"github.com/suphanatchanlek30/ksure/backend/internal/platform/session"
@@ -30,7 +31,12 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 	if err := c.Bind().JSON(&req); err != nil {
 		return domain.Wrap(domain.CodeValidationFailed, "รูปแบบข้อมูลไม่ถูกต้อง", err)
 	}
-	actor, out, err := h.users.Login(c.Context(), req.Username)
+	// Switching roles inside a sandbox keeps the visitor in their own sandbox.
+	var sandbox uuid.NullUUID
+	if prev, err := h.sessions.Parse(c.Cookies(session.CookieName)); err == nil {
+		sandbox = prev.SandboxID
+	}
+	actor, out, err := h.users.Login(c.Context(), req.Username, sandbox)
 	if err != nil {
 		return err
 	}

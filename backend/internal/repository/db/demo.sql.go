@@ -16,8 +16,8 @@ import (
 const insertDeal = `-- name: InsertDeal :one
 INSERT INTO deals (ref_no, share_code, landlord_id, landlord_account_id, tenant_id, tenant_account_id, property_id,
                    total_satang, booking_fee_satang, main_deposit_satang, viewing_at, move_in_date, expires_at,
-                   state, version, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $16)
+                   state, version, created_at, updated_at, sandbox_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $16, $17)
 RETURNING id
 `
 
@@ -38,6 +38,7 @@ type InsertDealParams struct {
 	State             DealState
 	Version           int32
 	CreatedAt         time.Time
+	SandboxID         uuid.NullUUID
 }
 
 func (q *Queries) InsertDeal(ctx context.Context, arg InsertDealParams) (uuid.UUID, error) {
@@ -58,6 +59,7 @@ func (q *Queries) InsertDeal(ctx context.Context, arg InsertDealParams) (uuid.UU
 		arg.State,
 		arg.Version,
 		arg.CreatedAt,
+		arg.SandboxID,
 	)
 	var id uuid.UUID
 	err := row.Scan(&id)
