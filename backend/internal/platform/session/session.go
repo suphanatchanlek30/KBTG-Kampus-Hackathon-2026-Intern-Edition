@@ -42,6 +42,7 @@ func (m *Manager) Issue(actor domain.Actor) (token string, expiresAt time.Time, 
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, claims{
 		Role: actor.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        uuid.NewString(), // Unique per login, so shared demo accounts get separate sessions.
 			Subject:   actor.UserID.String(),
 			Issuer:    issuer,
 			IssuedAt:  jwt.NewNumericDate(now),
