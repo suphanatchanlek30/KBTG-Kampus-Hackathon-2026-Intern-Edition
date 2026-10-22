@@ -6,8 +6,8 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/suphanatchanlek30/ksure/backend/internal/domain"
-	"github.com/suphanatchanlek30/ksure/backend/internal/service"
+	"github.com/suphanatchanlek30/psure/backend/internal/domain"
+	"github.com/suphanatchanlek30/psure/backend/internal/service"
 )
 
 const maxIdempotencyKeyLen = 255

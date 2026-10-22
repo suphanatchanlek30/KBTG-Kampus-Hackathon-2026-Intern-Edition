@@ -3,7 +3,7 @@ package service
 import (
 	"slices"
 
-	"github.com/suphanatchanlek30/ksure/backend/internal/domain"
+	"github.com/suphanatchanlek30/psure/backend/internal/domain"
 )
 
 type transition struct {

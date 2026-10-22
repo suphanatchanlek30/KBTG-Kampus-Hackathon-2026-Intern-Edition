@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "K Sure",
-    short_name: "K Sure",
+    name: "P Sure",
+    short_name: "P Sure",
     description: "ต้นแบบระบบยืนยันการจองเช่าที่พักอย่างปลอดภัย",
     start_url: "/home",
     display: "standalone",

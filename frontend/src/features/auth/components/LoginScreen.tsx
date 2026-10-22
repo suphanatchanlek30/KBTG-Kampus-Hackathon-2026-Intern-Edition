@@ -35,7 +35,7 @@ export function LoginScreen() {
   return (
     <AppShell enter="fade" className="flex flex-col gap-6 px-5 pt-16 pb-6">
       <div className="flex flex-col items-center gap-4 text-center">
-        <Image src={brand.logo.src} alt={brand.name} width={168} height={52} loading="eager" />
+        <Image src={brand.logo.src} alt={brand.name} width={168} height={53} loading="eager" />
         <p className="text-body text-gray">{brand.tagline}</p>
         <DemoBadge />
       </div>

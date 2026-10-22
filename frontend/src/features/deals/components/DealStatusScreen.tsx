@@ -45,15 +45,15 @@ export function DealStatusScreen() {
       case "show-qr":
         return router.push(`/deals/${deal.id}/share`);
       case "add-viewing":
-        return downloadIcs(`ksure-viewing-${deal.refNo}.ics`, {
-          uid: `${deal.id}-viewing@ksure`,
+        return downloadIcs(`psure-viewing-${deal.refNo}.ics`, {
+          uid: `${deal.id}-viewing@psure`,
           title: `นัดดูห้อง · ${title}`,
           start: deal.viewingAt,
           description: `ผู้เช่ายืนยันว่าดูห้องแล้ว = ปล่อยค่าจอง (${deal.refNo})`,
         });
       case "add-move-in":
-        return downloadIcs(`ksure-move-in-${deal.refNo}.ics`, {
-          uid: `${deal.id}-move-in@ksure`,
+        return downloadIcs(`psure-move-in-${deal.refNo}.ics`, {
+          uid: `${deal.id}-move-in@psure`,
           title: `วันเข้าอยู่ · ${title}`,
           start: deal.moveInDate,
           allDay: true,

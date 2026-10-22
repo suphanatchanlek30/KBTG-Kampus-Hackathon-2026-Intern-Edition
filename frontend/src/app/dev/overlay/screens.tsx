@@ -33,7 +33,7 @@ export const SCREENS: Partial<Record<ScreenId, ComponentType>> = {
       }}
     />
   ),
-  L4: () => <ShareInviteView deal={invited("LANDLORD")} inviteUrl="https://ksure.demo/invites/KS-8F4Q21" />,
+  L4: () => <ShareInviteView deal={invited("LANDLORD")} inviteUrl="https://psure.demo/invites/KS-8F4Q21" />,
   L5: () => <DealStatusView deal={makeDeal("FUNDS_LOCKED", "LANDLORD")} />,
   T4: () => <LockedView deal={tenantLocked} account={makeMe("TENANT", tenantLocked).account} />,
   T5: () => <ConfirmReleaseView kind="viewing" deal={tenantLocked} checked={[true, true, true]} />,
@@ -42,7 +42,7 @@ export const SCREENS: Partial<Record<ScreenId, ComponentType>> = {
   ),
   L6: () => <CompleteView deal={makeDeal("RELEASED", "LANDLORD")} account={DEMO_USERS.LANDLORD.account} />,
   T7: () => <CompleteView deal={makeDeal("RELEASED", "TENANT")} account={DEMO_USERS.TENANT.account} />,
-  T8: () => <TransferView {...DEMO_TRANSFER} warning="บัญชีนี้เป็นคู่ดีล K Sure ของคุณ (ห้อง A1203) ที่ยังไม่จบ" />,
+  T8: () => <TransferView {...DEMO_TRANSFER} warning="บัญชีนี้เป็นคู่ดีล P Sure ของคุณ (ห้อง A1203) ที่ยังไม่จบ" />,
   T1: () => <TenantHomeView home={makeHome("TENANT", invited("TENANT"))} />,
   T2: () => <InviteReviewView deal={invited("TENANT")} />,
   T3: () => (

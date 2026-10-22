@@ -9,12 +9,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/suphanatchanlek30/ksure/backend/internal/domain"
-	"github.com/suphanatchanlek30/ksure/backend/internal/dto"
-	"github.com/suphanatchanlek30/ksure/backend/internal/platform/clock"
-	"github.com/suphanatchanlek30/ksure/backend/internal/platform/token"
-	"github.com/suphanatchanlek30/ksure/backend/internal/repository"
-	"github.com/suphanatchanlek30/ksure/backend/internal/repository/db"
+	"github.com/suphanatchanlek30/psure/backend/internal/domain"
+	"github.com/suphanatchanlek30/psure/backend/internal/dto"
+	"github.com/suphanatchanlek30/psure/backend/internal/platform/clock"
+	"github.com/suphanatchanlek30/psure/backend/internal/platform/token"
+	"github.com/suphanatchanlek30/psure/backend/internal/repository"
+	"github.com/suphanatchanlek30/psure/backend/internal/repository/db"
 )
 
 type Scenario string
@@ -52,7 +52,7 @@ const (
 	demoBookingFee  = 100_000 // 1,000
 	demoMainDeposit = demoTotal - demoBookingFee
 
-	brandName = "K Sure"
+	brandName = "P Sure"
 )
 
 type DemoTimes struct {

@@ -8,8 +8,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/limiter"
 
-	"github.com/suphanatchanlek30/ksure/backend/internal/domain"
-	"github.com/suphanatchanlek30/ksure/backend/internal/platform/session"
+	"github.com/suphanatchanlek30/psure/backend/internal/domain"
+	"github.com/suphanatchanlek30/psure/backend/internal/platform/session"
 )
 
 // PerSessionRateLimit limits each login session separately. Demo accounts are shared

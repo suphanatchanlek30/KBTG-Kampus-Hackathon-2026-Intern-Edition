@@ -39,12 +39,12 @@ const ScanSquare = forwardRef<SVGSVGElement, LucideProps>(function ScanSquare(
 
 type Service = { label: string; icon?: LucideIcon; href?: string; active?: boolean };
 
-export function ServiceGrid({ kSureHref, compact = false }: { kSureHref?: string; compact?: boolean }) {
+export function ServiceGrid({ pSureHref, compact = false }: { pSureHref?: string; compact?: boolean }) {
   const services: Service[] = [
     { label: "โอนเงิน", icon: ArrowUpDown, href: "/transfer" },
     { label: "สแกนจ่าย", icon: ScanSquare },
     { label: "จ่ายบิล", icon: ScanBarcode },
-    { label: brand.name, href: kSureHref, active: true },
+    { label: brand.name, href: pSureHref, active: true },
     { label: "เติมเงิน", icon: Smartphone },
     { label: "My Pockets", icon: Wallet },
     { label: "ลงทุน", icon: ChartColumn },
@@ -69,7 +69,7 @@ export function ServiceGrid({ kSureHref, compact = false }: { kSureHref?: string
                 {Icon ? (
                   <Icon size={21} strokeWidth={1.49} />
                 ) : (
-                  <Image src={brand.mark.src} alt="" width={22} height={21} />
+                  <Image src={brand.mark.src} alt="" width={21} height={22} />
                 )}
               </span>
               <span className={cn("text-service-label", active ? "font-semibold text-neon" : "text-gray")}>

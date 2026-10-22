@@ -5,7 +5,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/suphanatchanlek30/ksure/backend/internal/domain"
+	"github.com/suphanatchanlek30/psure/backend/internal/domain"
 )
 
 var (

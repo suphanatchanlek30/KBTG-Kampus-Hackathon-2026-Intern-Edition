@@ -1,4 +1,4 @@
-module github.com/suphanatchanlek30/ksure/backend
+module github.com/suphanatchanlek30/psure/backend
 
 go 1.27.1
 

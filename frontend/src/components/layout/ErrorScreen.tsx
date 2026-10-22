@@ -11,7 +11,7 @@ export function ErrorScreen({ error, title = "เปิดรายการน�
   return (
     <AppShell
       enter="push"
-      header={<AppHeader title="K Sure" left="back" onLeft={() => router.push("/home")} />}
+      header={<AppHeader title="P Sure" left="back" onLeft={() => router.push("/home")} />}
       footer={
         <div className="px-5 pb-2">
           <Button variant="secondary" onClick={() => router.push("/home")}>

@@ -1,8 +1,8 @@
 const SHARE_CODE_PATTERN = /^KS-[A-Z0-9]{6}$/i;
 
 /**
- * Extract the invitation identifier from the two QR formats that K Sure emits:
- * a share code (KS-XXXXXX) or a K Sure invitation URL.
+ * Extract the invitation identifier from the two QR formats that P Sure emits:
+ * a share code (KS-XXXXXX) or a P Sure invitation URL.
  */
 export function invitationIdFromScan(rawValue: string): string | null {
   const value = rawValue.trim();

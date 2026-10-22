@@ -34,7 +34,7 @@ export function ShareInviteScreen() {
         const node = findVisible('[data-export="qr"]');
         if (!node) return;
         try {
-          if ((await saveImage(node, `ksure-qr-${deal.shareCode}.png`)) === "downloaded")
+          if ((await saveImage(node, `psure-qr-${deal.shareCode}.png`)) === "downloaded")
             toast.success("บันทึก QR แล้ว");
         } catch (err) {
           toast.error(errorMessage(err));

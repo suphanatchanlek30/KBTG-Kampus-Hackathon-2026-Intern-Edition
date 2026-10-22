@@ -30,7 +30,7 @@ export function HomeHeader({ greeting, name, notificationCount = 0, onBell, onMe
   return (
     <header className="flex h-16 items-center gap-3 px-5">
       <div className="flex size-[42px] shrink-0 items-center justify-center rounded-tile border border-line bg-card">
-        <Image src={brand.mark.src} alt={brand.name} width={20} height={19} loading="eager" />
+        <Image src={brand.mark.src} alt={brand.name} width={19} height={20} loading="eager" />
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="text-caption text-muted">{greeting}</span>

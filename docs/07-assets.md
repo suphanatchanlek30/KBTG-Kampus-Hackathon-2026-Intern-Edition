@@ -6,7 +6,7 @@ Use repository-owned assets only when their source and license are known. Store 
 
 | Asset | Location | Use |
 | --- | --- | --- |
-| K Sure logo | `assets/brand/ksure-logo-300w.png` | Repository documentation and prototype branding. |
+| P Sure logo | `assets/brand/psure-logo-300w.png` | Repository documentation and prototype branding. |
 | Reference screens | `docs/design/screens/` | Visual review and regression baselines. |
 | Flow images | `docs/design/flow-*.png` | Root README product overview. |
 | PWA icons | `frontend/public/app-icons/` | Browser and installable-app metadata. |

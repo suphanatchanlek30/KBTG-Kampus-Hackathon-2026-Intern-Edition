@@ -49,7 +49,7 @@ const TYPE_SCALE = [
   ["greeting-name", "text-greeting-name", "คุณสมชาย ใจดี"],
   ["sheet-title", "text-sheet-title", "หยุดก่อน! นี่อาจเป็นการขอเงินนอกดีล"],
   ["promo-title", "text-promo-title", "มัดจำห้อง แบบไม่ต้องลุ้น"],
-  ["header / button", "text-header", "สร้างดีล K Sure"],
+  ["header / button", "text-header", "สร้างดีล P Sure"],
   ["code", "text-code", "KS-8F4Q21"],
   ["section", "text-section", "บริการแนะนำ"],
   ["body-strong", "text-body-strong", "ตรวจสอบคำขอ"],
@@ -199,7 +199,7 @@ export function Catalog() {
         <div className="flex flex-wrap gap-4">
           <PhoneWidth>
             <HomeHeader greeting="สวัสดีตอนเช้า" name="คุณสมชาย ใจดี" notificationCount={1} />
-            <AppHeader title="สร้างดีล K Sure" left="back" onLeft={() => toast.success("ย้อนกลับ")} />
+            <AppHeader title="สร้างดีล P Sure" left="back" onLeft={() => toast.success("ย้อนกลับ")} />
             <AppHeader title="สถานะดีล" left="back" right="share" onLeft={() => {}} />
             <AppHeader title="ส่งคำขอ" left="close" right="menu" onLeft={() => {}} />
             <BottomNav active="home" notificationCount={1} />

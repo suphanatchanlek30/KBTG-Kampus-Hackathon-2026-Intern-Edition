@@ -1,6 +1,6 @@
 # Frontend
 
-Next.js application for the K Sure prototype.
+Next.js application for the P Sure prototype.
 
 ## Start locally
 

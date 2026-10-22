@@ -21,7 +21,7 @@ export function RequestCard({ invite }: { invite: PendingInviteDTO }) {
       )}
       <div className="flex items-center gap-3">
         <div className="flex size-[42px] shrink-0 items-center justify-center rounded-tile border border-line bg-card">
-          <Image src={brand.mark.src} alt="" width={20} height={19} />
+          <Image src={brand.mark.src} alt="" width={19} height={20} />
         </div>
         <div className="flex min-w-0 flex-1 flex-col">
           <p className="text-header">คำขอ {brand.name} ใหม่</p>

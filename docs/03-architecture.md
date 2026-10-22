@@ -1,6 +1,6 @@
 # Architecture
 
-K Sure has a Next.js frontend and a Go/Fiber API backed by PostgreSQL. It supports local mock data for rapid UI work and the API for integrated flows.
+P Sure has a Next.js frontend and a Go/Fiber API backed by PostgreSQL. It supports local mock data for rapid UI work and the API for integrated flows.
 
 ```mermaid
 flowchart LR
