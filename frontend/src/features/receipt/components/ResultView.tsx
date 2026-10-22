@@ -110,8 +110,8 @@ export function ResultView({
         className="mt-2 flex w-full flex-col gap-2.5 rounded-card bg-white p-4 text-left text-ink"
         {...enter(0.42, { y: 32, spring: SPRING_CARD })}
       >
-        <div className="flex h-[21px] items-center justify-between">
-          <Image src={brand.logo.src} alt={brand.name} width={70} height={21} className="h-[21px] w-[70px]" />
+        <div className="flex h-[22px] items-center justify-between">
+          <Image src={brand.logo.src} alt={brand.name} width={70} height={22} className="h-[22px] w-[70px]" />
           <span className="text-micro text-ink-2">สรุปดีล</span>
         </div>
         {deal.tranches.map((t) => {

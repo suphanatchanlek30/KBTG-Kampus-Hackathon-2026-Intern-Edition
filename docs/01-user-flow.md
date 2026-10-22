@@ -1,6 +1,6 @@
 # Product Flow
 
-K Sure is a prototype that demonstrates a safer rental-reservation flow. A tenant holds funds in the prototype, then releases each amount only after the relevant milestone. No real banking transaction occurs.
+P Sure is a prototype that demonstrates a safer rental-reservation flow. A tenant holds funds in the prototype, then releases each amount only after the relevant milestone. No real banking transaction occurs.
 
 ## Roles
 

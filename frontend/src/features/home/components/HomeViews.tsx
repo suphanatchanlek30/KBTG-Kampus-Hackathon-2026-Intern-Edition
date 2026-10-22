@@ -36,7 +36,7 @@ export function LandlordHomeView({ home, onMenu, onBell }: HomeViewProps) {
         <ActiveDealCard key={d.dealId} deal={d} />
       ))}
       <BalanceCard account={home.me.account} />
-      <ServiceGrid kSureHref="/deals/new" />
+      <ServiceGrid pSureHref="/deals/new" />
       <PromoBanner href="/deals/new" />
     </AppShell>
   );
@@ -66,7 +66,7 @@ export function TenantHomeView({ home, onMenu, onBell }: HomeViewProps) {
         <ActiveDealCard key={d.dealId} deal={d} />
       ))}
       <BalanceCard account={home.me.account} />
-      <ServiceGrid kSureHref={invite && `/invites/${invite.shareCode}`} compact />
+      <ServiceGrid pSureHref={invite && `/invites/${invite.shareCode}`} compact />
       <TipBanner />
     </AppShell>
   );

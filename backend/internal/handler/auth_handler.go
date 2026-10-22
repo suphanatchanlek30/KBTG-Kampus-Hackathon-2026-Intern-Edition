@@ -6,9 +6,9 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 
-	"github.com/suphanatchanlek30/ksure/backend/internal/domain"
-	"github.com/suphanatchanlek30/ksure/backend/internal/platform/session"
-	"github.com/suphanatchanlek30/ksure/backend/internal/service"
+	"github.com/suphanatchanlek30/psure/backend/internal/domain"
+	"github.com/suphanatchanlek30/psure/backend/internal/platform/session"
+	"github.com/suphanatchanlek30/psure/backend/internal/service"
 )
 
 type AuthHandler struct {

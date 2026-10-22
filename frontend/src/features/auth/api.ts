@@ -2,6 +2,7 @@ import { env } from "@/config/env";
 import { api } from "@/lib/api/client";
 import { mockApi, type MockScenario } from "@/mocks/handlers";
 import { ApiError } from "@/lib/api/errors";
+import { readSandboxFlag, writeSandboxFlag } from "@/lib/sandbox-flag";
 import type { DemoScenario, Role, SandboxDTO } from "@/types/api";
 
 const USERNAME: Record<Role, string> = { LANDLORD: "landlord", TENANT: "tenant" };
@@ -33,15 +34,13 @@ export function hardNavigate(path: string) {
   window.location.replace(path);
 }
 
-const SANDBOX_FLAG = "ksure.sandbox";
-
 /**
  * Remembers where this browser signs in again after its session ends.
  * Off means it picked a shared account on /login; anything else goes to its own sandbox on /play.
  */
 export function setSandboxFlag(on: boolean) {
   try {
-    localStorage.setItem(SANDBOX_FLAG, on ? "1" : "0");
+    writeSandboxFlag(on ? "1" : "0");
   } catch {
     // Storage can be unavailable (private mode); the flag is only a convenience.
   }
@@ -49,7 +48,7 @@ export function setSandboxFlag(on: boolean) {
 
 export function hasSandboxFlag(): boolean {
   try {
-    return localStorage.getItem(SANDBOX_FLAG) !== "0";
+    return readSandboxFlag() !== "0";
   } catch {
     return false;
   }

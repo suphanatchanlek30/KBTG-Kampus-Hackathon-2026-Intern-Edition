@@ -15,13 +15,13 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/suphanatchanlek30/ksure/backend/internal/platform/clock"
-	"github.com/suphanatchanlek30/ksure/backend/internal/platform/database"
-	"github.com/suphanatchanlek30/ksure/backend/internal/platform/session"
-	"github.com/suphanatchanlek30/ksure/backend/internal/repository"
-	"github.com/suphanatchanlek30/ksure/backend/internal/server"
-	"github.com/suphanatchanlek30/ksure/backend/internal/service"
-	"github.com/suphanatchanlek30/ksure/backend/migrations"
+	"github.com/suphanatchanlek30/psure/backend/internal/platform/clock"
+	"github.com/suphanatchanlek30/psure/backend/internal/platform/database"
+	"github.com/suphanatchanlek30/psure/backend/internal/platform/session"
+	"github.com/suphanatchanlek30/psure/backend/internal/repository"
+	"github.com/suphanatchanlek30/psure/backend/internal/server"
+	"github.com/suphanatchanlek30/psure/backend/internal/service"
+	"github.com/suphanatchanlek30/psure/backend/migrations"
 )
 
 var (

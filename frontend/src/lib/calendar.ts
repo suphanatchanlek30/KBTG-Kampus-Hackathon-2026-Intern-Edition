@@ -18,7 +18,7 @@ const toUtcStamp = (iso: string) =>
 const escapeText = (s: string) => s.replace(/[\\;,]/g, (m) => `\\${m}`).replace(/\n/g, "\\n");
 
 export function buildIcs(event: CalendarEvent): string {
-  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//K Sure//Prototype//TH", "BEGIN:VEVENT"];
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//P Sure//Prototype//TH", "BEGIN:VEVENT"];
   lines.push(`UID:${event.uid}`, `DTSTAMP:${toUtcStamp(new Date().toISOString())}`);
   if (event.allDay) {
     const day = event.start.slice(0, 10).replace(/-/g, "");

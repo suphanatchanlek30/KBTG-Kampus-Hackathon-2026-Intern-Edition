@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: K Sure API (Prototype)
+  title: P Sure API (Prototype)
   version: 0.1.0
   description: |
     Money uses integer satang. Times use offset ISO 8601. Every response returns X-Request-ID.

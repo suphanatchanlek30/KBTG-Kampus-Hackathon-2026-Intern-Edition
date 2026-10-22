@@ -310,7 +310,7 @@ export const mockApi = {
               code: "OFF_DEAL_PAYMENT",
               dealId: deal.id,
               unitNo: deal.property.unitNo,
-              message: `บัญชีนี้เป็นคู่ดีล K Sure ของคุณ (ห้อง ${deal.property.unitNo}) ที่ยังไม่จบ`,
+              message: `บัญชีนี้เป็นคู่ดีล P Sure ของคุณ (ห้อง ${deal.property.unitNo}) ที่ยังไม่จบ`,
             }
           : null,
     });

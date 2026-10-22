@@ -3,8 +3,8 @@ package middleware
 import (
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/suphanatchanlek30/ksure/backend/internal/domain"
-	"github.com/suphanatchanlek30/ksure/backend/internal/platform/session"
+	"github.com/suphanatchanlek30/psure/backend/internal/domain"
+	"github.com/suphanatchanlek30/psure/backend/internal/platform/session"
 )
 
 type actorKey struct{}

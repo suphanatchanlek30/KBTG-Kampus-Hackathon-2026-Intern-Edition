@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/suphanatchanlek30/ksure/backend/internal/domain"
+	"github.com/suphanatchanlek30/psure/backend/internal/domain"
 )
 
 func (s *DealService) Calendar(ctx context.Context, actor domain.Actor, rawID string) (body []byte, filename string, err error) {
@@ -29,10 +29,10 @@ func (s *DealService) Calendar(ctx context.Context, actor domain.Actor, rawID st
 	line := func(s string) { b.WriteString(s + "\r\n") }
 	line("BEGIN:VCALENDAR")
 	line("VERSION:2.0")
-	line("PRODID:-//K Sure Prototype//TH")
+	line("PRODID:-//P Sure Prototype//TH")
 	line("CALSCALE:GREGORIAN")
 	line("BEGIN:VEVENT")
-	line("UID:" + deal.ID + "-viewing@ksure")
+	line("UID:" + deal.ID + "-viewing@psure")
 	line("DTSTAMP:" + stamp)
 	line("DTSTART:" + viewing.UTC().Format("20060102T150405Z"))
 	line("DTEND:" + viewing.Add(time.Hour).UTC().Format("20060102T150405Z"))
@@ -40,7 +40,7 @@ func (s *DealService) Calendar(ctx context.Context, actor domain.Actor, rawID st
 	line("DESCRIPTION:" + icsText("ยืนยันว่าดูห้องแล้ว = ปล่อยค่าจอง ("+deal.RefNo+")"))
 	line("END:VEVENT")
 	line("BEGIN:VEVENT")
-	line("UID:" + deal.ID + "-move-in@ksure")
+	line("UID:" + deal.ID + "-move-in@psure")
 	line("DTSTAMP:" + stamp)
 	line("DTSTART;VALUE=DATE:" + moveIn.Format("20060102"))
 	line("DTEND;VALUE=DATE:" + moveIn.AddDate(0, 0, 1).Format("20060102"))
@@ -48,7 +48,7 @@ func (s *DealService) Calendar(ctx context.Context, actor domain.Actor, rawID st
 	line("DESCRIPTION:" + icsText("ยืนยันการเข้าอยู่ = ปล่อยมัดจำหลัก ("+deal.RefNo+")"))
 	line("END:VEVENT")
 	line("END:VCALENDAR")
-	return []byte(b.String()), "ksure-" + deal.RefNo + ".ics", nil
+	return []byte(b.String()), "psure-" + deal.RefNo + ".ics", nil
 }
 
 func icsText(s string) string {

@@ -1,5 +1,6 @@
 import axios, { isAxiosError } from "axios";
 import { ApiError } from "./errors";
+import { readSandboxFlag } from "@/lib/sandbox-flag";
 
 type ErrorBody = { error?: { code?: string; message?: string; requestId?: string } };
 
@@ -34,7 +35,7 @@ api.interceptors.response.use(
 
 function sharedLoginChosen(): boolean {
   try {
-    return localStorage.getItem("ksure.sandbox") === "0";
+    return readSandboxFlag() === "0";
   } catch {
     return false;
   }

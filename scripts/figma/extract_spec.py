@@ -1,4 +1,4 @@
-"""Flatten the K Sure UI v3-final Figma frame into per-screen spec files.
+"""Flatten the P Sure UI v3-final Figma frame into per-screen spec files.
 
 usage: python3 extract_spec.py <final.json> <out_dir>
 Writes <out_dir>/<SCREEN>.json (simplified node tree) and <SCREEN>.md (readable tree).
@@ -150,7 +150,7 @@ def main():
         b = n["absoluteBoundingBox"]
         spec = simplify(n, b["x"], b["y"])
         (out_dir / f"{code}.json").write_text(json.dumps(spec, ensure_ascii=False, indent=1))
-        header = [f"# {code} — Figma specification (K Sure UI v3-final, node `{node_id}`)", "",
+        header = [f"# {code} — Figma specification (P Sure UI v3-final, node `{node_id}`)", "",
                   "> Generated from the Figma REST API. Coordinates use the 393 × 852 phone frame in pixels.", ""]
         (out_dir / f"{code}.md").write_text("\n".join(header + to_md(spec)) + "\n")
         print(code, "ok")

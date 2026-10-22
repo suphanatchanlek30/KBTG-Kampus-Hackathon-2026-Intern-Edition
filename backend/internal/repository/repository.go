@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/suphanatchanlek30/ksure/backend/internal/repository/db"
+	"github.com/suphanatchanlek30/psure/backend/internal/repository/db"
 )
 
 type Repository struct {
