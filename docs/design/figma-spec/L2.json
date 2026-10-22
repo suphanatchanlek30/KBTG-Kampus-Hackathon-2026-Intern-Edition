@@ -434,9 +434,9 @@
      "id": "29:432",
      "type": "FRAME",
      "name": "Container",
-     "x": 142.5,
+     "x": 143.0,
      "y": 64.0,
-     "w": 108.0,
+     "w": 107.0,
      "h": 24.0,
      "layout": {
       "mode": "VERTICAL",
@@ -454,15 +454,15 @@
       {
        "id": "29:433",
        "type": "TEXT",
-       "name": "สร้างดีล K Sure",
-       "x": 142.5,
+       "name": "สร้างดีล P Sure",
+       "x": 143.0,
        "y": 64.0,
-       "w": 108.0,
+       "w": 107.0,
        "h": 24.0,
        "fills": [
         "#FFFFFF"
        ],
-       "text": "สร้างดีล K Sure",
+       "text": "สร้างดีล P Sure",
        "font": {
         "family": "Poppins",
         "weight": 600,

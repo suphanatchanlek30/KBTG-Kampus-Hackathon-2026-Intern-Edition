@@ -9,11 +9,11 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 
-	"github.com/suphanatchanlek30/ksure/backend/internal/domain"
-	"github.com/suphanatchanlek30/ksure/backend/internal/handler"
-	"github.com/suphanatchanlek30/ksure/backend/internal/platform/session"
-	"github.com/suphanatchanlek30/ksure/backend/internal/server/middleware"
-	"github.com/suphanatchanlek30/ksure/backend/internal/service"
+	"github.com/suphanatchanlek30/psure/backend/internal/domain"
+	"github.com/suphanatchanlek30/psure/backend/internal/handler"
+	"github.com/suphanatchanlek30/psure/backend/internal/platform/session"
+	"github.com/suphanatchanlek30/psure/backend/internal/server/middleware"
+	"github.com/suphanatchanlek30/psure/backend/internal/service"
 )
 
 type Deps struct {
@@ -31,7 +31,7 @@ type Deps struct {
 
 func New(deps Deps) *fiber.App {
 	app := fiber.New(fiber.Config{
-		AppName:      "ksure-api",
+		AppName:      "psure-api",
 		ErrorHandler: errorHandler(deps.Log),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,

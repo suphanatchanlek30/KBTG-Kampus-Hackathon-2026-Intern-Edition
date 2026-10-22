@@ -6,7 +6,7 @@ This directory stores source assets and their usage notes. Runtime assets belong
 | --- | --- |
 | `app-icons/` | Source files for installable-app icons. |
 | `backgrounds/` | Source artwork for generated screen backgrounds. |
-| `brand/` | K Sure logo assets. |
+| `brand/` | P Sure logo assets. |
 | `fonts/` | Font source and licensing notes. |
 | `icons/` | Reusable icon sources. |
 | `illustrations/` | Product illustration sources. |

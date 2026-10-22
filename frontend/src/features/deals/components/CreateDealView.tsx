@@ -48,7 +48,7 @@ export function CreateDealView({ draft, property, onChange, onNext }: CreateDeal
       background={<ScreenBackground screen="L2" />}
       header={
         <>
-          <AppHeader title="สร้างดีล K Sure" left="back" right="menu" />
+          <AppHeader title="สร้างดีล P Sure" left="back" right="menu" />
           <StepTabs steps={DEAL_STEPS} current={0} />
         </>
       }

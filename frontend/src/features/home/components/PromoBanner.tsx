@@ -18,7 +18,7 @@ export function PromoBanner({ href }: { href: string }) {
 
       <div className="relative flex w-[211px] flex-col gap-[5px]">
         <div className="flex items-center gap-2">
-          <Image src={brand.logo.src} alt={brand.name} width={74} height={23} className="h-[23px] w-[74px]" />
+          <Image src={brand.logo.src} alt={brand.name} width={73} height={23} className="h-[23px] w-[73px]" />
           <Badge variant="new">ใหม่</Badge>
         </div>
         <p className="text-promo-title whitespace-nowrap">

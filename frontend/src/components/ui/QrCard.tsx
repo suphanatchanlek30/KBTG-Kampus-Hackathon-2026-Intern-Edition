@@ -25,7 +25,7 @@ export function QrCard({ value }: { value: string }) {
         title="QR คำขอ"
       />
       <div className="absolute flex size-11 items-center justify-center rounded-[13px] border-[3px] border-white bg-ink">
-        <Image src={brand.mark.src} alt="" width={22} height={21} />
+        <Image src={brand.mark.src} alt="" width={21} height={22} />
       </div>
     </motion.div>
   );

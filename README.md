@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/brand/ksure-logo-300w.png" alt="K Sure" width="220" />
+<img src="assets/brand/psure-logo-300w.png" alt="P Sure" width="220" />
 
 <br />
 <br />
@@ -32,7 +32,7 @@ _Safer rental deposits — the tenant holds the money until the room is real._
 
 </div>
 
-> K Sure เป็น **ต้นแบบ (prototype)** ที่พัฒนาขึ้นสำหรับงาน Hackathon เท่านั้น ยอดเงิน บัญชี และการยืนยันตัวตนทั้งหมดเป็น **ข้อมูลจำลอง** ไม่มีการทำธุรกรรมทางการเงินจริง
+> P Sure เป็น **ต้นแบบ (prototype)** ที่พัฒนาขึ้นสำหรับงาน Hackathon เท่านั้น ยอดเงิน บัญชี และการยืนยันตัวตนทั้งหมดเป็น **ข้อมูลจำลอง** ไม่มีการทำธุรกรรมทางการเงินจริง
 
 ---
 
@@ -40,7 +40,7 @@ _Safer rental deposits — the tenant holds the money until the room is real._
 
 - [สรุปโครงการ](#สรุปโครงการ)
 - [ปัญหาที่ต้องการแก้](#ปัญหาที่ต้องการแก้)
-- [แนวทางของ K Sure](#แนวทางของ-k-sure)
+- [แนวทางของ P Sure](#แนวทางของ-p-sure)
 - [ฟีเจอร์หลัก](#ฟีเจอร์หลัก)
 - [ขั้นตอนการใช้งาน](#ขั้นตอนการใช้งาน)
 - [หน้าจอของระบบ](#หน้าจอของระบบ)
@@ -59,7 +59,7 @@ _Safer rental deposits — the tenant holds the money until the room is real._
 
 | หัวข้อ | รายละเอียด |
 | --- | --- |
-| **ชื่อโครงการ** | K Sure |
+| **ชื่อโครงการ** | P Sure |
 | **การแข่งขัน** | KBTG Kampus Hackathon 2026 (Intern Edition) |
 | **Track** | Software Engineering & Quality |
 | **ประเภท** | Web application ต้นแบบ (Mobile-first, รองรับ PWA) |
@@ -82,9 +82,9 @@ _Safer rental deposits — the tenant holds the money until the room is real._
 
 ---
 
-## แนวทางของ K Sure
+## แนวทางของ P Sure
 
-K Sure ทำหน้าที่เป็นตัวกลางที่ **สร้างความเชื่อมั่นให้ทั้งสองฝ่าย** โดยไม่ต้องให้เงินออกจากมือผู้เช่าก่อนเวลา
+P Sure ทำหน้าที่เป็นตัวกลางที่ **สร้างความเชื่อมั่นให้ทั้งสองฝ่าย** โดยไม่ต้องให้เงินออกจากมือผู้เช่าก่อนเวลา
 
 | ผู้เช่าได้อะไร | ผู้ให้เช่าได้อะไร |
 | --- | --- |
@@ -114,7 +114,7 @@ K Sure ทำหน้าที่เป็นตัวกลางที่ **�
 sequenceDiagram
   autonumber
   actor L as ผู้ให้เช่า
-  participant K as K Sure
+  participant K as P Sure
   actor T as ผู้เช่า
 
   L->>K: สร้างคำขอเช่า (ข้อมูลห้อง, เงินจอง, เงินมัดจำ)
@@ -372,7 +372,7 @@ make test
 
 <div align="center">
 
-**K Sure** — พัฒนาขึ้นสำหรับ KBTG Kampus Hackathon 2026 (Intern Edition) · Track Software Engineering & Quality
+**P Sure** — พัฒนาขึ้นสำหรับ KBTG Kampus Hackathon 2026 (Intern Edition) · Track Software Engineering & Quality
 
 โปรเจกต์นี้เป็นต้นแบบเพื่อการสาธิตเท่านั้น **ห้ามใช้ทำธุรกรรมทางการเงินจริง**
 

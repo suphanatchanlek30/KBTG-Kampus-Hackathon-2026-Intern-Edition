@@ -44,7 +44,7 @@ export function CompleteScreen() {
         const node = findVisible('[data-export="proof"]');
         if (!node) return;
         try {
-          if ((await saveImage(node, `ksure-proof-${deal.refNo}.png`)) === "downloaded")
+          if ((await saveImage(node, `psure-proof-${deal.refNo}.png`)) === "downloaded")
             toast.success("บันทึกหลักฐานแล้ว");
         } catch (err) {
           toast.error(errorMessage(err));

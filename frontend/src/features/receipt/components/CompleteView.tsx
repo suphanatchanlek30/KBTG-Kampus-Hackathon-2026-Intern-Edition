@@ -96,8 +96,8 @@ export function CompleteView({ deal, account, onClose, onShare, onDone, onSavePr
                 src={brand.logo.src}
                 alt={brand.name}
                 width={70}
-                height={21}
-                className="h-[21px] w-[70px]"
+                height={22}
+                className="h-[22px] w-[70px]"
                 loading="eager"
               />
               <span className="text-micro text-ink-2">หลักฐานดีล</span>

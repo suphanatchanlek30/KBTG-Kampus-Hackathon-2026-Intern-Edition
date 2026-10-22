@@ -32,7 +32,7 @@ function cameraIssueFrom(kind: string): CameraIssue {
 
 const CAMERA_ISSUE_COPY: Record<CameraIssue, { title: string; description: string }> = {
   "invalid-code": {
-    title: "QR นี้ไม่ใช่คำขอ K Sure",
+    title: "QR นี้ไม่ใช่คำขอ P Sure",
     description: "ลองสแกนใหม่ หรือกรอกรหัสคำขอด้านล่าง",
   },
   permission: {
@@ -66,7 +66,7 @@ export function ScanScreen() {
 
       if (!invitationId) {
         setCameraIssue("invalid-code");
-        toast.error("QR นี้ไม่ใช่คำขอ K Sure");
+        toast.error("QR นี้ไม่ใช่คำขอ P Sure");
         return;
       }
 
@@ -85,7 +85,7 @@ export function ScanScreen() {
   return (
     <AppShell
       enter="modal"
-      header={<AppHeader title="สแกนคำขอ K Sure" onLeft={() => router.push("/home")} />}
+      header={<AppHeader title="สแกนคำขอ P Sure" onLeft={() => router.push("/home")} />}
       footer={
         <StickyFooter>
           <FormField label="กรอกรหัสคำขอ" htmlFor="manual-invitation-code">
@@ -155,7 +155,7 @@ export function ScanScreen() {
         <div className="mt-5 flex items-start gap-3 rounded-card border border-line bg-card px-4 py-3">
           <ScanLine className="mt-0.5 h-5 w-5 shrink-0 text-neon" aria-hidden="true" />
           <p className="text-sm leading-6 text-muted">
-            รองรับ QR ของ K Sure และรหัสคำขอ เช่น <span className="font-semibold tracking-wide text-neon">KS-AB12CD</span>
+            รองรับ QR ของ P Sure และรหัสคำขอ เช่น <span className="font-semibold tracking-wide text-neon">KS-AB12CD</span>
           </p>
         </div>
       </main>

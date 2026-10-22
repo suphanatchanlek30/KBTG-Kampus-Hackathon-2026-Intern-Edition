@@ -1674,7 +1674,7 @@
           {
            "id": "29:1637",
            "type": "TEXT",
-           "name": "กันไว้กับ K Sure",
+           "name": "กันไว้กับ P Sure",
            "x": 36.0,
            "y": 592.2,
            "w": 82.0,
@@ -1682,7 +1682,7 @@
            "fills": [
             "#7A7F87"
            ],
-           "text": "กันไว้กับ K Sure",
+           "text": "กันไว้กับ P Sure",
            "font": {
             "family": "Poppins",
             "weight": 400,
